@@ -10,12 +10,24 @@ permissions:
 
 jobs:
   build:
-    name: Build (${{ matrix.os }})
+    name: Build (${{ matrix.os }} / ${{ matrix.target }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            use_cross: false
+          - os: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
+            use_cross: true
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            use_cross: false
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            use_cross: false
 
     steps:
       - name: Checkout
@@ -27,31 +39,50 @@ jobs:
       - name: Cache cargo
         uses: Swatinem/rust-cache@v2
         with:
-          prefix-key: ${{ runner.os }}-release
+          prefix-key: ${{ runner.os }}-release-${{ matrix.target }}
+
+      - name: Install Linux deps (libudev)
+        if: startsWith(matrix.os, 'ubuntu')
+        run: sudo apt-get update && sudo apt-get install -y pkg-config libudev-dev
+
+      - name: Install cross
+        if: matrix.use_cross == true
+        run: cargo install cross --locked
 
       - name: Build release
-        run: cargo build --locked --release
+        run: |
+          if [ "${{ matrix.use_cross }}" = "true" ]; then
+            cross build --locked --release --target ${{ matrix.target }}
+          else
+            cargo build --locked --release --target ${{ matrix.target }}
+          fi
+        shell: bash
 
       - name: Copy binary (unix)
         if: runner.os != 'Windows'
         run: |
-          bin=target/release/tuiserial
-          cp "$bin" "tuiserial-${{ runner.os }}"
+          bin=target/${{ matrix.target }}/release/tuiserial
+          cp "$bin" "tuiserial-${{ matrix.target }}"
 
       - name: Copy binary (windows)
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          Copy-Item "target/release/tuiserial.exe" "tuiserial-${{ runner.os }}.exe"
+          Copy-Item "target/${{ matrix.target }}/release/tuiserial.exe" "tuiserial-${{ matrix.target }}.exe"
 
-      - name: Upload artifact
+      - name: Upload artifact (unix)
+        if: runner.os != 'Windows'
         uses: actions/upload-artifact@v4
         with:
-          name: tuiserial-${{ matrix.os }}
-          path: |
-            tuiserial-${{ runner.os }}
-            tuiserial-${{ runner.os }}.exe
-          if-no-files-found: error
+          name: tuiserial-${{ matrix.target }}
+          path: tuiserial-${{ matrix.target }}
+
+      - name: Upload artifact (windows)
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: tuiserial-${{ matrix.target }}
+          path: tuiserial-${{ matrix.target }}.exe
 
   release:
     name: Publish release
