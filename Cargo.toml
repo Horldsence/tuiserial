@@ -27,6 +27,9 @@ assets = [
     ["target/release/tuiserial", "usr/bin/", "755"],
 ]
 
+[package.metadata.deb.variants.aarch64]
+depends = "$auto, libudev1"
+
 [package.metadata.generate-rpm]
 assets = [
     { source = "target/release/tuiserial", dest = "/usr/bin/tuiserial", mode = "755" },

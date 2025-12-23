@@ -46,45 +46,74 @@ jobs:
         with:
           prefix-key: ${{ runner.os }}-release-${{ matrix.target }}
 
-      - name: Install Linux deps (libudev)
-        if: startsWith(matrix.os, 'ubuntu')
+      - name: Install Linux deps (for x86_64)
+        if: startsWith(matrix.os, 'ubuntu') && matrix.target == 'x86_64-unknown-linux-gnu'
         run: sudo apt-get update && sudo apt-get install -y pkg-config libudev-dev
 
-      - name: Install packaging tools
-        if: startsWith(matrix.os, 'ubuntu')
+      - name: Install packaging tools (for x86_64)
+        if: startsWith(matrix.os, 'ubuntu') && matrix.target == 'x86_64-unknown-linux-gnu'
         run: cargo install cargo-deb cargo-generate-rpm
 
-      - name: Install cross
-        if: matrix.use_cross == true
-        run: cargo install cross --locked
+      - name: Build release (x86_64)
+        if: startsWith(matrix.os, 'ubuntu') && matrix.target == 'x86_64-unknown-linux-gnu'
+        run: cargo build --locked --release --target ${{ matrix.target }}
 
-      - name: Build release
+      - name: Build deb package (x86_64)
+        if: startsWith(matrix.os, 'ubuntu') && matrix.target == 'x86_64-unknown-linux-gnu'
         run: |
-          if [ "${{ matrix.use_cross }}" = "true" ]; then
-            cross build --locked --release --target ${{ matrix.target }}
-          else
-            cargo build --locked --release --target ${{ matrix.target }}
-          fi
-        shell: bash
-
-      - name: Build deb package
-        if: startsWith(matrix.os, 'ubuntu')
-        run: |
-          cargo deb --target ${{ matrix.target }} --no-build
+          cargo deb --target ${{ matrix.target }} --no-build --no-strip
           mkdir -p packages
           cp target/${{ matrix.target }}/debian/*.deb packages/tuiserial-${{ matrix.target }}.deb
 
-      - name: Build rpm package
-        if: startsWith(matrix.os, 'ubuntu')
+      - name: Build rpm package (x86_64)
+        if: startsWith(matrix.os, 'ubuntu') && matrix.target == 'x86_64-unknown-linux-gnu'
         run: |
           cargo generate-rpm --target ${{ matrix.target }}
           cp target/${{ matrix.target }}/generate-rpm/*.rpm packages/tuiserial-${{ matrix.target }}.rpm
+
+      - name: Install cross-compilation toolchain (ARM64)
+        if: startsWith(matrix.os, 'ubuntu') && matrix.target == 'aarch64-unknown-linux-gnu'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y crossbuild-essential-arm64 libudev-dev:arm64
+          sudo dpkg --add-architecture arm64
+
+      - name: Build release (ARM64)
+        if: startsWith(matrix.os, 'ubuntu') && matrix.target == 'aarch64-unknown-linux-gnu'
+        run: |
+          export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc
+          export PKG_CONFIG_SYSROOT_DIR=/usr/aarch64-linux-gnu
+          export PKG_CONFIG_PATH=/usr/lib/aarch64-linux-gnu/pkgconfig
+          cargo build --locked --release --target ${{ matrix.target }}
+
+      - name: Build deb package (ARM64)
+        if: startsWith(matrix.os, 'ubuntu') && matrix.target == 'aarch64-unknown-linux-gnu'
+        run: |
+          cargo install cargo-deb
+          cargo deb --target ${{ matrix.target }} --no-build --no-strip
+          mkdir -p packages
+          cp target/${{ matrix.target }}/debian/*.deb packages/tuiserial-${{ matrix.target }}.deb
+
+      - name: Build rpm package (ARM64)
+        if: startsWith(matrix.os, 'ubuntu') && matrix.target == 'aarch64-unknown-linux-gnu'
+        run: |
+          cargo install cargo-generate-rpm
+          cargo generate-rpm --target ${{ matrix.target }}
+          cp target/${{ matrix.target }}/generate-rpm/*.rpm packages/tuiserial-${{ matrix.target }}.rpm
+
+      - name: Build release (macOS)
+        if: runner.os == 'macOS'
+        run: cargo build --locked --release --target ${{ matrix.target }}
 
       - name: Copy binary (macOS)
         if: runner.os == 'macOS'
         run: |
           bin=target/${{ matrix.target }}/release/tuiserial
           cp "$bin" "tuiserial-${{ matrix.target }}"
+
+      - name: Build release (Windows)
+        if: runner.os == 'Windows'
+        run: cargo build --locked --release --target ${{ matrix.target }}
 
       - name: Copy binary (windows)
         if: runner.os == 'Windows'
