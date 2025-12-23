@@ -1,5 +1,6 @@
 use std::collections::VecDeque;
 use std::time::Instant;
+use chrono::{DateTime, Local};
 use ratatui::widgets::ListState;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -8,6 +9,29 @@ pub enum NotificationLevel {
     Warning,
     Error,
     Success,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum LogDirection {
+    Rx,
+    Tx,
+}
+
+#[derive(Debug, Clone)]
+pub struct LogEntry {
+    pub timestamp: DateTime<Local>,
+    pub direction: LogDirection,
+    pub data: Vec<u8>,
+}
+
+impl LogEntry {
+    pub fn new(direction: LogDirection, data: Vec<u8>) -> Self {
+        Self {
+            timestamp: Local::now(),
+            direction,
+            data,
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -112,58 +136,49 @@ impl Default for SerialConfig {
 
 pub const MAX_LOG_LINES: usize = 10000;
 
-pub struct RxBuffer {
-    buf: VecDeque<u8>,
-    rx_count: u64,
+#[derive(Debug, Default)]
+pub struct MessageLog {
+    pub entries: VecDeque<LogEntry>,
+    pub rx_count: u64,
+    pub tx_count: u64,
 }
 
-impl RxBuffer {
+impl MessageLog {
     pub fn new() -> Self {
         Self {
-            buf: VecDeque::with_capacity(MAX_LOG_LINES),
+            entries: VecDeque::with_capacity(MAX_LOG_LINES),
             rx_count: 0,
+            tx_count: 0,
         }
     }
 
-    pub fn push(&mut self, byte: u8) {
-        if self.buf.len() >= MAX_LOG_LINES {
-            self.buf.pop_front();
-        }
-        self.buf.push_back(byte);
+    pub fn push_rx(&mut self, data: Vec<u8>) {
+        self.push_entry(LogEntry::new(LogDirection::Rx, data));
         self.rx_count += 1;
     }
 
-    pub fn extend(&mut self, bytes: &[u8]) {
-        for &b in bytes {
-            self.push(b);
+    pub fn push_tx(&mut self, data: Vec<u8>) {
+        self.push_entry(LogEntry::new(LogDirection::Tx, data));
+        self.tx_count += 1;
+    }
+
+    fn push_entry(&mut self, entry: LogEntry) {
+        if self.entries.len() >= MAX_LOG_LINES {
+            self.entries.pop_front();
         }
+        self.entries.push_back(entry);
     }
 
     pub fn clear(&mut self) {
-        self.buf.clear();
-    }
-
-    pub fn as_slice(&self) -> &[u8] {
-        self.buf.as_slices().0
-    }
-
-    pub fn rx_count(&self) -> u64 {
-        self.rx_count
-    }
-
-    pub fn len(&self) -> usize {
-        self.buf.len()
-    }
-
-    pub fn is_empty(&self) -> bool {
-        self.buf.is_empty()
+        self.entries.clear();
+        self.rx_count = 0;
+        self.tx_count = 0;
     }
 }
 
 pub struct AppState {
     pub config: SerialConfig,
-    pub rx_buffer: RxBuffer,
-    pub tx_count: u64,
+    pub message_log: MessageLog,
     pub display_mode: DisplayMode,
     pub is_connected: bool,
     pub ports: Vec<String>,
@@ -205,8 +220,7 @@ impl Default for AppState {
 
         Self {
             config: SerialConfig::default(),
-            rx_buffer: RxBuffer::new(),
-            tx_count: 0,
+            message_log: MessageLog::new(),
             display_mode: DisplayMode::Hex,
             is_connected: false,
             ports: Vec::new(),
@@ -311,6 +325,20 @@ impl AppState {
             self.stop_bits_state.select(Some(next));
             self.config.stop_bits = self.stop_bits_options[next];
         }
+    }
+
+    pub fn toggle_tx_mode(&mut self) {
+        self.tx_mode = match self.tx_mode {
+            TxMode::Hex => TxMode::Ascii,
+            TxMode::Ascii => TxMode::Hex,
+        };
+    }
+
+    pub fn toggle_display_mode(&mut self) {
+        self.display_mode = match self.display_mode {
+            DisplayMode::Hex => DisplayMode::Text,
+            DisplayMode::Text => DisplayMode::Hex,
+        };
     }
 
     pub fn focus_next_field(&mut self) {

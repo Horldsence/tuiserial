@@ -6,7 +6,7 @@ use ratatui::{
     Frame,
 };
 
-use crate::model::{AppState, DisplayMode, FlowControl, FocusedField, Parity, TxMode, NotificationLevel};
+use crate::model::{AppState, DisplayMode, FlowControl, FocusedField, Parity, TxMode, NotificationLevel, LogDirection};
 
 pub fn draw(f: &mut Frame, app: &AppState) {
     let chunks = Layout::default()
@@ -219,47 +219,68 @@ fn draw_status_panel(f: &mut Frame, app: &AppState, area: Rect) {
 }
 
 fn draw_log_area(f: &mut Frame, app: &AppState, area: Rect) {
-    let rx_data = app.rx_buffer.as_slice();
-    let display_text = if rx_data.is_empty() {
-        "(等待数据...)".to_string()
-    } else {
-        match app.display_mode {
-            DisplayMode::Hex => {
-                let hex_str = crate::serial::bytes_to_hex(rx_data);
-                hex_str
-            }
-            DisplayMode::Text => {
-                crate::serial::bytes_to_string(rx_data)
-            }
-        }
+    let focused = app.focused_field == FocusedField::LogArea;
+    if app.message_log.entries.is_empty() {
+        let para = Paragraph::new("(等待数据...)")
+            .block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .border_style(if focused { Style::default().fg(Color::Yellow) } else { Style::default() })
+                    .title(" LOG ")
+                    .title_alignment(Alignment::Left),
+            )
+            .style(Style::default().fg(Color::DarkGray));
+        f.render_widget(para, area);
+        return;
+    }
+
+    let mut lines: Vec<Line> = Vec::new();
+    for entry in app.message_log.entries.iter() {
+        let time_color = match entry.direction {
+            LogDirection::Rx => Color::Cyan,
+            LogDirection::Tx => Color::Green,
+        };
+
+        let time_str = entry.timestamp.format("%H:%M:%S%.3f").to_string();
+        let dir_str = match entry.direction {
+            LogDirection::Rx => "RX",
+            LogDirection::Tx => "TX",
+        };
+
+        let data_str = match app.display_mode {
+            DisplayMode::Hex => crate::serial::bytes_to_hex(&entry.data),
+            DisplayMode::Text => crate::serial::bytes_to_string(&entry.data),
+        };
+
+        let mut spans: Vec<Span> = Vec::new();
+        spans.push(Span::styled(format!("[{} {}] ", time_str, dir_str), Style::default().fg(time_color)));
+        spans.push(Span::styled(data_str, Style::default().fg(Color::White)));
+        lines.push(Line::from(spans));
+    }
+
+    let title = match app.display_mode {
+        DisplayMode::Hex => " HEX (↑↓ 切换模式) ",
+        DisplayMode::Text => " TEXT (↑↓ 切换模式) ",
     };
 
-    let lines: Vec<Line> = if display_text == "(等待数据...)" {
-        vec![Line::from(Span::styled(
-            display_text,
-            Style::default().fg(Color::DarkGray),
-        ))]
+    let total_lines = lines.len() as u16;
+    let viewport_lines = area.height.saturating_sub(2).max(1); // minus borders
+    let max_scroll = total_lines.saturating_sub(viewport_lines);
+    let scroll_top = if app.auto_scroll {
+        max_scroll
     } else {
-        display_text
-            .lines()
-            .map(|l| Line::from(l.to_string()))
-            .collect()
-    };
-
-    let title = if app.display_mode == DisplayMode::Hex {
-        " HEX "
-    } else {
-        " TEXT "
+        app.scroll_offset.min(max_scroll)
     };
 
     let para = Paragraph::new(lines)
         .block(
             Block::default()
                 .borders(Borders::ALL)
+                .border_style(if focused { Style::default().fg(Color::Yellow) } else { Style::default() })
                 .title(title)
                 .title_alignment(Alignment::Left),
         )
-        .scroll((app.scroll_offset, 0));
+        .scroll((scroll_top, 0));
 
     f.render_widget(para, area);
 }
@@ -271,7 +292,7 @@ fn draw_tx_area(f: &mut Frame, app: &AppState, area: Rect) {
         TxMode::Ascii => "ASCII",
     };
     let title = if focused { 
-        format!(" 发送数据 [{} 模式] (Ctrl+X: 切换模式, Enter: 发送) ", mode_str)
+        format!(" 发送数据 [{} 模式] (↑↓ 切换模式, Enter: 发送) ", mode_str)
     } else {
         format!(" 发送数据 [{} 模式] ", mode_str)
     };
@@ -307,8 +328,8 @@ fn draw_control_area(f: &mut Frame, app: &AppState, area: Rect) {
     // Status bar
     let stats = format!(
         " Tx: {} │ Rx: {} │ RX Mode: {} │ Auto: {} ",
-        app.tx_count,
-        app.rx_buffer.rx_count(),
+        app.message_log.tx_count,
+        app.message_log.rx_count,
         if app.display_mode == DisplayMode::Hex {
             "HEX"
         } else {

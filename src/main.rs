@@ -13,7 +13,7 @@ mod serial;
 mod ui;
 mod handler;
 
-use model::{AppState, FocusedField, DisplayMode};
+use model::{AppState, FocusedField, DisplayMode, LogDirection, TxMode};
 use handler::SerialHandler;
 
 fn main() -> io::Result<()> {
@@ -72,10 +72,10 @@ fn run_app(mut terminal: Terminal<CrosstermBackend<io::Stdout>>) -> io::Result<(
         if handler.is_connected() {
             if let Ok(data) = handler.read() {
                 if !data.is_empty() {
-                    app.rx_buffer.extend(&data);
+                    app.message_log.push_rx(data.clone());
                     if app.auto_scroll {
-                        let lines_count = app.rx_buffer.len() / 16;
-                        app.scroll_offset = lines_count.max(0) as u16;
+                        let lines_count = app.message_log.entries.len() as u16;
+                        app.scroll_offset = lines_count.saturating_sub(1);
                     }
                 }
             }
@@ -117,6 +117,16 @@ fn handle_key_event(key: KeyEvent, app: &mut AppState, handler: &mut SerialHandl
                 }
                 return false;
             }
+            KeyCode::Up => {
+                app.toggle_tx_mode();
+                app.add_info(format!("发送模式: {}", match app.tx_mode { TxMode::Hex => "HEX", TxMode::Ascii => "ASCII" }));
+                return false;
+            }
+            KeyCode::Down => {
+                app.toggle_tx_mode();
+                app.add_info(format!("发送模式: {}", match app.tx_mode { TxMode::Hex => "HEX", TxMode::Ascii => "ASCII" }));
+                return false;
+            }
             KeyCode::Delete => {
                 if app.tx_cursor < app.tx_input.len() {
                     app.tx_input.remove(app.tx_cursor);
@@ -147,11 +157,33 @@ fn handle_key_event(key: KeyEvent, app: &mut AppState, handler: &mut SerialHandl
                 // Send data
                 if !app.tx_input.is_empty() {
                     if handler.is_connected() {
-                        // TODO: implement actual sending based on tx_mode
-                        app.tx_count += app.tx_input.len() as u64;
-                        app.add_success(format!("已发送: {}", app.tx_input));
-                        app.tx_input.clear();
-                        app.tx_cursor = 0;
+                        let bytes: Result<Vec<u8>, String> = match app.tx_mode {
+                            TxMode::Ascii => Ok(app.tx_input.as_bytes().to_vec()),
+                            TxMode::Hex => crate::serial::hex_to_bytes(&app.tx_input),
+                        };
+
+                        match bytes {
+                            Ok(data) => {
+                                match handler.send(&data) {
+                                    Ok(_sent) => {
+                                        app.message_log.push_tx(data.clone());
+                                        app.add_success("已发送");
+                                        app.tx_input.clear();
+                                        app.tx_cursor = 0;
+                                        if app.auto_scroll {
+                                            let lines_count = app.message_log.entries.len() as u16;
+                                            app.scroll_offset = lines_count.saturating_sub(1);
+                                        }
+                                    }
+                                    Err(e) => {
+                                        app.add_error(format!("发送失败: {}", e));
+                                    }
+                                }
+                            }
+                            Err(e) => {
+                                app.add_error(format!("HEX 格式错误: {}", e));
+                            }
+                        }
                     } else {
                         app.add_error("未连接串口");
                     }
@@ -243,7 +275,9 @@ fn handle_key_event(key: KeyEvent, app: &mut AppState, handler: &mut SerialHandl
                     }
                 }
                 FocusedField::LogArea => {
-                    app.scroll_offset = app.scroll_offset.saturating_sub(3);
+                    app.toggle_display_mode();
+                    let mode_str = match app.display_mode { DisplayMode::Hex => "HEX", DisplayMode::Text => "TEXT" };
+                    app.add_info(format!("显示模式: {}", mode_str));
                 }
                 _ => {}
             }
@@ -289,7 +323,9 @@ fn handle_key_event(key: KeyEvent, app: &mut AppState, handler: &mut SerialHandl
                     }
                 }
                 FocusedField::LogArea => {
-                    app.scroll_offset = app.scroll_offset.saturating_add(3);
+                    app.toggle_display_mode();
+                    let mode_str = match app.display_mode { DisplayMode::Hex => "HEX", DisplayMode::Text => "TEXT" };
+                    app.add_info(format!("显示模式: {}", mode_str));
                 }
                 _ => {}
             }
@@ -324,10 +360,7 @@ fn handle_key_event(key: KeyEvent, app: &mut AppState, handler: &mut SerialHandl
 
         // Display mode toggle (HEX/TEXT)
         KeyCode::Char('x') => {
-            app.display_mode = match app.display_mode {
-                DisplayMode::Hex => DisplayMode::Text,
-                DisplayMode::Text => DisplayMode::Hex,
-            };
+            app.toggle_display_mode();
             let mode_str = match app.display_mode {
                 DisplayMode::Hex => "HEX",
                 DisplayMode::Text => "TEXT",
@@ -344,8 +377,8 @@ fn handle_key_event(key: KeyEvent, app: &mut AppState, handler: &mut SerialHandl
 
         // Clear buffer
         KeyCode::Char('c') => {
-            app.rx_buffer.clear();
-            app.add_info("已清空接收缓冲区");
+            app.message_log.clear();
+            app.add_info("已清空消息记录");
         }
 
         // Parity toggle
@@ -374,8 +407,8 @@ fn handle_key_event(key: KeyEvent, app: &mut AppState, handler: &mut SerialHandl
             app.scroll_offset = 0;
         }
         KeyCode::End => {
-            let lines = app.rx_buffer.len() / 16;
-            app.scroll_offset = lines.max(0) as u16;
+            let lines = app.message_log.entries.len() as u16;
+            app.scroll_offset = lines.saturating_sub(1);
         }
 
         _ => {}
