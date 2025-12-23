@@ -2,6 +2,8 @@
 
 一个用 Rust + Ratatui 构建的现代化 TUI 串口调试工具。
 
+![](image/image.png)
+
 ## 功能特性
 
 ### 核心功能
