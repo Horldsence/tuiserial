@@ -1,0 +1,190 @@
+//! Status panel and control area rendering
+//!
+//! This module handles rendering of the status panel showing connection info
+//! and the control area showing statistics.
+
+use ratatui::{
+    layout::{Alignment, Rect},
+    style::{Color, Modifier, Style},
+    text::{Line, Span},
+    widgets::{Block, Borders, Paragraph},
+    Frame,
+};
+use tuiserial_core::{AppState, Parity};
+
+use crate::areas::{update_area, UiAreaField};
+
+/// Draw the connection status panel
+pub fn draw_status_panel(f: &mut Frame, app: &AppState, area: Rect) {
+    // Store area for mouse interaction
+    update_area(UiAreaField::StatusPanel, area);
+
+    let status_color = if app.is_connected {
+        Color::Green
+    } else {
+        Color::Red
+    };
+
+    let status_icon = if app.is_connected { "✓" } else { "✗" };
+    let status_text = if app.is_connected {
+        "已连接"
+    } else {
+        "未连接"
+    };
+
+    let config_status = if app.config_locked {
+        ("🔒", "已锁定", Color::Yellow)
+    } else {
+        ("🔓", "可修改", Color::Green)
+    };
+
+    // Format parity display
+    let parity_str = match app.config.parity {
+        Parity::None => "N",
+        Parity::Even => "E",
+        Parity::Odd => "O",
+    };
+
+    let text = vec![
+        Line::from(vec![
+            Span::styled(
+                status_icon,
+                Style::default()
+                    .fg(status_color)
+                    .add_modifier(Modifier::BOLD),
+            ),
+            Span::raw(" "),
+            Span::styled(
+                status_text,
+                Style::default()
+                    .fg(status_color)
+                    .add_modifier(Modifier::BOLD),
+            ),
+        ]),
+        Line::from(vec![
+            Span::styled(config_status.0, Style::default().fg(config_status.2)),
+            Span::raw(" "),
+            Span::styled(config_status.1, Style::default().fg(config_status.2)),
+        ]),
+        Line::raw(""),
+        Line::from(vec![
+            Span::styled("串口: ", Style::default().fg(Color::Cyan)),
+            Span::raw(if app.config.port.is_empty() {
+                "未选择"
+            } else {
+                &app.config.port
+            }),
+        ]),
+        Line::from(vec![
+            Span::styled("波特: ", Style::default().fg(Color::Cyan)),
+            Span::raw(format!("{}", app.config.baud_rate)),
+        ]),
+        Line::from(vec![
+            Span::styled("配置: ", Style::default().fg(Color::Cyan)),
+            Span::raw(format!(
+                "{}-{}-{}",
+                app.config.data_bits, parity_str, app.config.stop_bits
+            )),
+        ]),
+        Line::raw(""),
+        Line::from(vec![
+            Span::styled(
+                "o",
+                Style::default()
+                    .fg(Color::Green)
+                    .add_modifier(Modifier::BOLD),
+            ),
+            Span::raw(" 连接  "),
+            Span::styled(
+                "r",
+                Style::default()
+                    .fg(Color::Cyan)
+                    .add_modifier(Modifier::BOLD),
+            ),
+            Span::raw(" 刷新"),
+        ]),
+        Line::from(vec![
+            Span::styled(
+                "q",
+                Style::default().fg(Color::Red).add_modifier(Modifier::BOLD),
+            ),
+            Span::raw(" 退出  "),
+            Span::styled(
+                "Tab",
+                Style::default()
+                    .fg(Color::Yellow)
+                    .add_modifier(Modifier::BOLD),
+            ),
+            Span::raw(" 切换"),
+        ]),
+    ];
+
+    let para = Paragraph::new(text).block(
+        Block::default()
+            .borders(Borders::ALL)
+            .title(" 状态信息 ")
+            .title_alignment(Alignment::Left),
+    );
+
+    f.render_widget(para, area);
+}
+
+/// Draw the control/status bar showing statistics
+pub fn draw_control_area(f: &mut Frame, app: &AppState, area: Rect) {
+    // Store area for mouse interaction
+    update_area(UiAreaField::ControlArea, area);
+
+    let auto_scroll_icon = if app.auto_scroll { "🔄" } else { "⏸" };
+
+    let stats = vec![
+        Span::styled(
+            "TX: ",
+            Style::default()
+                .fg(Color::Green)
+                .add_modifier(Modifier::BOLD),
+        ),
+        Span::styled(
+            format!("{} ", app.message_log.tx_count),
+            Style::default().fg(Color::White),
+        ),
+        Span::raw("│ "),
+        Span::styled(
+            "RX: ",
+            Style::default()
+                .fg(Color::Cyan)
+                .add_modifier(Modifier::BOLD),
+        ),
+        Span::styled(
+            format!("{} ", app.message_log.rx_count),
+            Style::default().fg(Color::White),
+        ),
+        Span::raw("│ "),
+        Span::styled(
+            format!(
+                "{} {}",
+                auto_scroll_icon,
+                if app.auto_scroll {
+                    "自动滚动"
+                } else {
+                    "手动滚动"
+                }
+            ),
+            if app.auto_scroll {
+                Style::default().fg(Color::Green)
+            } else {
+                Style::default().fg(Color::Yellow)
+            },
+        ),
+    ];
+
+    let para = Paragraph::new(Line::from(stats))
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .title(" 统计信息 ")
+                .title_alignment(Alignment::Left),
+        )
+        .alignment(Alignment::Left);
+
+    f.render_widget(para, area);
+}
