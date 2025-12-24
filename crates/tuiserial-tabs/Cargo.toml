@@ -9,7 +9,7 @@ repository.workspace = true
 description = "Multi-tab and split-pane management for tuiserial"
 
 [dependencies]
-tuiserial-core = { path = "../tuiserial-core" }
+tuiserial-core = { workspace = true }
 ratatui = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }

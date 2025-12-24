@@ -4,6 +4,31 @@
 
 ![](image/image.png)
 
+## 📦 安装
+
+### 从 crates.io 安装
+
+```bash
+cargo install tuiserial-cli
+```
+运行
+```bash
+tuiserial
+```
+
+### 从源码构建
+
+1. 克隆仓库：`git clone https://github.com/yourusername/tuiserial.git`
+2. 进入目录：`cd tuiserial`
+3. 构建：`cargo build --release`
+4. 运行：`cargo run --release`
+
+### 使用预编译二进制文件
+
+1. 下载二进制文件：[下载链接](https://github.com/yourusername/tuiserial/releases)
+2. 解压文件
+3. 运行：`./tuiserial`
+
 ## ✨ 功能特性
 
 ### 核心功能

@@ -11,17 +11,17 @@ members = [
 [workspace.package]
 version = "0.1.0"
 edition = "2021"
-authors = ["Your Name <your.email@example.com>"]
+authors = ["pengheng <m18511047688@163.com>"]
 license = "MIT"
-homepage = "https://github.com/yourusername/tuiserial"
-repository = "https://github.com/yourusername/tuiserial"
+homepage = "https://github.com/horldsence/tuiserial"
+repository = "https://github.com/horldsence/tuiserial"
 
 [workspace.dependencies]
 # Internal crates
-tuiserial-core = { path = "crates/tuiserial-core" }
-tuiserial-serial = { path = "crates/tuiserial-serial" }
-tuiserial-ui = { path = "crates/tuiserial-ui" }
-tuiserial-tabs = { path = "crates/tuiserial-tabs" }
+tuiserial-core = { version = "0.1.0", path = "crates/tuiserial-core" }
+tuiserial-serial = { version = "0.1.0", path = "crates/tuiserial-serial" }
+tuiserial-ui = { version = "0.1.0", path = "crates/tuiserial-ui" }
+tuiserial-tabs = { version = "0.1.0", path = "crates/tuiserial-tabs" }
 
 # External dependencies
 ratatui = "0.29.0"

@@ -22,7 +22,7 @@ tokio = { workspace = true }
 color-eyre = { workspace = true }
 
 [package.metadata.deb]
-maintainer = "Your Name <your.email@example.com>"
+maintainer = "pengheng <m18511047688@163.com>"
 depends = "$auto, libudev1"
 section = "utils"
 priority = "optional"
