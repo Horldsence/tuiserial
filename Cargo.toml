@@ -1,14 +1,27 @@
-[package]
-name = "tuiserial"
+[workspace]
+resolver = "2"
+members = [
+    "crates/tuiserial-core",
+    "crates/tuiserial-serial",
+    "crates/tuiserial-ui",
+    "crates/tuiserial-cli",
+]
+
+[workspace.package]
 version = "0.1.0"
 edition = "2021"
 authors = ["Your Name <your.email@example.com>"]
-description = "A terminal user interface for serial port communication"
 license = "MIT"
 homepage = "https://github.com/yourusername/tuiserial"
 repository = "https://github.com/yourusername/tuiserial"
 
-[dependencies]
+[workspace.dependencies]
+# Internal crates
+tuiserial-core = { path = "crates/tuiserial-core" }
+tuiserial-serial = { path = "crates/tuiserial-serial" }
+tuiserial-ui = { path = "crates/tuiserial-ui" }
+
+# External dependencies
 ratatui = "0.29.0"
 serialport = "4.3"
 crossterm = "0.28"
@@ -18,19 +31,8 @@ serde_json = "1.0"
 chrono = "0.4"
 color-eyre = "0.6"
 
-[package.metadata.deb]
-maintainer = "Your Name <your.email@example.com>"
-depends = "$auto, libudev1"
-section = "utils"
-priority = "optional"
-assets = [
-    ["target/release/tuiserial", "usr/bin/", "755"],
-]
-
-[package.metadata.deb.variants.aarch64]
-depends = "$auto, libudev1"
-
-[package.metadata.generate-rpm]
-assets = [
-    { source = "target/release/tuiserial", dest = "/usr/bin/tuiserial", mode = "755" },
-]
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true

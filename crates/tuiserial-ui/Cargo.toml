@@ -1,0 +1,15 @@
+[package]
+name = "tuiserial-ui"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+description = "Terminal user interface components for tuiserial"
+
+[dependencies]
+tuiserial-core = { workspace = true }
+tuiserial-serial = { workspace = true }
+ratatui = { workspace = true }
+crossterm = { workspace = true }

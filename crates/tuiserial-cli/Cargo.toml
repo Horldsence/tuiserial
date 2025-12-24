@@ -1,0 +1,39 @@
+[package]
+name = "tuiserial-cli"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+description = "Command-line interface for tuiserial serial port terminal"
+
+[[bin]]
+name = "tuiserial"
+path = "src/main.rs"
+
+[dependencies]
+tuiserial-core = { workspace = true }
+tuiserial-serial = { workspace = true }
+tuiserial-ui = { workspace = true }
+ratatui = { workspace = true }
+crossterm = { workspace = true }
+tokio = { workspace = true }
+color-eyre = { workspace = true }
+
+[package.metadata.deb]
+maintainer = "Your Name <your.email@example.com>"
+depends = "$auto, libudev1"
+section = "utils"
+priority = "optional"
+assets = [
+    ["target/release/tuiserial", "usr/bin/", "755"],
+]
+
+[package.metadata.deb.variants.aarch64]
+depends = "$auto, libudev1"
+
+[package.metadata.generate-rpm]
+assets = [
+    { source = "target/release/tuiserial", dest = "/usr/bin/tuiserial", mode = "755" },
+]

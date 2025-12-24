@@ -937,17 +937,45 @@ dependencies = [
 ]
 
 [[package]]
-name = "tuiserial"
+name = "tuiserial-cli"
 version = "0.1.0"
 dependencies = [
- "chrono",
  "color-eyre",
  "crossterm",
  "ratatui",
+ "tokio",
+ "tuiserial-core",
+ "tuiserial-serial",
+ "tuiserial-ui",
+]
+
+[[package]]
+name = "tuiserial-core"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "ratatui",
  "serde",
  "serde_json",
+]
+
+[[package]]
+name = "tuiserial-serial"
+version = "0.1.0"
+dependencies = [
  "serialport",
  "tokio",
+ "tuiserial-core",
+]
+
+[[package]]
+name = "tuiserial-ui"
+version = "0.1.0"
+dependencies = [
+ "crossterm",
+ "ratatui",
+ "tuiserial-core",
+ "tuiserial-serial",
 ]
 
 [[package]]
