@@ -17,6 +17,8 @@ pub fn t(key: &'static str, lang: Language) -> &'static str {
 static EN: phf::Map<&'static str, &'static str> = phf::phf_map! {
     // Menu bar
     "menu.file" => "File",
+    "menu.session" => "Session",
+    "menu.view" => "View",
     "menu.settings" => "Settings",
     "menu.help" => "Help",
 
@@ -25,11 +27,26 @@ static EN: phf::Map<&'static str, &'static str> = phf::phf_map! {
     "menu.file.load_config" => "Load Config",
     "menu.file.exit" => "Exit",
 
+    // Session menu
+    "menu.session.new" => "New Session",
+    "menu.session.duplicate" => "Duplicate Session",
+    "menu.session.rename" => "Rename Session",
+    "menu.session.close" => "Close Session",
+
+    // View menu
+    "menu.view.single" => "Single View",
+    "menu.view.split_h" => "Split Horizontal",
+    "menu.view.split_v" => "Split Vertical",
+    "menu.view.grid_2x2" => "Grid 2×2",
+    "menu.view.next_pane" => "Next Pane",
+    "menu.view.prev_pane" => "Previous Pane",
+
     // Settings menu
     "menu.settings.language" => "Language",
     "menu.settings.toggle_language" => "Toggle Language",
 
     // Help menu
+    "menu.help.shortcuts" => "Keyboard Shortcuts",
     "menu.help.about" => "About",
 
     // UI labels
@@ -127,6 +144,28 @@ static EN: phf::Map<&'static str, &'static str> = phf::phf_map! {
     "help.esc" => "Esc: Cancel/Close",
     "help.enter" => "Enter: Select/Send",
 
+    // Keyboard shortcuts
+    "shortcuts.title" => "Keyboard Shortcuts",
+    "shortcuts.session" => "Session Management:",
+    "shortcuts.new_session" => "Ctrl+T: New Session",
+    "shortcuts.close_session" => "Ctrl+W: Close Session",
+    "shortcuts.next_session" => "Ctrl+Tab / Ctrl+→: Next Session",
+    "shortcuts.prev_session" => "Ctrl+Shift+Tab / Ctrl+←: Previous Session",
+    "shortcuts.switch_1_9" => "Ctrl+1~9: Switch to Session 1~9",
+    "shortcuts.layout" => "Layout Management:",
+    "shortcuts.cycle_layout" => "Ctrl+L: Cycle Layout Mode",
+    "shortcuts.prev_layout" => "Ctrl+Shift+L: Previous Layout",
+    "shortcuts.next_pane" => "Ctrl+P: Focus Next Pane",
+    "shortcuts.prev_pane_key" => "Ctrl+Shift+P: Focus Previous Pane",
+    "shortcuts.cycle_pane_session" => "Ctrl+N: Cycle Session in Pane",
+    "shortcuts.general" => "General:",
+    "shortcuts.connect" => "O: Connect/Disconnect",
+    "shortcuts.clear" => "C: Clear Log",
+    "shortcuts.display_mode" => "X: Toggle Display Mode",
+    "shortcuts.auto_scroll" => "A: Toggle Auto Scroll",
+    "shortcuts.menu" => "F10: Open Menu",
+    "shortcuts.quit" => "Ctrl+Q: Quit",
+
     // Empty state messages
     "empty.no_messages" => "No messages yet",
     "empty.connect_hint" => "Connect to start receiving data",
@@ -137,6 +176,8 @@ static EN: phf::Map<&'static str, &'static str> = phf::phf_map! {
 static ZH: phf::Map<&'static str, &'static str> = phf::phf_map! {
     // Menu bar
     "menu.file" => "文件",
+    "menu.session" => "会话",
+    "menu.view" => "视图",
     "menu.settings" => "设置",
     "menu.help" => "帮助",
 
@@ -145,11 +186,26 @@ static ZH: phf::Map<&'static str, &'static str> = phf::phf_map! {
     "menu.file.load_config" => "加载配置",
     "menu.file.exit" => "退出",
 
+    // Session menu
+    "menu.session.new" => "新建会话",
+    "menu.session.duplicate" => "复制会话",
+    "menu.session.rename" => "重命名会话",
+    "menu.session.close" => "关闭会话",
+
+    // View menu
+    "menu.view.single" => "单视图",
+    "menu.view.split_h" => "水平分割",
+    "menu.view.split_v" => "垂直分割",
+    "menu.view.grid_2x2" => "2×2 网格",
+    "menu.view.next_pane" => "下一个窗格",
+    "menu.view.prev_pane" => "上一个窗格",
+
     // Settings menu
     "menu.settings.language" => "语言",
     "menu.settings.toggle_language" => "切换语言",
 
     // Help menu
+    "menu.help.shortcuts" => "键盘快捷键",
     "menu.help.about" => "关于",
 
     // UI labels
@@ -246,6 +302,28 @@ static ZH: phf::Map<&'static str, &'static str> = phf::phf_map! {
     "help.shift_tab" => "Shift+Tab: 上一个字段",
     "help.esc" => "Esc: 取消/关闭",
     "help.enter" => "Enter: 选择/发送",
+
+    // Keyboard shortcuts
+    "shortcuts.title" => "键盘快捷键",
+    "shortcuts.session" => "会话管理：",
+    "shortcuts.new_session" => "Ctrl+T: 新建会话",
+    "shortcuts.close_session" => "Ctrl+W: 关闭会话",
+    "shortcuts.next_session" => "Ctrl+Tab / Ctrl+→: 下一个会话",
+    "shortcuts.prev_session" => "Ctrl+Shift+Tab / Ctrl+←: 上一个会话",
+    "shortcuts.switch_1_9" => "Ctrl+1~9: 切换到会话 1~9",
+    "shortcuts.layout" => "布局管理：",
+    "shortcuts.cycle_layout" => "Ctrl+L: 切换布局模式",
+    "shortcuts.prev_layout" => "Ctrl+Shift+L: 上一个布局",
+    "shortcuts.next_pane" => "Ctrl+P: 聚焦下一个窗格",
+    "shortcuts.prev_pane_key" => "Ctrl+Shift+P: 聚焦上一个窗格",
+    "shortcuts.cycle_pane_session" => "Ctrl+N: 切换窗格会话",
+    "shortcuts.general" => "常规：",
+    "shortcuts.connect" => "O: 连接/断开",
+    "shortcuts.clear" => "C: 清空日志",
+    "shortcuts.display_mode" => "X: 切换显示模式",
+    "shortcuts.auto_scroll" => "A: 切换自动滚动",
+    "shortcuts.menu" => "F10: 打开菜单",
+    "shortcuts.quit" => "Ctrl+Q: 退出",
 
     // Empty state messages
     "empty.no_messages" => "暂无消息",

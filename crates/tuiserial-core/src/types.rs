@@ -120,3 +120,40 @@ pub enum MenuState {
     MenuBar(usize),         // Selected menu index
     Dropdown(usize, usize), // Menu index, selected item index
 }
+
+/// Layout mode for multiple serial ports
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum LayoutMode {
+    Single,          // Single view (with tabs)
+    SplitHorizontal, // Split horizontally (top/bottom)
+    SplitVertical,   // Split vertically (left/right)
+    Grid2x2,         // 2x2 grid
+}
+
+impl LayoutMode {
+    pub fn all() -> Vec<LayoutMode> {
+        vec![
+            LayoutMode::Single,
+            LayoutMode::SplitHorizontal,
+            LayoutMode::SplitVertical,
+            LayoutMode::Grid2x2,
+        ]
+    }
+
+    pub fn name(&self) -> &str {
+        match self {
+            LayoutMode::Single => "Single",
+            LayoutMode::SplitHorizontal => "Split Horizontal",
+            LayoutMode::SplitVertical => "Split Vertical",
+            LayoutMode::Grid2x2 => "Grid 2x2",
+        }
+    }
+
+    pub fn max_panes(&self) -> usize {
+        match self {
+            LayoutMode::Single => 1,
+            LayoutMode::SplitHorizontal | LayoutMode::SplitVertical => 2,
+            LayoutMode::Grid2x2 => 4,
+        }
+    }
+}

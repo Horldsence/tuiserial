@@ -1,0 +1,22 @@
+[package]
+name = "tuiserial-tabs"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+description = "Multi-tab and split-pane management for tuiserial"
+
+[dependencies]
+tuiserial-core = { path = "../tuiserial-core" }
+ratatui = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+[dev-dependencies]
+crossterm = { workspace = true }
+
+[[example]]
+name = "basic"
+path = "examples/basic.rs"

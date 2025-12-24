@@ -36,7 +36,7 @@ impl LogEntry {
 pub const MAX_LOG_LINES: usize = 10000;
 
 /// Message log containing all serial communication events
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct MessageLog {
     pub entries: VecDeque<LogEntry>,
     pub rx_count: u64,

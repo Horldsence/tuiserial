@@ -1113,6 +1113,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "tuiserial-tabs"
+version = "0.1.0"
+dependencies = [
+ "crossterm",
+ "ratatui",
+ "serde",
+ "serde_json",
+ "tuiserial-core",
+]
+
+[[package]]
 name = "tuiserial-ui"
 version = "0.1.0"
 dependencies = [

@@ -24,30 +24,46 @@ use tuiserial_core::{AppState, MenuState};
 // Module declarations
 mod areas;
 mod config;
+mod help;
 mod log;
 mod menu;
+mod mouse;
 mod notification;
+mod shortcuts;
 mod status;
 mod tx;
 mod utils;
 
 // Re-exports for external use
-pub use areas::{get_clicked_field, get_ui_areas, is_inside, UiAreas};
+pub use areas::{
+    get_clicked_field, get_clicked_menu, get_clicked_tab, get_ui_areas, is_inside,
+    is_shortcuts_hint_clicked, UiAreas,
+};
 pub use crossterm;
+pub use mouse::{
+    calculate_dropdown_area, get_cursor_type, get_hover_style, handle_mouse_click,
+    handle_mouse_hover, handle_mouse_scroll, is_clickable_area, CursorType, MouseAction,
+    ScrollAction, ScrollDirection,
+};
 pub use ratatui;
+pub use shortcuts::{draw_context_shortcuts, draw_shortcuts_help, draw_shortcuts_hint};
+
+// Re-export menu functions
+pub use menu::find_clicked_menu;
 
 /// Main draw function - renders the entire application UI
 ///
 /// This is the entry point for rendering the UI. It orchestrates the layout
 /// and delegates rendering to specialized modules.
 pub fn draw(f: &mut Frame, app: &AppState) {
-    // Main layout: menu bar, content area, notification bar
+    // Main layout: menu bar, content area, notification bar, shortcuts hint
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
             Constraint::Length(1), // Menu bar
             Constraint::Min(15),   // Main content
             Constraint::Length(3), // Notification area
+            Constraint::Length(1), // Shortcuts hint bar
         ])
         .split(f.area());
 
@@ -57,6 +73,9 @@ pub fn draw(f: &mut Frame, app: &AppState) {
     // Render notification bar
     notification::draw_notification_bar(f, app, chunks[2]);
 
+    // Render shortcuts hint bar
+    shortcuts::draw_shortcuts_hint(f, chunks[3], app.language);
+
     // Render menu bar (without dropdown)
     menu::draw_menu_bar(f, app, chunks[0]);
 
@@ -65,9 +84,15 @@ pub fn draw(f: &mut Frame, app: &AppState) {
         menu::draw_menu_dropdown(f, app, chunks[0], menu_idx, item_idx);
     }
 
-    // Store menu bar and notification area for mouse interaction
+    // Render shortcuts help overlay if active (on top of everything)
+    if app.show_shortcuts_help {
+        shortcuts::draw_shortcuts_help(f, app.language);
+    }
+
+    // Store menu bar, notification area, and shortcuts hint for mouse interaction
     areas::update_area(areas::UiAreaField::MenuBar, chunks[0]);
     areas::update_area(areas::UiAreaField::NotificationArea, chunks[2]);
+    areas::update_area(areas::UiAreaField::ShortcutsHint, chunks[3]);
 }
 
 /// Draw the main content area (config panel + log/tx areas)

@@ -64,6 +64,9 @@ pub struct AppState {
     // Menu and Language
     pub menu_state: MenuState,
     pub language: Language,
+
+    // Help overlay
+    pub show_shortcuts_help: bool,
 }
 
 impl Default for AppState {
@@ -113,6 +116,7 @@ impl Default for AppState {
             last_mouse_event: String::new(),
             menu_state: MenuState::None,
             language: Language::English,
+            show_shortcuts_help: false,
         }
     }
 }
@@ -444,5 +448,20 @@ impl AppState {
             Language::English => Language::Chinese,
             Language::Chinese => Language::English,
         };
+    }
+
+    /// Toggle shortcuts help overlay
+    pub fn toggle_shortcuts_help(&mut self) {
+        self.show_shortcuts_help = !self.show_shortcuts_help;
+    }
+
+    /// Show shortcuts help
+    pub fn show_shortcuts_help(&mut self) {
+        self.show_shortcuts_help = true;
+    }
+
+    /// Hide shortcuts help
+    pub fn hide_shortcuts_help(&mut self) {
+        self.show_shortcuts_help = false;
     }
 }

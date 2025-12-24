@@ -17,6 +17,7 @@
 pub mod config;
 pub mod i18n;
 pub mod log;
+pub mod menu_def;
 pub mod notification;
 pub mod state;
 pub mod types;
@@ -24,6 +25,7 @@ pub mod types;
 // Re-exports for convenience
 pub use config::SerialConfig;
 pub use log::{LogDirection, LogEntry, MessageLog, MAX_LOG_LINES};
+pub use menu_def::{MenuAction, MenuBar, MENU_BAR};
 pub use notification::{Notification, NotificationLevel};
 pub use state::AppState;
 pub use types::{

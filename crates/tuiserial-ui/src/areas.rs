@@ -20,6 +20,8 @@ pub struct UiAreas {
     pub tx_area: Rect,
     pub control_area: Rect,
     pub notification_area: Rect,
+    pub shortcuts_hint: Rect,
+    pub tab_bar: Rect,
 }
 
 impl Default for UiAreas {
@@ -37,6 +39,8 @@ impl Default for UiAreas {
             tx_area: Rect::default(),
             control_area: Rect::default(),
             notification_area: Rect::default(),
+            shortcuts_hint: Rect::default(),
+            tab_bar: Rect::default(),
         }
     }
 }
@@ -115,6 +119,18 @@ static mut UI_AREAS: UiAreas = UiAreas {
         width: 0,
         height: 0,
     },
+    shortcuts_hint: Rect {
+        x: 0,
+        y: 0,
+        width: 0,
+        height: 0,
+    },
+    tab_bar: Rect {
+        x: 0,
+        y: 0,
+        width: 0,
+        height: 0,
+    },
 };
 
 /// Get the UI areas for mouse interaction
@@ -145,6 +161,8 @@ pub fn update_area(field: UiAreaField, rect: Rect) {
             UiAreaField::TxArea => UI_AREAS.tx_area = rect,
             UiAreaField::ControlArea => UI_AREAS.control_area = rect,
             UiAreaField::NotificationArea => UI_AREAS.notification_area = rect,
+            UiAreaField::ShortcutsHint => UI_AREAS.shortcuts_hint = rect,
+            UiAreaField::TabBar => UI_AREAS.tab_bar = rect,
         }
     }
 }
@@ -163,6 +181,8 @@ pub enum UiAreaField {
     TxArea,
     ControlArea,
     NotificationArea,
+    ShortcutsHint,
+    TabBar,
 }
 
 /// Check if a point is inside a rectangle
@@ -190,6 +210,59 @@ pub fn get_clicked_field(x: u16, y: u16) -> Option<FocusedField> {
         Some(FocusedField::LogArea)
     } else if is_inside(areas.tx_area, x, y) {
         Some(FocusedField::TxInput)
+    } else {
+        None
+    }
+}
+
+/// Get which menu was clicked in the menu bar
+pub fn get_clicked_menu(x: u16, y: u16) -> Option<usize> {
+    let areas = get_ui_areas();
+
+    if !is_inside(areas.menu_bar, x, y) {
+        return None;
+    }
+
+    // Menu positions (approximate, based on menu text width)
+    // File(0-6), Session(8-16), View(18-24), Settings(26-35), Help(37-42)
+    let relative_x = x.saturating_sub(areas.menu_bar.x);
+
+    if relative_x < 7 {
+        Some(0) // File
+    } else if relative_x >= 8 && relative_x < 17 {
+        Some(1) // Session
+    } else if relative_x >= 18 && relative_x < 25 {
+        Some(2) // View
+    } else if relative_x >= 26 && relative_x < 36 {
+        Some(3) // Settings
+    } else if relative_x >= 37 && relative_x < 43 {
+        Some(4) // Help
+    } else {
+        None
+    }
+}
+
+/// Check if shortcuts hint area was clicked
+pub fn is_shortcuts_hint_clicked(x: u16, y: u16) -> bool {
+    let areas = get_ui_areas();
+    is_inside(areas.shortcuts_hint, x, y)
+}
+
+/// Check if tab bar was clicked and return tab index
+pub fn get_clicked_tab(x: u16, y: u16, tab_count: usize) -> Option<usize> {
+    let areas = get_ui_areas();
+
+    if !is_inside(areas.tab_bar, x, y) || tab_count == 0 {
+        return None;
+    }
+
+    // Estimate tab width (simplified, actual width depends on tab names)
+    let tab_width = areas.tab_bar.width / tab_count.max(1) as u16;
+    let relative_x = x.saturating_sub(areas.tab_bar.x);
+    let tab_index = (relative_x / tab_width.max(1)) as usize;
+
+    if tab_index < tab_count {
+        Some(tab_index)
     } else {
         None
     }

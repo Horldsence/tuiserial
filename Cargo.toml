@@ -4,6 +4,7 @@ members = [
     "crates/tuiserial-core",
     "crates/tuiserial-serial",
     "crates/tuiserial-ui",
+    "crates/tuiserial-tabs",
     "crates/tuiserial-cli",
 ]
 
@@ -20,6 +21,7 @@ repository = "https://github.com/yourusername/tuiserial"
 tuiserial-core = { path = "crates/tuiserial-core" }
 tuiserial-serial = { path = "crates/tuiserial-serial" }
 tuiserial-ui = { path = "crates/tuiserial-ui" }
+tuiserial-tabs = { path = "crates/tuiserial-tabs" }
 
 # External dependencies
 ratatui = "0.29.0"

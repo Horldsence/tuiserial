@@ -15,6 +15,7 @@ use crossterm::{
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
 use ratatui::{backend::CrosstermBackend, layout::Rect, Terminal};
+use tuiserial_core::{menu_def::MENU_BAR, MenuAction};
 use tuiserial_core::{AppState, DisplayMode, FocusedField, TxMode};
 use tuiserial_serial::list_ports;
 use tuiserial_ui::{draw, get_clicked_field, get_ui_areas, is_inside};
@@ -36,10 +37,20 @@ fn handle_menu_action(
 ) -> bool {
     use tuiserial_core::i18n::t;
 
-    match (menu_idx, item_idx) {
-        // File menu
-        (0, 0) => {
-            // Save Config
+    // Get the action from centralized menu definition
+    let action = match MENU_BAR.get_action(menu_idx, item_idx) {
+        Some(a) => a,
+        None => return false,
+    };
+
+    // Handle separator (should not be clickable, but just in case)
+    if action.is_separator() {
+        return false;
+    }
+
+    // Execute action
+    match action {
+        MenuAction::SaveConfig => {
             match app.save_config() {
                 Ok(_) => app.add_success(t("notify.config_saved", app.language).to_string()),
                 Err(e) => app.add_error(format!(
@@ -50,33 +61,53 @@ fn handle_menu_action(
             }
             false
         }
-        (0, 1) => {
-            // Load Config
+        MenuAction::LoadConfig => {
             app.load_config();
             app.add_success(t("notify.config_loaded", app.language).to_string());
             false
         }
-        (0, 3) => {
-            // Exit
+        MenuAction::Exit => {
             if handler.is_connected() {
                 handler.disconnect();
             }
             true
         }
-        // Settings menu
-        (1, 0) => {
-            // Toggle Language
+        MenuAction::ToggleLanguage => {
             app.toggle_language();
             app.add_success(t("notify.language_changed", app.language).to_string());
             false
         }
-        // Help menu
-        (2, 0) => {
-            // About
-            app.add_info("TuiSerial v0.1.0 - Terminal Serial Port Tool".to_string());
+        MenuAction::ShowShortcuts => {
+            app.show_shortcuts_help = !app.show_shortcuts_help;
             false
         }
-        _ => false,
+        MenuAction::ShowAbout => {
+            let about_text = if app.language == tuiserial_core::Language::English {
+                "TuiSerial v0.1.0\nTerminal Serial Port Monitor\n\nA modern serial port debugging tool with mouse support and internationalization."
+            } else {
+                "TuiSerial v0.1.0\n终端串口监控工具\n\n一个现代化的串口调试工具，支持鼠标操作和国际化。"
+            };
+            app.add_info(about_text.to_string());
+            false
+        }
+        // Future features
+        MenuAction::NewSession
+        | MenuAction::DuplicateSession
+        | MenuAction::RenameSession
+        | MenuAction::CloseSession => {
+            app.add_info("Multi-session support coming soon!".to_string());
+            false
+        }
+        MenuAction::ViewSingle
+        | MenuAction::ViewSplitHorizontal
+        | MenuAction::ViewSplitVertical
+        | MenuAction::ViewGrid2x2
+        | MenuAction::ViewNextPane
+        | MenuAction::ViewPrevPane => {
+            app.add_info("Layout management coming soon!".to_string());
+            false
+        }
+        MenuAction::Separator => false,
     }
 }
 
@@ -182,16 +213,55 @@ fn handle_key_event(key: KeyEvent, app: &mut AppState, handler: &mut SerialHandl
                 app.focused_field = FocusedField::LogArea;
                 return false;
             }
+            // F1 or ? to toggle help
+            if key.code == KeyCode::F(1) || key.code == KeyCode::Char('?') {
+                app.show_shortcuts_help = !app.show_shortcuts_help;
+                return false;
+            }
+            // Ctrl+S to save config
+            if key.code == KeyCode::Char('s')
+                && key
+                    .modifiers
+                    .contains(crossterm::event::KeyModifiers::CONTROL)
+            {
+                match app.save_config() {
+                    Ok(_) => app.add_success(
+                        tuiserial_core::i18n::t("notify.config_saved", app.language).to_string(),
+                    ),
+                    Err(e) => app.add_error(format!(
+                        "{}: {}",
+                        tuiserial_core::i18n::t("notify.config_save_failed", app.language),
+                        e
+                    )),
+                }
+                return false;
+            }
+            // Ctrl+O to load config
+            if key.code == KeyCode::Char('o')
+                && key
+                    .modifiers
+                    .contains(crossterm::event::KeyModifiers::CONTROL)
+            {
+                app.load_config();
+                app.add_success(
+                    tuiserial_core::i18n::t("notify.config_loaded", app.language).to_string(),
+                );
+                return false;
+            }
         }
         MenuState::MenuBar(selected) => {
+            let menu_count = MENU_BAR.menu_count();
             match key.code {
                 KeyCode::Left => {
-                    app.menu_state =
-                        MenuState::MenuBar(if selected == 0 { 2 } else { selected - 1 });
+                    app.menu_state = MenuState::MenuBar(if selected == 0 {
+                        menu_count - 1
+                    } else {
+                        selected - 1
+                    });
                     return false;
                 }
                 KeyCode::Right => {
-                    app.menu_state = MenuState::MenuBar((selected + 1) % 3);
+                    app.menu_state = MenuState::MenuBar((selected + 1) % menu_count);
                     return false;
                 }
                 KeyCode::Enter | KeyCode::Down => {
@@ -207,12 +277,7 @@ fn handle_key_event(key: KeyEvent, app: &mut AppState, handler: &mut SerialHandl
             return false;
         }
         MenuState::Dropdown(menu_idx, item_idx) => {
-            let item_count = match menu_idx {
-                0 => 4, // File menu: Save, Load, separator, Exit
-                1 => 1, // Settings menu: Toggle Language
-                2 => 1, // Help menu: About
-                _ => 0,
-            };
+            let item_count = MENU_BAR.get_item_count(menu_idx);
 
             match key.code {
                 KeyCode::Up => {
@@ -229,12 +294,18 @@ fn handle_key_event(key: KeyEvent, app: &mut AppState, handler: &mut SerialHandl
                     return false;
                 }
                 KeyCode::Left => {
-                    let new_menu = if menu_idx == 0 { 2 } else { menu_idx - 1 };
+                    let menu_count = MENU_BAR.menu_count();
+                    let new_menu = if menu_idx == 0 {
+                        menu_count - 1
+                    } else {
+                        menu_idx - 1
+                    };
                     app.menu_state = MenuState::Dropdown(new_menu, 0);
                     return false;
                 }
                 KeyCode::Right => {
-                    let new_menu = (menu_idx + 1) % 3;
+                    let menu_count = MENU_BAR.menu_count();
+                    let new_menu = (menu_idx + 1) % menu_count;
                     app.menu_state = MenuState::Dropdown(new_menu, 0);
                     return false;
                 }
@@ -251,6 +322,17 @@ fn handle_key_event(key: KeyEvent, app: &mut AppState, handler: &mut SerialHandl
                 _ => {}
             }
             return false;
+        }
+    }
+
+    // Close help overlay
+    if app.show_shortcuts_help {
+        match key.code {
+            KeyCode::Esc | KeyCode::F(1) | KeyCode::Char('q') | KeyCode::Char('?') => {
+                app.show_shortcuts_help = false;
+                return false;
+            }
+            _ => return false, // Consume all other keys when help is showing
         }
     }
 
@@ -704,70 +786,63 @@ fn handle_mouse_event(mouse: MouseEvent, app: &mut AppState, handler: &mut Seria
 
             // Check if menu bar was clicked
             if is_inside(areas.menu_bar, col, row) {
-                // Calculate which menu was clicked
-                let menus = vec![
-                    t("menu.file", app.language),
-                    t("menu.settings", app.language),
-                    t("menu.help", app.language),
-                ];
-
-                let mut x_offset = 0u16;
-                for (i, menu) in menus.iter().enumerate() {
-                    let menu_width = display_width(menu) as u16 + 2; // +2 for padding
-                    if col >= areas.menu_bar.x + x_offset
-                        && col < areas.menu_bar.x + x_offset + menu_width
-                    {
-                        // Clicked on this menu
-                        match app.menu_state {
-                            MenuState::Dropdown(menu_idx, _) if menu_idx == i => {
-                                // Clicking same menu closes it
-                                app.menu_state = MenuState::None;
-                            }
-                            _ => {
-                                // Open dropdown for this menu
-                                app.menu_state = MenuState::Dropdown(i, 0);
-                                // Move focus away from config fields to close dropdowns
-                                app.focused_field = FocusedField::LogArea;
-                            }
+                // Use centralized menu click detection
+                if let Some(menu_idx) =
+                    tuiserial_ui::find_clicked_menu(col, row, areas.menu_bar, app.language)
+                {
+                    // Clicked on this menu
+                    match app.menu_state {
+                        MenuState::Dropdown(current_idx, _) if current_idx == menu_idx => {
+                            // Clicking same menu closes it
+                            app.menu_state = MenuState::None;
                         }
-                        return;
+                        _ => {
+                            // Open dropdown for this menu
+                            app.menu_state = MenuState::Dropdown(menu_idx, 0);
+                            // Move focus away from config fields to close dropdowns
+                            app.focused_field = FocusedField::LogArea;
+                        }
                     }
-                    x_offset += menu_width + 2; // +2 for spacing
                 }
                 return;
             }
 
             // Check if dropdown menu item was clicked
             if let MenuState::Dropdown(menu_idx, _) = app.menu_state {
-                let menus = vec![
-                    t("menu.file", app.language),
-                    t("menu.settings", app.language),
-                    t("menu.help", app.language),
-                ];
-
-                let items: Vec<&str> = match menu_idx {
-                    0 => vec![
-                        t("menu.file.save_config", app.language),
-                        t("menu.file.load_config", app.language),
-                        "",
-                        t("menu.file.exit", app.language),
-                    ],
-                    1 => vec![t("menu.settings.toggle_language", app.language)],
-                    2 => vec![t("menu.help.about", app.language)],
-                    _ => vec![],
+                // Get menu from centralized definition
+                let menu = match MENU_BAR.get_menu(menu_idx) {
+                    Some(m) => m,
+                    None => {
+                        app.menu_state = MenuState::None;
+                        return;
+                    }
                 };
 
-                // +6: borders(2) + padding(2) + extra space(2) for CJK characters
-                let max_width =
-                    items.iter().map(|s| display_width(s)).max().unwrap_or(10) as u16 + 6;
+                // Build items for width calculation
+                let items: Vec<String> = menu
+                    .items
+                    .iter()
+                    .map(|action| {
+                        if action.is_separator() {
+                            String::new()
+                        } else {
+                            t(action.label_key(), app.language).to_string()
+                        }
+                    })
+                    .collect();
+
+                // Calculate dropdown dimensions
+                let max_width = items
+                    .iter()
+                    .map(|s| display_width(s.as_str()))
+                    .max()
+                    .unwrap_or(10) as u16
+                    + 6;
                 let height = items.len() as u16 + 2;
 
-                let mut x_offset = 0u16;
-                for i in 0..menu_idx {
-                    if i < menus.len() {
-                        x_offset += display_width(menus[i]) as u16 + 4;
-                    }
-                }
+                // Calculate dropdown position using centralized function
+                let x_offset =
+                    tuiserial_core::menu_def::calculate_menu_x_offset(menu_idx, app.language);
 
                 let dropdown_area = Rect {
                     x: areas.menu_bar.x + x_offset,
@@ -777,23 +852,28 @@ fn handle_mouse_event(mouse: MouseEvent, app: &mut AppState, handler: &mut Seria
                 };
 
                 if is_inside(dropdown_area, col, row) {
-                    let relative_row = row.saturating_sub(dropdown_area.y + 1);
-                    if relative_row < items.len() as u16 {
-                        let item_idx = relative_row as usize;
-                        if !items[item_idx].is_empty() {
-                            // Execute menu action
-                            let should_exit = handle_menu_action(app, handler, menu_idx, item_idx);
-                            app.menu_state = MenuState::None;
-                            if should_exit {
-                                // Signal exit somehow - for now just close menu
+                    // Calculate which item was clicked
+                    let relative_y = row - dropdown_area.y;
+                    if relative_y > 0 && relative_y <= items.len() as u16 {
+                        let item_idx = (relative_y - 1) as usize;
+
+                        // Get the action and check if it's a separator
+                        if let Some(action) = MENU_BAR.get_action(menu_idx, item_idx) {
+                            if !action.is_separator() {
+                                let should_exit =
+                                    handle_menu_action(app, handler, menu_idx, item_idx);
+                                app.menu_state = MenuState::None;
+                                if should_exit {
+                                    // This will be handled in the main loop
+                                }
                             }
                         }
                     }
                     return;
                 } else {
-                    // Clicked outside dropdown - close it
+                    // Clicked outside dropdown, close it
                     app.menu_state = MenuState::None;
-                    // Continue with normal click handling
+                    return;
                 }
             }
 
