@@ -96,8 +96,8 @@ fn draw_log_entries(f: &mut Frame, app: &AppState, area: Rect, focused: bool) {
 
     for entry in app.message_log.entries.iter() {
         let (time_color, dir_str, dir_icon) = match entry.direction {
-            LogDirection::Rx => (Color::Cyan, "RX", "◄"),
-            LogDirection::Tx => (Color::Green, "TX", "►"),
+            LogDirection::Rx => (Color::Cyan, "RX", "<"),
+            LogDirection::Tx => (Color::Green, "TX", ">"),
         };
 
         let time_str = entry.timestamp.format("%H:%M:%S%.3f").to_string();

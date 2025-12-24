@@ -92,7 +92,7 @@ pub fn draw_port_dropdown(f: &mut Frame, app: &AppState, area: Rect) {
                 .bg(Color::DarkGray)
                 .add_modifier(Modifier::BOLD),
         )
-        .highlight_symbol("► ");
+        .highlight_symbol("> ");
 
     f.render_stateful_widget(list, area, &mut app.port_list_state.clone());
 }
@@ -152,7 +152,7 @@ pub fn draw_baud_rate_dropdown(f: &mut Frame, app: &AppState, area: Rect) {
                 .bg(Color::DarkGray)
                 .add_modifier(Modifier::BOLD),
         )
-        .highlight_symbol("► ");
+        .highlight_symbol("> ");
 
     f.render_stateful_widget(list, area, &mut app.baud_rate_state.clone());
 }
@@ -212,7 +212,7 @@ pub fn draw_data_bits_dropdown(f: &mut Frame, app: &AppState, area: Rect) {
                 .bg(Color::DarkGray)
                 .add_modifier(Modifier::BOLD),
         )
-        .highlight_symbol("► ");
+        .highlight_symbol("> ");
 
     f.render_stateful_widget(list, area, &mut app.data_bits_state.clone());
 }
