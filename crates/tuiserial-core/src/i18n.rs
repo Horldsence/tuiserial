@@ -136,6 +136,7 @@ static EN: phf::Map<&'static str, &'static str> = phf::phf_map! {
     "notify.ports_refreshed" => "Ports refreshed",
     "notify.display_mode" => "Display mode",
     "notify.tx_mode" => "TX mode",
+    "notify.append_mode" => "Append",
 
     // Help text
     "help.f10" => "F10: Menu",
@@ -295,6 +296,7 @@ static ZH: phf::Map<&'static str, &'static str> = phf::phf_map! {
     "notify.ports_refreshed" => "已刷新串口列表",
     "notify.display_mode" => "显示模式",
     "notify.tx_mode" => "发送模式",
+    "notify.append_mode" => "追加",
 
     // Help text
     "help.f10" => "F10: 菜单",

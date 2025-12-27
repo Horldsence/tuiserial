@@ -348,7 +348,9 @@ fn draw_tx_info(f: &mut Frame, session: &tuiserial_tabs::SerialSession, area: Re
         "TX: {} | Mode: {:?} | Append: {}",
         session.tx_input,
         session.tx_mode,
-        session.tx_append_mode.name()
+        session
+            .tx_append_mode
+            .name(tuiserial_core::Language::English)
     );
 
     let paragraph =

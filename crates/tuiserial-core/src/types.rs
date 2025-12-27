@@ -5,6 +5,8 @@
 
 use serde::{Deserialize, Serialize};
 
+use crate::i18n::t;
+
 /// Display mode for serial data
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum DisplayMode {
@@ -41,14 +43,14 @@ impl AppendMode {
         }
     }
 
-    /// Get the display name
-    pub fn name(&self) -> &str {
+    /// Get the display name with i18n support
+    pub fn name(&self, lang: Language) -> &str {
         match self {
-            AppendMode::None => "无追加",
-            AppendMode::LF => "\\n",
-            AppendMode::CR => "\\r",
-            AppendMode::CRLF => "\\r\\n",
-            AppendMode::LFCR => "\\n\\r",
+            AppendMode::None => t("append.none", lang),
+            AppendMode::LF => t("append.lf", lang),
+            AppendMode::CR => t("append.cr", lang),
+            AppendMode::CRLF => t("append.crlf", lang),
+            AppendMode::LFCR => t("append.lfcr", lang),
         }
     }
 

@@ -142,7 +142,7 @@ fn draw_append_selector(f: &mut Frame, app: &AppState, area: Rect) {
         .append_mode_options
         .iter()
         .map(|mode| {
-            let display = mode.name();
+            let display = mode.name(app.language);
             ListItem::new(display)
         })
         .collect();

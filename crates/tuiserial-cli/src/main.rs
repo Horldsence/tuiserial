@@ -15,7 +15,7 @@ use crossterm::{
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
 use ratatui::{backend::CrosstermBackend, layout::Rect, Terminal};
-use tuiserial_core::{menu_def::MENU_BAR, MenuAction};
+use tuiserial_core::{i18n::t, menu_def::MENU_BAR, MenuAction};
 use tuiserial_core::{AppState, DisplayMode, FocusedField, TxMode};
 use tuiserial_serial::list_ports;
 use tuiserial_ui::{draw, get_clicked_field, get_ui_areas, is_inside};
@@ -428,7 +428,7 @@ fn handle_key_event(key: KeyEvent, app: &mut AppState, handler: &mut SerialHandl
                                     let append_info = if app.tx_append_mode.as_bytes().is_empty() {
                                         String::new()
                                     } else {
-                                        format!(" + {}", app.tx_append_mode.name())
+                                        format!(" + {}", app.tx_append_mode.name(app.language))
                                     };
                                     app.add_success(format!("已发送{}", append_info));
                                     app.tx_input.clear();
@@ -736,7 +736,11 @@ fn handle_key_event(key: KeyEvent, app: &mut AppState, handler: &mut SerialHandl
         // Append mode cycle
         KeyCode::Char('n') => {
             app.next_append_mode();
-            app.add_info(format!("追加: {}", app.tx_append_mode.name()));
+            app.add_info(format!(
+                "{}: {}",
+                t("notify.append_mode", app.language),
+                app.tx_append_mode.name(app.language)
+            ));
         }
 
         // Refresh ports list
@@ -973,7 +977,11 @@ fn handle_mouse_event(mouse: MouseEvent, app: &mut AppState, handler: &mut Seria
                                     app.append_mode_state.select(Some(relative_row as usize));
                                     app.tx_append_mode =
                                         app.append_mode_options[relative_row as usize];
-                                    app.add_info(format!("追加: {}", app.tx_append_mode.name()));
+                                    app.add_info(format!(
+                                        "{}: {}",
+                                        t("notify.append_mode", app.language),
+                                        app.tx_append_mode.name(app.language)
+                                    ));
                                 }
                             } else {
                                 // Clicked in input area - position cursor
@@ -1010,7 +1018,11 @@ fn handle_mouse_event(mouse: MouseEvent, app: &mut AppState, handler: &mut Seria
                 if relative_col >= tx_input_width {
                     // Right click in append selector - cycle append mode
                     app.next_append_mode();
-                    app.add_info(format!("追加: {}", app.tx_append_mode.name()));
+                    app.add_info(format!(
+                        "{}: {}",
+                        t("notify.append_mode", app.language),
+                        app.tx_append_mode.name(app.language)
+                    ));
                 } else {
                     // Right click in input area - toggle TX mode
                     app.toggle_tx_mode();
