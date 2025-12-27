@@ -1,339 +1,345 @@
-# TuiSerial - 终端串口调试助手
+# TuiSerial - Terminal Serial Port Debugger
 
-一个用 Rust + Ratatui 构建的现代化 TUI 串口调试工具，支持完整的键盘和鼠标交互。
+A modern TUI serial port debugging tool built with Rust + Ratatui, featuring complete keyboard and mouse interaction.
+
+[中文文档](README-CN.md) | English
 
 ![](image/image.png)
 
-## 📦 安装
+## 📦 Installation
 
-### 从 crates.io 安装
+### Install from crates.io
 
 ```bash
 cargo install tuiserial
 ```
-运行
+
+Run:
 ```bash
 tuiserial
 ```
 
-### 从源码构建
+### Build from Source
 
-1. 克隆仓库：`git clone https://github.com/yourusername/tuiserial.git`
-2. 进入目录：`cd tuiserial`
-3. 构建：`cargo build --release`
-4. 运行：`cargo run --release`
+1. Clone the repository: `git clone https://github.com/yourusername/tuiserial.git`
+2. Enter directory: `cd tuiserial`
+3. Build: `cargo build --release`
+4. Run: `cargo run --release`
 
-### 使用预编译二进制文件
+### Use Pre-compiled Binaries
 
-1. 下载二进制文件：[下载链接](https://github.com/yourusername/tuiserial/releases)
-2. 解压文件
-3. 运行：`./tuiserial`
+1. Download binary: [Download Link](https://github.com/yourusername/tuiserial/releases)
+2. Extract the archive
+3. Run: `./tuiserial`
 
-## ✨ 功能特性
+## ✨ Features
 
-### 核心功能
-- **完整串口配置**：端口选择、波特率、数据位、校验位、停止位、流控制
-- **配置持久化**：自动保存/加载配置到 `~/.config/tuiserial/config.json` 💾
-- **配置锁定机制**：连接后自动锁定配置，防止误操作，断开后解锁 🔒
-- **智能状态显示**：实时显示连接状态和完整配置信息（8-N-1 格式）
-- **国际化支持**：支持中英文切换，默认英文 🌍
-- **菜单栏导航**：标准菜单栏（文件/设置/帮助），支持键盘和鼠标操作
-- **双模式显示**：HEX 和 TEXT 两种显示模式，实时切换
-- **简洁消息格式**：`[时间] ◄ RX (字节数) 数据` - 清晰直观
-- **双向数据传输**：支持 HEX/ASCII 两种发送模式
-- **灵活追加选项**：可选择追加 `\n`、`\r`、`\r\n`、`\n\r` 或无追加
-- **实时数据接收**：高效的环形缓冲区，支持最多 10000 行日志
-- **自动/手动滚动**：智能自动跟踪或手动浏览历史数据
-- **快捷操作**：快速切换配置和显示模式
+### Core Features
+- **Complete Serial Configuration**: Port selection, baud rate, data bits, parity, stop bits, flow control
+- **Configuration Persistence**: Auto save/load config to `~/.config/tuiserial/config.json` 💾
+- **Config Lock Mechanism**: Auto-lock config after connection to prevent misoperations, unlock after disconnect 🔒
+- **Smart Status Display**: Real-time connection status and complete config info (8-N-1 format)
+- **Internationalization Support**: English and Chinese, default English 🌍
+- **Menu Bar Navigation**: Standard menu bar (File/Settings/Help), supports keyboard and mouse
+- **Dual Display Modes**: HEX and TEXT modes, real-time switching
+- **Clean Message Format**: `[Time] ◄ RX (Bytes) Data` - clear and intuitive
+- **Bidirectional Data Transfer**: Support HEX/ASCII send modes
+- **Flexible Append Options**: Choose to append `\n`, `\r`, `\r\n`, `\n\r` or none
+- **Real-time Data Reception**: Efficient circular buffer, supports up to 10000 log lines
+- **Auto/Manual Scroll**: Smart auto-tracking or manual browsing of historical data
+- **Quick Operations**: Fast toggle between configs and display modes
 
-### 交互特性
-- **完整键盘控制**：vim 风格快捷键 + 标准导航键 + F10 菜单
-- **全面鼠标支持**：点击、右键、中键、滚轮全支持，菜单栏点击
-- **实时统计**：Tx/Rx 字节数统计和连接状态
-- **通知系统**：操作反馈和错误提示，支持多语言
+### Interaction Features
+- **Full Keyboard Control**: Vim-style shortcuts + standard navigation + F10 menu
+- **Comprehensive Mouse Support**: Click, right-click, middle-click, scroll wheel, menu bar clicks
+- **Real-time Statistics**: Tx/Rx byte count and connection status
+- **Notification System**: Operation feedback and error alerts, multilingual support
 
-### UI 优化
-- **状态面板重构**：
-  - 连接状态：`✓ 已连接` / `✗ 未连接`
-  - 配置状态：`🔓 可修改` / `🔒 已锁定`
-  - 完整配置信息：串口、波特率、配置格式（8-N-1）
-- **消息日志优化**：
-  - 简洁标题：`消息 - HEX | 123 条 [x 切换 | c 清空]`
-  - 统一格式：`[时间] ◄ RX (字节数) 数据`
-  - 智能提示：空日志时显示连接状态和快捷键
-- **配置锁定提示**：连接后配置面板显示 `[已锁定]` 标记，边框变灰
-- **追加选项选择器**：右侧独立面板快速选择换行符类型
-- **高亮提示**：焦点字段黄色高亮，选中项加粗显示，锁定字段灰色显示
+### UI Optimizations
+- **Status Panel Redesign**:
+  - Connection status: `✓ Connected` / `✗ Disconnected`
+  - Config status: `🔓 Modifiable` / `🔒 Locked`
+  - Complete config info: Port, Baud rate, Config format (8-N-1)
+- **Message Log Optimization**:
+  - Clean title: `Message - HEX | 123 items [x toggle | c clear]`
+  - Unified format: `[Time] ◄ RX (Bytes) Data`
+  - Smart hints: Show connection status and shortcuts when log is empty
+- **Config Lock Indicator**: Display `[Locked]` marker when connected, border turns gray
+- **Append Option Selector**: Independent right panel for quick line ending selection
+- **Highlight Hints**: Focused field in yellow, selected items bold, locked fields in gray
 
-## 📦 项目结构
+## 📦 Project Structure
 
-采用 Cargo Workspace 管理的模块化架构：
+Modular architecture managed with Cargo Workspace:
 
 ```
 tuiserial/
-├── Cargo.toml                 # Workspace 配置
+├── Cargo.toml                 # Workspace configuration
 ├── crates/
-│   ├── tuiserial-core/        # 核心数据模型和状态管理
-│   ├── tuiserial-serial/      # 串口通信库（封装 serialport）
-│   ├── tuiserial-ui/          # UI 渲染组件（基于 ratatui）
-│   └── tuiserial-cli/         # 命令行主程序和事件处理
-├── ARCHITECTURE.md            # 详细架构文档
-├── LOGIC_VALIDATION.md        # 逻辑验证和测试清单
-├── QUICK_REFERENCE.md         # 快速参考指南
-└── README.md                  # 本文档
+│   ├── tuiserial-core/        # Core data models and state management
+│   ├── tuiserial-serial/      # Serial communication library (wraps serialport)
+│   ├── tuiserial-ui/          # UI rendering components (based on ratatui)
+│   └── tuiserial-cli/         # Main binary package (published as "tuiserial")
+├── ARCHITECTURE.md            # Detailed architecture documentation
+├── LOGIC_VALIDATION.md        # Logic validation and test checklist
+├── QUICK_REFERENCE.md         # Quick reference guide
+├── README.md                  # This document (English)
+└── README-CN.md               # Chinese documentation
 ```
 
-## 🚀 快速开始
+**Note**: The directory is named `tuiserial-cli` but the package is published as `tuiserial` on crates.io. Users should install with `cargo install tuiserial`.
 
-### 编译
+## 🚀 Quick Start
+
+### Compile
 
 ```bash
 cd tuiserial
 cargo build --release
 ```
 
-### 运行
+### Run
 
 ```bash
 ./target/release/tuiserial
 ```
 
-或直接运行：
+Or run directly:
 
 ```bash
 cargo run --release --bin tuiserial
 ```
 
-## ⌨️ 键盘快捷键
+## ⌨️ Keyboard Shortcuts
 
-### 全局控制
-| 快捷键 | 功能 |
-|--------|------|
-| `F10` | 打开/关闭菜单栏 |
-| `q` / `Esc` | 退出程序（或关闭菜单） |
-| `Tab` | 切换焦点到下一个字段 |
-| `Shift+Tab` | 切换焦点到上一个字段 |
-| `o` | 打开/关闭串口连接（连接后锁定配置） |
-| `r` | 刷新串口列表 |
+### Global Controls
+| Shortcut | Function |
+|----------|----------|
+| `F10` | Open/Close menu bar |
+| `q` / `Esc` | Quit program (or close menu) |
+| `Tab` | Switch focus to next field |
+| `Shift+Tab` | Switch focus to previous field |
+| `o` | Open/Close serial connection (locks config when connected) |
+| `r` | Refresh serial port list |
 
-### 菜单栏导航（F10 激活）
-| 快捷键 | 功能 |
-|--------|------|
-| `←` / `→` | 切换菜单项 |
-| `↑` / `↓` | 在下拉菜单中选择 |
-| `Enter` | 执行选中的菜单项 |
-| `Esc` | 关闭菜单/返回上级 |
+### Menu Bar Navigation (F10 to activate)
+| Shortcut | Function |
+|----------|----------|
+| `←` / `→` | Switch menu items |
+| `↑` / `↓` | Select in dropdown menu |
+| `Enter` | Execute selected menu item |
+| `Esc` | Close menu/return to parent |
 
-### 配置面板导航（⚠️ 连接后自动锁定）
-| 快捷键 | 功能 |
-|--------|------|
-| `↑` / `k` | 列表向上/减小值 |
-| `↓` / `j` | 列表向下/增大值 |
-| `←` / `h` | 减小波特率 |
-| `→` / `l` | 增大波特率 |
-| `p` | 切换校验位（None → Even → Odd） |
-| `f` | 切换流控制（None → Hardware → Software） |
+### Config Panel Navigation (⚠️ Auto-locks after connection)
+| Shortcut | Function |
+|----------|----------|
+| `↑` / `k` | List up/decrease value |
+| `↓` / `j` | List down/increase value |
+| `←` / `h` | Decrease baud rate |
+| `→` / `l` | Increase baud rate |
+| `p` | Toggle parity (None → Even → Odd) |
+| `f` | Toggle flow control (None → Hardware → Software) |
 
-**注意**：连接串口后，所有配置参数自动锁定，无法修改。必须先断开连接才能调整配置。
+**Note**: After connecting to serial port, all config parameters are automatically locked and cannot be modified. You must disconnect first to adjust config.
 
-### 日志区域
-| 快捷键 | 功能 |
-|--------|------|
-| `x` | 切换 HEX/TEXT 显示模式 |
-| `c` | 清空日志 |
-| `a` | 切换自动滚动 |
-| `PgUp` | 向上翻页（10行） |
-| `PgDn` | 向下翻页（10行） |
-| `Home` | 跳到日志开头 |
-| `End` | 跳到日志末尾（并开启自动滚动） |
+### Log Area
+| Shortcut | Function |
+|----------|----------|
+| `x` | Toggle HEX/TEXT display mode |
+| `c` | Clear log |
+| `a` | Toggle auto-scroll |
+| `PgUp` | Scroll up (10 lines) |
+| `PgDn` | Scroll down (10 lines) |
+| `Home` | Jump to log beginning |
+| `End` | Jump to log end (and enable auto-scroll) |
 
-### 发送区域（焦点在发送框时）
-| 快捷键 | 功能 |
-|--------|------|
-| `字符键` | 输入字符 |
-| `Backspace` | 删除前一个字符 |
-| `Delete` | 删除后一个字符 |
-| `←` / `→` | 移动光标 |
-| `Home` / `End` | 光标移到开头/结尾 |
-| `↑` / `↓` | 切换 HEX/ASCII 模式 |
-| `n` | 循环切换追加选项 |
-| `Enter` | 发送数据 |
-| `Esc` | 清空输入 |
+### Send Area (when focused on input box)
+| Shortcut | Function |
+|----------|----------|
+| `Character keys` | Input characters |
+| `Backspace` | Delete previous character |
+| `Delete` | Delete next character |
+| `←` / `→` | Move cursor |
+| `Home` / `End` | Move cursor to start/end |
+| `↑` / `↓` | Toggle HEX/ASCII mode |
+| `n` | Cycle through append options |
+| `Enter` | Send data |
+| `Esc` | Clear input |
 
-## 🖱️ 鼠标交互
+## 🖱️ Mouse Interaction
 
-### 左键点击
-- **菜单栏** → 打开菜单下拉列表
-- **菜单项** → 执行对应功能
-- **配置面板** → 切换焦点并直接选择列表项
-- **日志区域** → 切换焦点到日志区域
-- **发送框** → 切换焦点并定位光标位置
-- **追加选项** → 直接选择追加模式
+### Left Click
+- **Menu Bar** → Open menu dropdown
+- **Menu Item** → Execute corresponding function
+- **Config Panel** → Switch focus and directly select list item
+- **Log Area** → Switch focus to log area
+- **Input Box** → Switch focus and position cursor
+- **Append Options** → Directly select append mode
 
-### 右键点击
-- **日志区域** → 快速切换 HEX/TEXT 显示模式
-- **发送框** → 快速切换 HEX/ASCII 发送模式
-- **追加选项** → 循环切换追加模式
-- **统计信息区** → 切换自动滚动开关
+### Right Click
+- **Log Area** → Quick toggle HEX/TEXT display mode
+- **Input Box** → Quick toggle HEX/ASCII send mode
+- **Append Options** → Cycle through append modes
+- **Statistics Area** → Toggle auto-scroll
 
-### 中键点击
-- **日志区域** → 快速清空日志
-- **发送框** → 快速清空输入
+### Middle Click
+- **Log Area** → Quick clear log
+- **Input Box** → Quick clear input
 
-### 滚轮滚动
-- **日志区域** → 向上/向下滚动日志（3行）
-- **配置列表** → 在列表中向上/向下选择
-- **追加选项** → 循环切换追加模式
+### Scroll Wheel
+- **Log Area** → Scroll log up/down (3 lines)
+- **Config List** → Select up/down in list
+- **Append Options** → Cycle through append modes
 
-## 📊 数据格式
+## 📊 Data Format
 
-### 接收显示格式
+### Receive Display Format
 ```
 [14:32:45.123] ◄ RX (   5 B) 48 65 6C 6C 6F
 [14:32:45.456] ◄ RX (   5 B) Hello
 ```
 
-**格式说明**：
-- 时间戳精确到毫秒
-- `◄ RX` 接收方向（青色加粗）
-- `► TX` 发送方向（绿色加粗）
-- 字节数右对齐，便于查看
+**Format Description**:
+- Timestamp accurate to milliseconds
+- `◄ RX` Receive direction (cyan bold)
+- `► TX` Transmit direction (green bold)
+- Byte count right-aligned for easy viewing
 
-### 发送模式
-1. **ASCII 模式**：直接输入文本，如 `Hello`
-2. **HEX 模式**：输入十六进制，空格分隔，如 `48 65 6C 6C 6F`
+### Send Modes
+1. **ASCII Mode**: Enter text directly, e.g., `Hello`
+2. **HEX Mode**: Enter hexadecimal, space-separated, e.g., `48 65 6C 6C 6F`
 
-### 追加选项
-- **无追加**：不添加任何字符
-- **\n**：添加换行符（LF，0x0A）
-- **\r**：添加回车符（CR，0x0D）
-- **\r\n**：添加回车换行（CRLF，0x0D 0x0A）
-- **\n\r**：添加换行回车（LFCR，0x0A 0x0D）
+### Append Options
+- **None**: Don't add any characters
+- **\n**: Add line feed (LF, 0x0A)
+- **\r**: Add carriage return (CR, 0x0D)
+- **\r\n**: Add carriage return line feed (CRLF, 0x0D 0x0A)
+- **\n\r**: Add line feed carriage return (LFCR, 0x0A 0x0D)
 
-## 🛠️ 技术栈
+## 🛠️ Tech Stack
 
-- **Ratatui 0.29**：现代的 Rust TUI 框架
-- **Crossterm 0.28**：跨平台终端控制
-- **Serialport 4.3+**：跨平台串口访问
-- **Tokio 1.40**：异步运行时
-- **Chrono 0.4**：时间戳处理
-- **Color-eyre 0.6**：错误处理
+- **Ratatui 0.29**: Modern Rust TUI framework
+- **Crossterm 0.28**: Cross-platform terminal control
+- **Serialport 4.3+**: Cross-platform serial port access
+- **Tokio 1.40**: Async runtime
+- **Chrono 0.4**: Timestamp handling
+- **Color-eyre 0.6**: Error handling
 
-## 📈 开发状态
+## 📈 Development Status
 
-### ✅ 已实现
-- ✅ 串口配置管理（所有常用参数）
-- ✅ **配置持久化**（自动保存/加载配置文件）
-- ✅ **菜单栏系统**（文件/设置/帮助，支持键盘和鼠标）
-- ✅ **国际化支持**（中英文切换，编译时零开销）
-- ✅ **配置锁定机制**（连接后自动锁定，防止误操作）
-- ✅ **智能状态显示**（连接状态、配置状态、完整配置信息）
-- ✅ 数据接收显示（HEX/TEXT 模式）
-- ✅ 数据发送功能（HEX/ASCII 模式）
-- ✅ 追加选项（\n, \r, \r\n, \n\r, 无）
-- ✅ 完整键盘控制（含 F10 菜单快捷键）
-- ✅ 完整鼠标交互（点击、右键、中键、滚轮、菜单栏）
-- ✅ **优化消息格式**（简洁直观的日志显示）
-- ✅ 自动/手动滚动
-- ✅ 实时统计和通知系统
-- ✅ 完整逻辑验证（见 LOGIC_VALIDATION.md）
-- ✅ 模块化架构（Workspace）
+### ✅ Implemented
+- ✅ Serial port config management (all common parameters)
+- ✅ **Configuration persistence** (auto save/load config file)
+- ✅ **Menu bar system** (File/Settings/Help, keyboard and mouse support)
+- ✅ **Internationalization support** (English/Chinese toggle, zero runtime cost)
+- ✅ **Config lock mechanism** (auto-lock after connection, prevent misoperations)
+- ✅ **Smart status display** (connection status, config status, complete config info)
+- ✅ Data reception display (HEX/TEXT modes)
+- ✅ Data transmission (HEX/ASCII modes)
+- ✅ Append options (\n, \r, \r\n, \n\r, none)
+- ✅ Full keyboard control (including F10 menu shortcuts)
+- ✅ Full mouse interaction (click, right-click, middle-click, scroll, menu bar)
+- ✅ **Optimized message format** (clean and intuitive log display)
+- ✅ Auto/manual scroll
+- ✅ Real-time statistics and notification system
+- ✅ Complete logic validation (see LOGIC_VALIDATION.md)
+- ✅ Modular architecture (Workspace)
 
-### 🔄 计划中
-- 🔄 命令预设和快速发送
-- 🔄 日志导出（TXT/CSV/JSON）
-- 🔄 搜索和过滤功能
-- 🔄 数据分析和图表
-- 🔄 协议解析器插件
-- 🔄 更多语言支持（日语、韩语等）
-- 🔄 多串口同时监控
-- 🔄 宏录制和回放
+### 🔄 Planned
+- 🔄 Command presets and quick send
+- 🔄 Log export (TXT/CSV/JSON)
+- 🔄 Search and filter functionality
+- 🔄 Data analysis and charts
+- 🔄 Protocol parser plugins
+- 🔄 More language support (Japanese, Korean, etc.)
+- 🔄 Multiple serial port monitoring
+- 🔄 Macro recording and playback
 
-## 📚 文档
+## 📚 Documentation
 
-- [ARCHITECTURE.md](ARCHITECTURE.md) - 详细架构设计文档
-- [LOGIC_VALIDATION.md](LOGIC_VALIDATION.md) - 逻辑验证和测试清单
-- [QUICK_REFERENCE.md](QUICK_REFERENCE.md) - 快速参考指南
-- [Cargo Workspace](https://doc.rust-lang.org/book/ch14-03-cargo-workspaces.html) - Cargo Workspace 官方文档
+- [ARCHITECTURE.md](ARCHITECTURE.md) - Detailed architecture design document
+- [LOGIC_VALIDATION.md](LOGIC_VALIDATION.md) - Logic validation and test checklist
+- [QUICK_REFERENCE.md](QUICK_REFERENCE.md) - Quick reference guide
+- [Cargo Workspace](https://doc.rust-lang.org/book/ch14-03-cargo-workspaces.html) - Cargo Workspace official documentation
 
-## 🔐 核心特性：配置锁定机制
+## 🔐 Core Feature: Config Lock Mechanism
 
-**为什么需要配置锁定？**
-在串口通信中，连接建立后修改参数可能导致：
-- 通信中断或数据损坏
-- 设备响应异常
-- 调试信息混乱
+**Why do we need config locking?**
+After establishing a serial connection, modifying parameters may cause:
+- Communication interruption or data corruption
+- Device abnormal response
+- Debug information confusion
 
-**我们的解决方案：**
-1. ✅ **连接时自动锁定** - 按 `o` 连接后，所有配置参数立即锁定
-2. ✅ **视觉反馈** - 配置面板显示 `[已锁定]` 标记，边框变灰
-3. ✅ **操作拦截** - 任何修改尝试都会显示警告："配置已锁定，请先断开连接"
-4. ✅ **断开解锁** - 再次按 `o` 断开后，配置恢复可修改状态
-5. ✅ **状态同步** - 状态面板实时显示当前配置和锁定状态
+**Our Solution:**
+1. ✅ **Auto-lock on connection** - After pressing `o` to connect, all config parameters are immediately locked
+2. ✅ **Visual feedback** - Config panel shows `[Locked]` marker, border turns gray
+3. ✅ **Operation interception** - Any modification attempt shows warning: "Config locked, please disconnect first"
+4. ✅ **Unlock on disconnect** - Press `o` again to disconnect, config returns to modifiable state
+5. ✅ **Status sync** - Status panel displays current config and lock status in real-time
 
-**实际效果：**
+**Actual Effect:**
 ```
-未连接时：
-  状态：✗ 未连接
-  配置：🔓 可修改
-  → 可以自由调整所有参数
+When disconnected:
+  Status: ✗ Disconnected
+  Config: 🔓 Modifiable
+  → Can freely adjust all parameters
 
-连接后：
-  状态：✓ 已连接
-  配置：🔒 已锁定
-  串口：/dev/ttyUSB0
-  波特：115200
-  配置：8-N-1
-  → 参数锁定，无法修改
+When connected:
+  Status: ✓ Connected
+  Config: 🔒 Locked
+  Port: /dev/ttyUSB0
+  Baud: 115200
+  Config: 8-N-1
+  → Parameters locked, cannot modify
 
-断开后：
-  状态：✗ 未连接
-  配置：🔓 可修改
-  → 恢复可修改状态
+After disconnect:
+  Status: ✗ Disconnected
+  Config: 🔓 Modifiable
+  → Returns to modifiable state
 ```
 
-## 🤝 贡献指南
+## 🤝 Contributing
 
-欢迎提交 Issue 和 Pull Request！
+Issues and Pull Requests are welcome!
 
-1. Fork 本项目
-2. 创建特性分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
-4. 推送到分支 (`git push origin feature/AmazingFeature`)
-5. 开启 Pull Request
+1. Fork this project
+2. Create feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to branch (`git push origin feature/AmazingFeature`)
+5. Open Pull Request
 
-## 📝 许可证
+## 📝 License
 
 MIT License
 
-## 👨‍💻 作者
+## 👨‍💻 Author
 
-Your Name <your.email@example.com>
+pengheng <m18511047688@163.com>
 
-## 🌍 国际化
+## 🌍 Internationalization
 
-目前支持：
-- **English** (默认)
-- **中文**
+Currently supported:
+- **English** (default)
+- **中文** (Chinese)
 
-切换语言：
-- 按 `F10` 打开菜单
-- 选择 `Settings` → `Toggle Language`
-- 或直接点击菜单栏
+Switch language:
+- Press `F10` to open menu
+- Select `Settings` → `Toggle Language`
+- Or click directly on menu bar
 
-技术实现：
-- 使用 `phf` 实现编译时静态 HashMap
-- 零运行时开销，所有翻译在编译时嵌入
-- Fallback 机制：找不到翻译时返回 key 本身
-- 简单直接，无复杂框架依赖
+Technical implementation:
+- Uses `phf` for compile-time static HashMap
+- Zero runtime overhead, all translations embedded at compile time
+- Fallback mechanism: returns key itself if translation not found
+- Simple and direct, no complex framework dependencies
 
-## 💾 配置文件
+## 💾 Configuration File
 
-配置自动保存到：
+Config auto-saves to:
 - **Linux/macOS**: `~/.config/tuiserial/config.json`
 - **Windows**: `%APPDATA%\tuiserial\config.json`
 
-配置内容：
+Config content:
 ```json
 {
   "port": "/dev/ttyUSB0",
@@ -345,11 +351,11 @@ Your Name <your.email@example.com>
 }
 ```
 
-操作：
-- **保存配置**：菜单 → File → Save Config
-- **加载配置**：菜单 → File → Load Config（启动时自动加载）
-- 配置文件损坏时自动使用默认配置，不会崩溃
+Operations:
+- **Save Config**: Menu → File → Save Config
+- **Load Config**: Menu → File → Load Config (auto-loads on startup)
+- Uses default config if config file is corrupted, no crashes
 
 ---
 
-**⭐ 如果这个项目对你有帮助，请给一个 Star！**
+**⭐ If this project helps you, please give it a Star!**
