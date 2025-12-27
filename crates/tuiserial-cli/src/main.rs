@@ -348,13 +348,29 @@ fn handle_key_event(key: KeyEvent, app: &mut AppState, handler: &mut SerialHandl
                 return false;
             }
             KeyCode::Char(c) => {
-                app.tx_input.insert(app.tx_cursor, c);
+                // Convert character index to byte index for insertion
+                let byte_idx = app
+                    .tx_input
+                    .char_indices()
+                    .nth(app.tx_cursor)
+                    .map(|(i, _)| i)
+                    .unwrap_or(app.tx_input.len());
+                app.tx_input.insert(byte_idx, c);
                 app.tx_cursor += 1;
                 return false;
             }
             KeyCode::Backspace => {
                 if app.tx_cursor > 0 {
-                    app.tx_input.remove(app.tx_cursor - 1);
+                    // Convert character index to byte index for removal
+                    let byte_idx = app
+                        .tx_input
+                        .char_indices()
+                        .nth(app.tx_cursor - 1)
+                        .map(|(i, _)| i)
+                        .unwrap_or(0);
+                    if byte_idx < app.tx_input.len() {
+                        app.tx_input.remove(byte_idx);
+                    }
                     app.tx_cursor -= 1;
                 }
                 return false;
@@ -382,8 +398,18 @@ fn handle_key_event(key: KeyEvent, app: &mut AppState, handler: &mut SerialHandl
                 return false;
             }
             KeyCode::Delete => {
-                if app.tx_cursor < app.tx_input.len() {
-                    app.tx_input.remove(app.tx_cursor);
+                let char_count = app.tx_input.chars().count();
+                if app.tx_cursor < char_count {
+                    // Convert character index to byte index for removal
+                    let byte_idx = app
+                        .tx_input
+                        .char_indices()
+                        .nth(app.tx_cursor)
+                        .map(|(i, _)| i)
+                        .unwrap_or(app.tx_input.len());
+                    if byte_idx < app.tx_input.len() {
+                        app.tx_input.remove(byte_idx);
+                    }
                 }
                 return false;
             }
@@ -394,7 +420,8 @@ fn handle_key_event(key: KeyEvent, app: &mut AppState, handler: &mut SerialHandl
                 return false;
             }
             KeyCode::Right => {
-                if app.tx_cursor < app.tx_input.len() {
+                let char_count = app.tx_input.chars().count();
+                if app.tx_cursor < char_count {
                     app.tx_cursor += 1;
                 }
                 return false;
@@ -404,7 +431,7 @@ fn handle_key_event(key: KeyEvent, app: &mut AppState, handler: &mut SerialHandl
                 return false;
             }
             KeyCode::End => {
-                app.tx_cursor = app.tx_input.len();
+                app.tx_cursor = app.tx_input.chars().count();
                 return false;
             }
             KeyCode::Enter => {
@@ -985,10 +1012,9 @@ fn handle_mouse_event(mouse: MouseEvent, app: &mut AppState, handler: &mut Seria
                                 }
                             } else {
                                 // Clicked in input area - position cursor
-                                let cursor_pos = relative_col
-                                    .saturating_sub(1)
-                                    .min(app.tx_input.len() as u16)
-                                    as usize;
+                                let char_count = app.tx_input.chars().count();
+                                let cursor_pos =
+                                    relative_col.saturating_sub(1).min(char_count as u16) as usize;
                                 app.tx_cursor = cursor_pos;
                             }
                         }

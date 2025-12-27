@@ -28,8 +28,7 @@ mod tests {
 
     #[test]
     fn test_display_width_mixed() {
-        assert_eq!(display_width("Hello 世界"), 9); // 5 + 1 + 4 = 10... wait
-                                                    // Actually: H(1) e(1) l(1) l(1) o(1) space(1) 世(2) 界(2) = 10
+        // H(1) e(1) l(1) l(1) o(1) space(1) 世(2) 界(2) = 10
         assert_eq!(display_width("Hello 世界"), 10);
         assert_eq!(display_width("Test测试"), 8); // 4 + 4
     }

@@ -73,7 +73,7 @@ fn draw_tx_input(f: &mut Frame, app: &AppState, area: Rect) {
     let cursor_line = if app.tx_input.is_empty() {
         if focused {
             Line::from(vec![
-                Span::styled("▮", Style::default().fg(Color::Yellow)),
+                Span::styled("|", Style::default().fg(Color::Yellow)),
                 Span::styled(
                     format!(" {}", prompt_text),
                     Style::default().fg(Color::DarkGray),
@@ -86,15 +86,26 @@ fn draw_tx_input(f: &mut Frame, app: &AppState, area: Rect) {
             ))
         }
     } else {
-        let display_text = if focused {
-            format!("{}▮", app.tx_input)
+        if focused {
+            // Insert cursor at the correct position
+            // Use char indices to ensure we split on character boundaries, not bytes
+            let chars: Vec<char> = app.tx_input.chars().collect();
+            let cursor_pos = app.tx_cursor.min(chars.len());
+
+            let before_cursor: String = chars[..cursor_pos].iter().collect();
+            let after_cursor: String = chars[cursor_pos..].iter().collect();
+
+            Line::from(vec![
+                Span::styled(before_cursor, Style::default().fg(Color::White)),
+                Span::styled("|", Style::default().fg(Color::Yellow)),
+                Span::styled(after_cursor, Style::default().fg(Color::White)),
+            ])
         } else {
-            app.tx_input.clone()
-        };
-        Line::from(Span::styled(
-            display_text,
-            Style::default().fg(Color::White),
-        ))
+            Line::from(Span::styled(
+                app.tx_input.clone(),
+                Style::default().fg(Color::White),
+            ))
+        }
     };
 
     let help_text = match app.tx_mode {

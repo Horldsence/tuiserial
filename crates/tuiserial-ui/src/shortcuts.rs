@@ -161,6 +161,26 @@ pub fn draw_shortcuts_help(f: &mut Frame, lang: Language) {
                 .add_modifier(Modifier::BOLD),
         )]),
         Line::from(vec![
+            Span::styled("  Tab", Style::default().fg(Color::Yellow)),
+            Span::raw("             "),
+            Span::raw(
+                t("shortcuts.tab", lang)
+                    .split(':')
+                    .nth(1)
+                    .unwrap_or("Next field"),
+            ),
+        ]),
+        Line::from(vec![
+            Span::styled("  Shift+Tab", Style::default().fg(Color::Yellow)),
+            Span::raw("       "),
+            Span::raw(
+                t("shortcuts.shift_tab", lang)
+                    .split(':')
+                    .nth(1)
+                    .unwrap_or("Previous field"),
+            ),
+        ]),
+        Line::from(vec![
             Span::styled("  O", Style::default().fg(Color::Yellow)),
             Span::raw("               "),
             Span::raw("Connect/Disconnect"),
