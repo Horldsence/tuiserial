@@ -139,6 +139,7 @@ pub fn get_ui_areas() -> UiAreas {
 }
 
 /// Update UI areas (called during rendering)
+#[allow(dead_code)]
 pub fn update_ui_areas(areas: UiAreas) {
     unsafe {
         UI_AREAS = areas;
@@ -182,6 +183,7 @@ pub enum UiAreaField {
     ControlArea,
     NotificationArea,
     ShortcutsHint,
+    #[allow(dead_code)]
     TabBar,
 }
 

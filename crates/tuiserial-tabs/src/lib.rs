@@ -277,7 +277,7 @@ mod tests {
         let mut manager = TabsManager::new();
 
         let idx1 = manager.add_session(Some("Test 1".to_string()));
-        let idx2 = manager.add_session(Some("Test 2".to_string()));
+        let _idx2 = manager.add_session(Some("Test 2".to_string()));
 
         assert_eq!(manager.sessions().len(), 3);
 

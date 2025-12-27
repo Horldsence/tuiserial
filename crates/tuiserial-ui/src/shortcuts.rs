@@ -4,7 +4,7 @@
 //! for the application, organized by category.
 
 use ratatui::{
-    layout::{Alignment, Constraint, Direction, Layout, Rect},
+    layout::{Alignment, Rect},
     style::{Color, Modifier, Style},
     text::{Line, Span},
     widgets::{Block, Borders, Clear, Paragraph, Wrap},
@@ -33,7 +33,7 @@ pub fn draw_shortcuts_help(f: &mut Frame, lang: Language) {
     f.render_widget(Clear, help_area);
 
     // Create the help content
-    let mut lines = vec![
+    let lines = vec![
         Line::from(""),
         Line::from(vec![Span::styled(
             t("shortcuts.session", lang),
@@ -222,7 +222,7 @@ pub fn draw_shortcuts_help(f: &mut Frame, lang: Language) {
 }
 
 /// Draw a compact shortcuts hint bar
-pub fn draw_shortcuts_hint(f: &mut Frame, area: Rect, lang: Language) {
+pub fn draw_shortcuts_hint(f: &mut Frame, area: Rect, _lang: Language) {
     let hints = vec![
         ("F10", "Menu"),
         ("Ctrl+T", "New"),
@@ -301,7 +301,6 @@ pub fn draw_context_shortcuts(
 
 #[cfg(test)]
 mod tests {
-    use super::*;
 
     #[test]
     fn test_shortcuts_rendering() {

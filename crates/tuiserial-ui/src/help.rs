@@ -13,6 +13,7 @@ use ratatui::{
 use tuiserial_core::{i18n::t, Language};
 
 /// Draw the help overlay centered on the screen
+#[allow(dead_code)]
 pub fn draw_help_overlay(f: &mut Frame, lang: Language) {
     let area = f.area();
 
@@ -93,6 +94,7 @@ pub fn draw_help_overlay(f: &mut Frame, lang: Language) {
 }
 
 /// Create help content with all keyboard shortcuts
+#[allow(dead_code)]
 fn create_help_content(lang: Language) -> Vec<Line<'static>> {
     let mut lines = Vec::new();
 
@@ -313,6 +315,7 @@ fn create_help_content(lang: Language) -> Vec<Line<'static>> {
 }
 
 /// Add a shortcut line with key and description
+#[allow(dead_code)]
 fn add_shortcut_line(lines: &mut Vec<Line<'static>>, key: &str, description: &str) {
     // Extract description text if it contains ":" from i18n
     let desc = if description.contains(':') {
@@ -339,6 +342,7 @@ fn add_shortcut_line(lines: &mut Vec<Line<'static>>, key: &str, description: &st
 }
 
 /// Draw a compact help hint in the status bar
+#[allow(dead_code)]
 pub fn draw_help_hint(f: &mut Frame, area: Rect, lang: Language) {
     let hint_text = if lang == Language::English {
         " F1: Help | F10: Menu | Ctrl+Q: Quit "

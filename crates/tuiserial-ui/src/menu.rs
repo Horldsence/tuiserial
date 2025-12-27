@@ -7,7 +7,7 @@ use ratatui::{
     layout::Rect,
     style::{Color, Modifier, Style},
     text::{Line, Span},
-    widgets::{Block, Borders, List, ListItem, Paragraph},
+    widgets::{Block, Borders, Clear, List, ListItem, Paragraph},
     Frame,
 };
 use tuiserial_core::{i18n::t, menu_def::MENU_BAR, AppState, MenuState};
@@ -160,6 +160,8 @@ pub fn draw_menu_dropdown(
             .style(Style::default().bg(Color::Black)),
     );
 
+    // Clear the area first to ensure dropdown overlays other content
+    f.render_widget(Clear, dropdown_area);
     f.render_widget(list, dropdown_area);
 }
 

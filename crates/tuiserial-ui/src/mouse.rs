@@ -4,11 +4,9 @@
 //! tabs, buttons, and other interactive UI elements.
 
 use ratatui::layout::Rect;
-use tuiserial_core::{AppState, FocusedField, MenuState};
+use tuiserial_core::{AppState, FocusedField, Language, MenuState};
 
-use crate::areas::{
-    get_clicked_field, get_clicked_menu, get_clicked_tab, is_inside, is_shortcuts_hint_clicked,
-};
+use crate::areas::{get_clicked_field, get_clicked_menu, is_inside, is_shortcuts_hint_clicked};
 
 /// Mouse action result
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -97,7 +95,7 @@ pub fn handle_mouse_click(
 }
 
 /// Handle mouse hover/move events
-pub fn handle_mouse_hover(app: &AppState, x: u16, y: u16) -> Option<String> {
+pub fn handle_mouse_hover(_app: &AppState, x: u16, y: u16) -> Option<String> {
     // Return tooltip text based on hover position
 
     // Check menu bar
@@ -138,6 +136,7 @@ pub fn handle_mouse_hover(app: &AppState, x: u16, y: u16) -> Option<String> {
 
 /// Calculate which dropdown item was clicked based on Y coordinate
 fn calculate_dropdown_item(dropdown_area: Rect, y: u16) -> usize {
+    let _ = dropdown_area;
     if y < dropdown_area.y || y >= dropdown_area.y + dropdown_area.height {
         return 0;
     }
@@ -154,16 +153,14 @@ fn calculate_dropdown_item(dropdown_area: Rect, y: u16) -> usize {
 }
 
 /// Get the area for a dropdown menu
-pub fn calculate_dropdown_area(menu_bar_area: Rect, menu_idx: usize, item_count: usize) -> Rect {
-    // Calculate x position based on menu index
-    let menu_widths = [6u16, 9, 6, 10, 6]; // Approximate widths: File, Session, View, Settings, Help
-
-    let mut x_offset = 0u16;
-    for i in 0..menu_idx {
-        if i < menu_widths.len() {
-            x_offset += menu_widths[i] + 4; // +4 for padding and spacing
-        }
-    }
+pub fn calculate_dropdown_area(
+    menu_bar_area: Rect,
+    menu_idx: usize,
+    item_count: usize,
+    lang: Language,
+) -> Rect {
+    // Calculate x position based on menu index using centralized calculation
+    let x_offset = tuiserial_core::menu_def::calculate_menu_x_offset(menu_idx, lang);
 
     // Calculate dropdown dimensions
     let max_width = 25u16; // Reasonable default width
@@ -178,7 +175,8 @@ pub fn calculate_dropdown_area(menu_bar_area: Rect, menu_idx: usize, item_count:
 }
 
 /// Check if a click is on a button area (approximate)
-pub fn is_button_area(area: Rect, x: u16, y: u16, button_text: &str) -> bool {
+#[allow(dead_code)]
+pub fn is_button_area(area: Rect, x: u16, y: u16, _button_text: &str) -> bool {
     if !is_inside(area, x, y) {
         return false;
     }
@@ -190,7 +188,7 @@ pub fn is_button_area(area: Rect, x: u16, y: u16, button_text: &str) -> bool {
 
 /// Handle mouse scroll events in log area
 pub fn handle_mouse_scroll(
-    app: &AppState,
+    _app: &AppState,
     x: u16,
     y: u16,
     direction: ScrollDirection,
@@ -266,7 +264,7 @@ pub enum CursorType {
 }
 
 /// Get appropriate cursor type for position
-pub fn get_cursor_type(app: &AppState, x: u16, y: u16) -> CursorType {
+pub fn get_cursor_type(_app: &AppState, x: u16, y: u16) -> CursorType {
     use crate::areas::get_ui_areas;
 
     let areas = get_ui_areas();
@@ -310,7 +308,7 @@ mod tests {
             height: 1,
         };
 
-        let area = calculate_dropdown_area(menu_bar, 0, 4);
+        let area = calculate_dropdown_area(menu_bar, 0, 4, Language::English);
         assert_eq!(area.y, 1); // Below menu bar
         assert_eq!(area.height, 6); // 4 items + 2 borders
     }
