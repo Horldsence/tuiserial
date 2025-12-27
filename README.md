@@ -9,7 +9,7 @@
 ### 从 crates.io 安装
 
 ```bash
-cargo install tuiserial-cli
+cargo install tuiserial
 ```
 运行
 ```bash

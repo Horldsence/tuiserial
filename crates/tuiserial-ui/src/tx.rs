@@ -10,7 +10,7 @@ use ratatui::{
     widgets::{Block, Borders, List, ListItem, Paragraph, Wrap},
     Frame,
 };
-use tuiserial_core::{AppState, FocusedField, TxMode};
+use tuiserial_core::{i18n::t, AppState, FocusedField, TxMode};
 
 use crate::areas::{update_area, UiAreaField};
 
@@ -33,8 +33,8 @@ pub fn draw_tx_area(f: &mut Frame, app: &AppState, area: Rect) {
 fn draw_tx_input(f: &mut Frame, app: &AppState, area: Rect) {
     let focused = app.focused_field == FocusedField::TxInput;
     let mode_str = match app.tx_mode {
-        TxMode::Hex => "HEX",
-        TxMode::Ascii => "ASCII",
+        TxMode::Hex => t("tx.hex", app.language),
+        TxMode::Ascii => t("tx.ascii", app.language),
     };
 
     let mode_icon = match app.tx_mode {
@@ -44,11 +44,21 @@ fn draw_tx_input(f: &mut Frame, app: &AppState, area: Rect) {
 
     let title = if focused {
         format!(
-            " {} 发送 - {} [↑↓ 切换 | Enter 发送 | Esc 清空] ",
-            mode_icon, mode_str
+            " {} {} - {} [↑↓ {} | Enter {} | Esc {}] ",
+            mode_icon,
+            t("label.send", app.language),
+            mode_str,
+            t("hint.toggle", app.language),
+            t("button.send", app.language),
+            t("hint.clear", app.language)
         )
     } else {
-        format!(" {} 发送 - {} ", mode_icon, mode_str)
+        format!(
+            " {} {} - {} ",
+            mode_icon,
+            t("label.send", app.language),
+            mode_str
+        )
     };
 
     let style = if focused {
@@ -59,15 +69,19 @@ fn draw_tx_input(f: &mut Frame, app: &AppState, area: Rect) {
         Style::default()
     };
 
+    let prompt_text = t("label.input_prompt", app.language);
     let cursor_line = if app.tx_input.is_empty() {
         if focused {
             Line::from(vec![
                 Span::styled("▮", Style::default().fg(Color::Yellow)),
-                Span::styled(" 输入数据...", Style::default().fg(Color::DarkGray)),
+                Span::styled(
+                    format!(" {}", prompt_text),
+                    Style::default().fg(Color::DarkGray),
+                ),
             ])
         } else {
             Line::from(Span::styled(
-                "输入数据...",
+                prompt_text,
                 Style::default().fg(Color::DarkGray),
             ))
         }
@@ -84,8 +98,20 @@ fn draw_tx_input(f: &mut Frame, app: &AppState, area: Rect) {
     };
 
     let help_text = match app.tx_mode {
-        TxMode::Hex => "HEX: 按空格分隔字节 (例: 48 65 6C 6C 6F)",
-        TxMode::Ascii => "ASCII: 直接输入文本内容",
+        TxMode::Hex => {
+            if app.language == tuiserial_core::Language::Chinese {
+                "HEX: 按空格分隔字节 (例: 48 65 6C 6C 6F)"
+            } else {
+                "HEX: Space-separated bytes (e.g., 48 65 6C 6C 6F)"
+            }
+        }
+        TxMode::Ascii => {
+            if app.language == tuiserial_core::Language::Chinese {
+                "ASCII: 直接输入文本内容"
+            } else {
+                "ASCII: Enter text directly"
+            }
+        }
     };
 
     let text = vec![
@@ -125,7 +151,7 @@ fn draw_append_selector(f: &mut Frame, app: &AppState, area: Rect) {
         .block(
             Block::default()
                 .borders(Borders::ALL)
-                .title(" 追加 ")
+                .title(format!(" {} ", t("label.append_mode", app.language)))
                 .title_alignment(Alignment::Left),
         )
         .highlight_style(

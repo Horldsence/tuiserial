@@ -1,11 +1,12 @@
 [package]
-name = "tuiserial-cli"
+name = "tuiserial"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
 license.workspace = true
 homepage.workspace = true
 repository.workspace = true
+readme.workspace = true
 description = "Command-line interface for tuiserial serial port terminal"
 
 [[bin]]

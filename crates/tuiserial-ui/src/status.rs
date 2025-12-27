@@ -10,7 +10,7 @@ use ratatui::{
     widgets::{Block, Borders, Paragraph},
     Frame,
 };
-use tuiserial_core::{AppState, Parity};
+use tuiserial_core::{i18n::t, AppState, Parity};
 
 use crate::areas::{update_area, UiAreaField};
 
@@ -27,22 +27,22 @@ pub fn draw_status_panel(f: &mut Frame, app: &AppState, area: Rect) {
 
     let status_icon = if app.is_connected { "✓" } else { "✗" };
     let status_text = if app.is_connected {
-        "已连接"
+        t("status.connected", app.language)
     } else {
-        "未连接"
+        t("status.disconnected", app.language)
     };
 
     let config_status = if app.config_locked {
-        ("🔒", "已锁定", Color::Yellow)
+        ("🔒", t("status.locked", app.language), Color::Yellow)
     } else {
-        ("🔓", "可修改", Color::Green)
+        ("🔓", t("status.modifiable", app.language), Color::Green)
     };
 
     // Format parity display
     let parity_str = match app.config.parity {
-        Parity::None => "N",
-        Parity::Even => "E",
-        Parity::Odd => "O",
+        Parity::None => t("parity.none", app.language).chars().next().unwrap_or('N'),
+        Parity::Even => t("parity.even", app.language).chars().next().unwrap_or('E'),
+        Parity::Odd => t("parity.odd", app.language).chars().next().unwrap_or('O'),
     };
 
     let text = vec![
@@ -68,19 +68,32 @@ pub fn draw_status_panel(f: &mut Frame, app: &AppState, area: Rect) {
         ]),
         Line::raw(""),
         Line::from(vec![
-            Span::styled("串口: ", Style::default().fg(Color::Cyan)),
+            Span::styled(
+                format!("{}: ", t("label.port", app.language)),
+                Style::default().fg(Color::Cyan),
+            ),
             Span::raw(if app.config.port.is_empty() {
-                "未选择"
+                t("status.not_connected", app.language)
+                    .split('-')
+                    .next()
+                    .unwrap_or("Not selected")
+                    .trim()
             } else {
                 &app.config.port
             }),
         ]),
         Line::from(vec![
-            Span::styled("波特: ", Style::default().fg(Color::Cyan)),
+            Span::styled(
+                format!("{}: ", t("label.baud_rate", app.language)),
+                Style::default().fg(Color::Cyan),
+            ),
             Span::raw(format!("{}", app.config.baud_rate)),
         ]),
         Line::from(vec![
-            Span::styled("配置: ", Style::default().fg(Color::Cyan)),
+            Span::styled(
+                format!("{}: ", t("label.data_bits", app.language)),
+                Style::default().fg(Color::Cyan),
+            ),
             Span::raw(format!(
                 "{}-{}-{}",
                 app.config.data_bits, parity_str, app.config.stop_bits
@@ -94,35 +107,35 @@ pub fn draw_status_panel(f: &mut Frame, app: &AppState, area: Rect) {
                     .fg(Color::Green)
                     .add_modifier(Modifier::BOLD),
             ),
-            Span::raw(" 连接  "),
+            Span::raw(format!(" {}  ", t("hint.select", app.language))),
             Span::styled(
                 "r",
                 Style::default()
                     .fg(Color::Cyan)
                     .add_modifier(Modifier::BOLD),
             ),
-            Span::raw(" 刷新"),
+            Span::raw(format!(" {}", t("hint.refresh", app.language))),
         ]),
         Line::from(vec![
             Span::styled(
                 "q",
                 Style::default().fg(Color::Red).add_modifier(Modifier::BOLD),
             ),
-            Span::raw(" 退出  "),
+            Span::raw(format!(" {}  ", t("hint.quit", app.language))),
             Span::styled(
                 "Tab",
                 Style::default()
                     .fg(Color::Yellow)
                     .add_modifier(Modifier::BOLD),
             ),
-            Span::raw(" 切换"),
+            Span::raw(format!(" {}", t("hint.switch", app.language))),
         ]),
     ];
 
     let para = Paragraph::new(text).block(
         Block::default()
             .borders(Borders::ALL)
-            .title(" 状态信息 ")
+            .title(format!(" {} ", t("label.status", app.language)))
             .title_alignment(Alignment::Left),
     );
 
@@ -138,7 +151,7 @@ pub fn draw_control_area(f: &mut Frame, app: &AppState, area: Rect) {
 
     let stats = vec![
         Span::styled(
-            "TX: ",
+            format!("{}: ", t("label.tx_count", app.language)),
             Style::default()
                 .fg(Color::Green)
                 .add_modifier(Modifier::BOLD),
@@ -149,7 +162,7 @@ pub fn draw_control_area(f: &mut Frame, app: &AppState, area: Rect) {
         ),
         Span::raw("│ "),
         Span::styled(
-            "RX: ",
+            format!("{}: ", t("label.rx_count", app.language)),
             Style::default()
                 .fg(Color::Cyan)
                 .add_modifier(Modifier::BOLD),
@@ -163,11 +176,7 @@ pub fn draw_control_area(f: &mut Frame, app: &AppState, area: Rect) {
             format!(
                 "{} {}",
                 auto_scroll_icon,
-                if app.auto_scroll {
-                    "自动滚动"
-                } else {
-                    "手动滚动"
-                }
+                t("hint.auto_scroll", app.language)
             ),
             if app.auto_scroll {
                 Style::default().fg(Color::Green)
@@ -181,7 +190,7 @@ pub fn draw_control_area(f: &mut Frame, app: &AppState, area: Rect) {
         .block(
             Block::default()
                 .borders(Borders::ALL)
-                .title(" 统计信息 ")
+                .title(format!(" {} ", t("label.statistics", app.language)))
                 .title_alignment(Alignment::Left),
         )
         .alignment(Alignment::Left);

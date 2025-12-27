@@ -10,7 +10,7 @@ use ratatui::{
     widgets::{Block, Borders, Paragraph},
     Frame,
 };
-use tuiserial_core::{AppState, NotificationLevel};
+use tuiserial_core::{i18n::t, AppState, NotificationLevel};
 
 use crate::areas::{update_area, UiAreaField};
 
@@ -20,15 +20,16 @@ pub fn draw_notification_bar(f: &mut Frame, app: &AppState, area: Rect) {
     update_area(UiAreaField::NotificationArea, area);
 
     if let Some(notification) = app.notifications.front() {
-        draw_active_notification(f, notification, area);
+        draw_active_notification(f, app, notification, area);
     } else {
-        draw_empty_notification(f, area);
+        draw_empty_notification(f, app, area);
     }
 }
 
 /// Draw an active notification message
 fn draw_active_notification(
     f: &mut Frame,
+    app: &AppState,
     notification: &tuiserial_core::Notification,
     area: Rect,
 ) {
@@ -62,7 +63,7 @@ fn draw_active_notification(
     let para = Paragraph::new(text).block(
         Block::default()
             .borders(Borders::ALL)
-            .title(" 消息提示 ")
+            .title(format!(" {} ", t("label.message", app.language)))
             .title_alignment(Alignment::Left)
             .border_style(Style::default().fg(color)),
     );
@@ -71,15 +72,21 @@ fn draw_active_notification(
 }
 
 /// Draw empty notification bar (ready state)
-fn draw_empty_notification(f: &mut Frame, area: Rect) {
+fn draw_empty_notification(f: &mut Frame, app: &AppState, area: Rect) {
+    let ready_text = if app.language == tuiserial_core::Language::Chinese {
+        "准备就绪"
+    } else {
+        "Ready"
+    };
+
     let para = Paragraph::new(Line::from(Span::styled(
-        "准备就绪",
+        ready_text,
         Style::default().fg(Color::DarkGray),
     )))
     .block(
         Block::default()
             .borders(Borders::ALL)
-            .title(" 消息提示 ")
+            .title(format!(" {} ", t("label.message", app.language)))
             .title_alignment(Alignment::Left),
     )
     .alignment(Alignment::Center);

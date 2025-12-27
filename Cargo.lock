@@ -1079,8 +1079,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "tuiserial-cli"
-version = "0.1.0"
+name = "tuiserial"
+version = "0.1.1"
 dependencies = [
  "color-eyre",
  "crossterm",
@@ -1093,7 +1093,7 @@ dependencies = [
 
 [[package]]
 name = "tuiserial-core"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "chrono",
  "dirs",
@@ -1105,7 +1105,7 @@ dependencies = [
 
 [[package]]
 name = "tuiserial-serial"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "serialport",
  "tokio",
@@ -1114,7 +1114,7 @@ dependencies = [
 
 [[package]]
 name = "tuiserial-tabs"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "crossterm",
  "ratatui",
@@ -1125,7 +1125,7 @@ dependencies = [
 
 [[package]]
 name = "tuiserial-ui"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "crossterm",
  "ratatui",

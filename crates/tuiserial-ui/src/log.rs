@@ -9,7 +9,7 @@ use ratatui::{
     widgets::{Block, Borders, Paragraph},
     Frame,
 };
-use tuiserial_core::{AppState, DisplayMode, FocusedField, LogDirection};
+use tuiserial_core::{i18n::t, AppState, DisplayMode, FocusedField, LogDirection};
 use tuiserial_serial::{bytes_to_hex, bytes_to_string};
 
 use crate::areas::{update_area, UiAreaField};
@@ -32,9 +32,9 @@ pub fn draw_log_area(f: &mut Frame, app: &AppState, area: Rect) {
 /// Draw empty log area with help text
 fn draw_empty_log(f: &mut Frame, app: &AppState, area: Rect, focused: bool) {
     let status_msg = if app.is_connected {
-        "等待接收数据..."
+        t("empty.connect_hint", app.language)
     } else {
-        "未连接 - 请按 o 打开串口连接"
+        t("status.not_connected", app.language)
     };
 
     let help_text = vec![
@@ -53,16 +53,13 @@ fn draw_empty_log(f: &mut Frame, app: &AppState, area: Rect, focused: bool) {
         Line::from(""),
         Line::from(""),
         Line::from(Span::styled(
-            "快捷键提示",
+            t("shortcuts.title", app.language),
             Style::default()
                 .fg(Color::Green)
                 .add_modifier(Modifier::BOLD),
         )),
         Line::from(""),
-        Line::from("  x - 切换 HEX/TEXT 显示模式"),
-        Line::from("  c - 清空消息记录"),
-        Line::from("  a - 自动滚动开关"),
-        Line::from("  ↑↓ PgUp/PgDn - 滚动浏览"),
+        Line::from(format!("  {}", t("empty.shortcuts", app.language))),
     ];
 
     let para = Paragraph::new(help_text)
@@ -77,10 +74,11 @@ fn draw_empty_log(f: &mut Frame, app: &AppState, area: Rect, focused: bool) {
                     Style::default()
                 })
                 .title(format!(
-                    " 消息 - {} ",
+                    " {} - {} ",
+                    t("label.message", app.language),
                     match app.display_mode {
-                        DisplayMode::Hex => "HEX",
-                        DisplayMode::Text => "TEXT",
+                        DisplayMode::Hex => t("display.hex", app.language),
+                        DisplayMode::Text => t("display.text", app.language),
                     }
                 ))
                 .title_alignment(Alignment::Left),
@@ -96,8 +94,8 @@ fn draw_log_entries(f: &mut Frame, app: &AppState, area: Rect, focused: bool) {
 
     for entry in app.message_log.entries.iter() {
         let (time_color, dir_str, dir_icon) = match entry.direction {
-            LogDirection::Rx => (Color::Cyan, "RX", "<"),
-            LogDirection::Tx => (Color::Green, "TX", ">"),
+            LogDirection::Rx => (Color::Cyan, t("label.rx_count", app.language), "<"),
+            LogDirection::Tx => (Color::Green, t("label.tx_count", app.language), ">"),
         };
 
         let time_str = entry.timestamp.format("%H:%M:%S%.3f").to_string();
@@ -130,14 +128,17 @@ fn draw_log_entries(f: &mut Frame, app: &AppState, area: Rect, focused: bool) {
     }
 
     let display_mode_str = match app.display_mode {
-        DisplayMode::Hex => "HEX",
-        DisplayMode::Text => "TEXT",
+        DisplayMode::Hex => t("display.hex", app.language),
+        DisplayMode::Text => t("display.text", app.language),
     };
 
     let title = format!(
-        " 消息 - {} | {} 条 [x 切换 | c 清空] ",
+        " {} - {} | {} 条 [x {} | c {}] ",
+        t("label.message", app.language),
         display_mode_str,
-        app.message_log.entries.len()
+        app.message_log.entries.len(),
+        t("hint.toggle", app.language),
+        t("hint.clear", app.language)
     );
 
     let total_lines = lines.len() as u16;

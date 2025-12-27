@@ -6,6 +6,7 @@ authors.workspace = true
 license.workspace = true
 homepage.workspace = true
 repository.workspace = true
+readme.workspace = true
 description = "Multi-tab and split-pane management for tuiserial"
 
 [dependencies]
