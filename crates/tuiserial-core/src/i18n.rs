@@ -137,6 +137,16 @@ static EN: phf::Map<&'static str, &'static str> = phf::phf_map! {
     "notify.display_mode" => "Display mode",
     "notify.tx_mode" => "TX mode",
     "notify.append_mode" => "Append",
+    "notify.disconnected_unlocked" => "Disconnected, config unlocked",
+    "notify.please_select_port" => "Please select a port first",
+    "notify.connected_locked" => "Connected: {} (config locked)",
+    "notify.parity" => "Parity",
+    "notify.flow_control" => "Flow control",
+    "notify.log_cleared" => "Log cleared",
+    "notify.toggle_display_mode" => "Display mode toggled",
+    "notify.auto_scroll" => "Auto scroll",
+    "notify.enabled" => "Enabled",
+    "notify.disabled" => "Disabled",
 
     // Help text
     "help.f10" => "F10: Menu",
@@ -299,6 +309,16 @@ static ZH: phf::Map<&'static str, &'static str> = phf::phf_map! {
     "notify.display_mode" => "显示模式",
     "notify.tx_mode" => "发送模式",
     "notify.append_mode" => "追加",
+    "notify.disconnected_unlocked" => "已断开连接，配置已解锁",
+    "notify.please_select_port" => "请先选择串口",
+    "notify.connected_locked" => "已连接: {} (配置已锁定)",
+    "notify.parity" => "校验位",
+    "notify.flow_control" => "流控",
+    "notify.log_cleared" => "已清空消息记录",
+    "notify.toggle_display_mode" => "切换显示模式",
+    "notify.auto_scroll" => "自动滚动",
+    "notify.enabled" => "启用",
+    "notify.disabled" => "禁用",
 
     // Help text
     "help.f10" => "F10: 菜单",

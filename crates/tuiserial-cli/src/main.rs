@@ -457,7 +457,11 @@ fn handle_key_event(key: KeyEvent, app: &mut AppState, handler: &mut SerialHandl
                                     } else {
                                         format!(" + {}", app.tx_append_mode.name(app.language))
                                     };
-                                    app.add_success(format!("已发送{}", append_info));
+                                    app.add_success(format!(
+                                        "{}{}",
+                                        t("notify.send_success", app.language),
+                                        append_info
+                                    ));
                                     app.tx_input.clear();
                                     app.tx_cursor = 0;
                                     if app.auto_scroll {
@@ -466,18 +470,26 @@ fn handle_key_event(key: KeyEvent, app: &mut AppState, handler: &mut SerialHandl
                                     }
                                 }
                                 Err(e) => {
-                                    app.add_error(format!("发送失败: {}", e));
+                                    app.add_error(format!(
+                                        "{}: {}",
+                                        t("notify.send_failed", app.language),
+                                        e
+                                    ));
                                 }
                             },
                             Err(e) => {
-                                app.add_error(format!("HEX 格式错误: {}", e));
+                                app.add_error(format!(
+                                    "{}: {}",
+                                    t("notify.hex_format_error", app.language),
+                                    e
+                                ));
                             }
                         }
                     } else {
-                        app.add_error("未连接串口");
+                        app.add_error(t("notify.not_connected", app.language).to_string());
                     }
                 } else {
-                    app.add_warning("输入内容为空");
+                    app.add_warning(t("notify.input_empty", app.language).to_string());
                 }
                 return false;
             }
@@ -501,22 +513,30 @@ fn handle_key_event(key: KeyEvent, app: &mut AppState, handler: &mut SerialHandl
                 handler.disconnect();
                 app.is_connected = false;
                 app.unlock_config();
-                app.add_info("已断开连接，配置已解锁");
+                app.add_info(t("notify.disconnected_unlocked", app.language).to_string());
             } else {
                 // Validate configuration before connecting
                 if app.config.port.is_empty() {
-                    app.add_error("请先选择串口");
+                    app.add_error(t("notify.please_select_port", app.language).to_string());
                 } else {
                     match handler.connect(&app) {
                         Ok(_) => {
                             app.is_connected = true;
                             app.lock_config();
-                            app.add_success(format!("已连接: {} (配置已锁定)", app.config.port));
+                            app.add_success(format!(
+                                "{}",
+                                t("notify.connected_locked", app.language)
+                                    .replace("{}", &app.config.port)
+                            ));
                         }
                         Err(e) => {
                             app.is_connected = false;
                             app.unlock_config();
-                            app.add_error(format!("连接失败: {}", e));
+                            app.add_error(format!(
+                                "{}: {}",
+                                t("notify.connection_failed", app.language),
+                                e
+                            ));
                         }
                     }
                 }
@@ -535,7 +555,7 @@ fn handle_key_event(key: KeyEvent, app: &mut AppState, handler: &mut SerialHandl
         KeyCode::Up | KeyCode::Char('k') => match app.focused_field {
             FocusedField::Port => {
                 if !app.can_modify_config() {
-                    app.add_warning("配置已锁定，请先断开连接");
+                    app.add_warning(t("notify.config_locked_warning", app.language).to_string());
                 } else if let Some(idx) = app.port_list_state.selected() {
                     let new_idx = if idx > 0 {
                         idx - 1
@@ -543,18 +563,22 @@ fn handle_key_event(key: KeyEvent, app: &mut AppState, handler: &mut SerialHandl
                         app.ports.len().saturating_sub(1)
                     };
                     if app.select_port(new_idx) {
-                        app.add_info(format!("选择串口: {}", app.config.port));
+                        app.add_info(format!(
+                            "{}: {}",
+                            t("notify.port_selected", app.language),
+                            app.config.port
+                        ));
                     }
                 }
             }
             FocusedField::BaudRate => {
                 if !app.prev_baud_rate() {
-                    app.add_warning("配置已锁定，请先断开连接");
+                    app.add_warning(t("notify.config_locked_warning", app.language).to_string());
                 }
             }
             FocusedField::DataBits => {
                 if !app.can_modify_config() {
-                    app.add_warning("配置已锁定，请先断开连接");
+                    app.add_warning(t("notify.config_locked_warning", app.language).to_string());
                 } else if let Some(idx) = app.data_bits_state.selected() {
                     let new_idx = if idx > 0 {
                         idx - 1
@@ -567,7 +591,7 @@ fn handle_key_event(key: KeyEvent, app: &mut AppState, handler: &mut SerialHandl
             }
             FocusedField::Parity => {
                 if !app.can_modify_config() {
-                    app.add_warning("配置已锁定，请先断开连接");
+                    app.add_warning(t("notify.config_locked_warning", app.language).to_string());
                 } else if let Some(idx) = app.parity_state.selected() {
                     let new_idx = if idx > 0 {
                         idx - 1
@@ -580,7 +604,7 @@ fn handle_key_event(key: KeyEvent, app: &mut AppState, handler: &mut SerialHandl
             }
             FocusedField::StopBits => {
                 if !app.can_modify_config() {
-                    app.add_warning("配置已锁定，请先断开连接");
+                    app.add_warning(t("notify.config_locked_warning", app.language).to_string());
                 } else if let Some(idx) = app.stop_bits_state.selected() {
                     let new_idx = if idx > 0 {
                         idx - 1
@@ -593,7 +617,7 @@ fn handle_key_event(key: KeyEvent, app: &mut AppState, handler: &mut SerialHandl
             }
             FocusedField::FlowControl => {
                 if !app.can_modify_config() {
-                    app.add_warning("配置已锁定，请先断开连接");
+                    app.add_warning(t("notify.config_locked_warning", app.language).to_string());
                 } else if let Some(idx) = app.flow_control_state.selected() {
                     let new_idx = if idx > 0 {
                         idx - 1
@@ -610,7 +634,11 @@ fn handle_key_event(key: KeyEvent, app: &mut AppState, handler: &mut SerialHandl
                     DisplayMode::Hex => "HEX",
                     DisplayMode::Text => "TEXT",
                 };
-                app.add_info(format!("显示模式: {}", mode_str));
+                app.add_info(format!(
+                    "{}: {}",
+                    t("notify.display_mode", app.language),
+                    mode_str
+                ));
             }
             _ => {}
         },
@@ -618,7 +646,7 @@ fn handle_key_event(key: KeyEvent, app: &mut AppState, handler: &mut SerialHandl
         KeyCode::Down | KeyCode::Char('j') => match app.focused_field {
             FocusedField::Port => {
                 if !app.can_modify_config() {
-                    app.add_warning("配置已锁定，请先断开连接");
+                    app.add_warning(t("notify.config_locked_warning", app.language).to_string());
                 } else if let Some(idx) = app.port_list_state.selected() {
                     let new_idx = if idx < app.ports.len().saturating_sub(1) {
                         idx + 1
@@ -626,18 +654,22 @@ fn handle_key_event(key: KeyEvent, app: &mut AppState, handler: &mut SerialHandl
                         0
                     };
                     if app.select_port(new_idx) {
-                        app.add_info(format!("选择串口: {}", app.config.port));
+                        app.add_info(format!(
+                            "{}: {}",
+                            t("notify.port_selected", app.language),
+                            app.config.port
+                        ));
                     }
                 }
             }
             FocusedField::BaudRate => {
                 if !app.next_baud_rate() {
-                    app.add_warning("配置已锁定，请先断开连接");
+                    app.add_warning(t("notify.config_locked_warning", app.language).to_string());
                 }
             }
             FocusedField::DataBits => {
                 if !app.can_modify_config() {
-                    app.add_warning("配置已锁定，请先断开连接");
+                    app.add_warning(t("notify.config_locked_warning", app.language).to_string());
                 } else if let Some(idx) = app.data_bits_state.selected() {
                     let new_idx = if idx < app.data_bits_options.len() - 1 {
                         idx + 1
@@ -650,7 +682,7 @@ fn handle_key_event(key: KeyEvent, app: &mut AppState, handler: &mut SerialHandl
             }
             FocusedField::Parity => {
                 if !app.can_modify_config() {
-                    app.add_warning("配置已锁定，请先断开连接");
+                    app.add_warning(t("notify.config_locked_warning", app.language).to_string());
                 } else if let Some(idx) = app.parity_state.selected() {
                     let new_idx = if idx < app.parity_options.len() - 1 {
                         idx + 1
@@ -663,7 +695,7 @@ fn handle_key_event(key: KeyEvent, app: &mut AppState, handler: &mut SerialHandl
             }
             FocusedField::StopBits => {
                 if !app.can_modify_config() {
-                    app.add_warning("配置已锁定，请先断开连接");
+                    app.add_warning(t("notify.config_locked_warning", app.language).to_string());
                 } else if let Some(idx) = app.stop_bits_state.selected() {
                     let new_idx = if idx < app.stop_bits_options.len() - 1 {
                         idx + 1
@@ -676,7 +708,7 @@ fn handle_key_event(key: KeyEvent, app: &mut AppState, handler: &mut SerialHandl
             }
             FocusedField::FlowControl => {
                 if !app.can_modify_config() {
-                    app.add_warning("配置已锁定，请先断开连接");
+                    app.add_warning(t("notify.config_locked_warning", app.language).to_string());
                 } else if let Some(idx) = app.flow_control_state.selected() {
                     let new_idx = if idx < app.flow_control_options.len() - 1 {
                         idx + 1
@@ -693,7 +725,11 @@ fn handle_key_event(key: KeyEvent, app: &mut AppState, handler: &mut SerialHandl
                     DisplayMode::Hex => "HEX",
                     DisplayMode::Text => "TEXT",
                 };
-                app.add_info(format!("显示模式: {}", mode_str));
+                app.add_info(format!(
+                    "{}: {}",
+                    t("notify.display_mode", app.language),
+                    mode_str
+                ));
             }
             _ => {}
         },
@@ -702,7 +738,7 @@ fn handle_key_event(key: KeyEvent, app: &mut AppState, handler: &mut SerialHandl
         KeyCode::Right | KeyCode::Char('l') => match app.focused_field {
             FocusedField::BaudRate => {
                 if !app.next_baud_rate() {
-                    app.add_warning("配置已锁定，请先断开连接");
+                    app.add_warning(t("notify.config_locked_warning", app.language).to_string());
                 }
             }
             _ => {}
@@ -711,7 +747,7 @@ fn handle_key_event(key: KeyEvent, app: &mut AppState, handler: &mut SerialHandl
         KeyCode::Left | KeyCode::Char('h') => match app.focused_field {
             FocusedField::BaudRate => {
                 if !app.prev_baud_rate() {
-                    app.add_warning("配置已锁定，请先断开连接");
+                    app.add_warning(t("notify.config_locked_warning", app.language).to_string());
                 }
             }
             _ => {}
@@ -724,29 +760,45 @@ fn handle_key_event(key: KeyEvent, app: &mut AppState, handler: &mut SerialHandl
                 DisplayMode::Hex => "HEX",
                 DisplayMode::Text => "TEXT",
             };
-            app.add_info(format!("切换显示模式: {}", mode_str));
+            app.add_info(format!(
+                "{}: {}",
+                t("notify.toggle_display_mode", app.language),
+                mode_str
+            ));
         }
 
         // Auto scroll toggle
         KeyCode::Char('a') => {
             app.auto_scroll = !app.auto_scroll;
-            let status = if app.auto_scroll { "启用" } else { "禁用" };
-            app.add_info(format!("自动滚动: {}", status));
+            let status = if app.auto_scroll {
+                t("notify.enabled", app.language)
+            } else {
+                t("notify.disabled", app.language)
+            };
+            app.add_info(format!(
+                "{}: {}",
+                t("notify.auto_scroll", app.language),
+                status
+            ));
         }
 
         // Clear buffer
         KeyCode::Char('c') => {
             app.message_log.clear();
-            app.add_info("已清空消息记录");
+            app.add_info(t("notify.log_cleared", app.language).to_string());
         }
 
         // Parity toggle
         KeyCode::Char('p') => {
             if app.toggle_parity() {
                 let parity_str = format!("{:?}", app.config.parity);
-                app.add_info(format!("校验位: {}", parity_str));
+                app.add_info(format!(
+                    "{}: {}",
+                    t("notify.parity", app.language),
+                    parity_str
+                ));
             } else {
-                app.add_warning("配置已锁定，请先断开连接");
+                app.add_warning(t("notify.config_locked_warning", app.language).to_string());
             }
         }
 
@@ -754,9 +806,13 @@ fn handle_key_event(key: KeyEvent, app: &mut AppState, handler: &mut SerialHandl
         KeyCode::Char('f') => {
             if app.toggle_flow_control() {
                 let flow_str = format!("{:?}", app.config.flow_control);
-                app.add_info(format!("流控: {}", flow_str));
+                app.add_info(format!(
+                    "{}: {}",
+                    t("notify.flow_control", app.language),
+                    flow_str
+                ));
             } else {
-                app.add_warning("配置已锁定，请先断开连接");
+                app.add_warning(t("notify.config_locked_warning", app.language).to_string());
             }
         }
 
@@ -777,7 +833,7 @@ fn handle_key_event(key: KeyEvent, app: &mut AppState, handler: &mut SerialHandl
                 app.port_list_state.select(Some(0));
                 app.config.port = app.ports[0].clone();
             }
-            app.add_success("已刷新串口列表");
+            app.add_success(t("notify.ports_refreshed", app.language).to_string());
         }
 
         // Scroll navigation
@@ -917,20 +973,28 @@ fn handle_mouse_event(mouse: MouseEvent, app: &mut AppState, handler: &mut Seria
                 match field {
                     FocusedField::Port => {
                         if !app.can_modify_config() {
-                            app.add_warning("配置已锁定，请先断开连接");
+                            app.add_warning(
+                                t("notify.config_locked_warning", app.language).to_string(),
+                            );
                         } else if !app.ports.is_empty() && is_inside(areas.port, col, row) {
                             // Calculate which port was clicked (considering borders)
                             let relative_row = row.saturating_sub(areas.port.y + 1);
                             if relative_row < app.ports.len() as u16 {
                                 if app.select_port(relative_row as usize) {
-                                    app.add_info(format!("选择串口: {}", app.config.port));
+                                    app.add_info(format!(
+                                        "{}: {}",
+                                        t("notify.port_selected", app.language),
+                                        app.config.port
+                                    ));
                                 }
                             }
                         }
                     }
                     FocusedField::BaudRate => {
                         if !app.can_modify_config() {
-                            app.add_warning("配置已锁定，请先断开连接");
+                            app.add_warning(
+                                t("notify.config_locked_warning", app.language).to_string(),
+                            );
                         } else if is_inside(areas.baud_rate, col, row) {
                             let relative_row = row.saturating_sub(areas.baud_rate.y + 1);
                             if relative_row < app.baud_rate_options.len() as u16 {
@@ -942,7 +1006,9 @@ fn handle_mouse_event(mouse: MouseEvent, app: &mut AppState, handler: &mut Seria
                     }
                     FocusedField::DataBits => {
                         if !app.can_modify_config() {
-                            app.add_warning("配置已锁定，请先断开连接");
+                            app.add_warning(
+                                t("notify.config_locked_warning", app.language).to_string(),
+                            );
                         } else if is_inside(areas.data_bits, col, row) {
                             let relative_row = row.saturating_sub(areas.data_bits.y + 1);
                             if relative_row < app.data_bits_options.len() as u16 {
@@ -954,19 +1020,27 @@ fn handle_mouse_event(mouse: MouseEvent, app: &mut AppState, handler: &mut Seria
                     }
                     FocusedField::Parity => {
                         if !app.can_modify_config() {
-                            app.add_warning("配置已锁定，请先断开连接");
+                            app.add_warning(
+                                t("notify.config_locked_warning", app.language).to_string(),
+                            );
                         } else if is_inside(areas.parity, col, row) {
                             let relative_row = row.saturating_sub(areas.parity.y + 1);
                             if relative_row < app.parity_options.len() as u16 {
                                 app.parity_state.select(Some(relative_row as usize));
                                 app.config.parity = app.parity_options[relative_row as usize];
-                                app.add_info(format!("校验位: {:?}", app.config.parity));
+                                app.add_info(format!(
+                                    "{}: {:?}",
+                                    t("notify.parity", app.language),
+                                    app.config.parity
+                                ));
                             }
                         }
                     }
                     FocusedField::StopBits => {
                         if !app.can_modify_config() {
-                            app.add_warning("配置已锁定，请先断开连接");
+                            app.add_warning(
+                                t("notify.config_locked_warning", app.language).to_string(),
+                            );
                         } else if is_inside(areas.stop_bits, col, row) {
                             let relative_row = row.saturating_sub(areas.stop_bits.y + 1);
                             if relative_row < app.stop_bits_options.len() as u16 {
@@ -978,14 +1052,20 @@ fn handle_mouse_event(mouse: MouseEvent, app: &mut AppState, handler: &mut Seria
                     }
                     FocusedField::FlowControl => {
                         if !app.can_modify_config() {
-                            app.add_warning("配置已锁定，请先断开连接");
+                            app.add_warning(
+                                t("notify.config_locked_warning", app.language).to_string(),
+                            );
                         } else if is_inside(areas.flow_control, col, row) {
                             let relative_row = row.saturating_sub(areas.flow_control.y + 1);
                             if relative_row < app.flow_control_options.len() as u16 {
                                 app.flow_control_state.select(Some(relative_row as usize));
                                 app.config.flow_control =
                                     app.flow_control_options[relative_row as usize];
-                                app.add_info(format!("流控: {:?}", app.config.flow_control));
+                                app.add_info(format!(
+                                    "{}: {:?}",
+                                    t("notify.flow_control", app.language),
+                                    app.config.flow_control
+                                ));
                             }
                         }
                     }
@@ -1035,7 +1115,11 @@ fn handle_mouse_event(mouse: MouseEvent, app: &mut AppState, handler: &mut Seria
                     DisplayMode::Hex => "HEX",
                     DisplayMode::Text => "TEXT",
                 };
-                app.add_info(format!("切换显示模式: {}", mode_str));
+                app.add_info(format!(
+                    "{}: {}",
+                    t("notify.toggle_display_mode", app.language),
+                    mode_str
+                ));
             } else if is_inside(areas.tx_area, col, row) {
                 // Right click in TX area - check which part
                 let tx_input_width = areas.tx_area.width.saturating_sub(12);
@@ -1075,7 +1159,7 @@ fn handle_mouse_event(mouse: MouseEvent, app: &mut AppState, handler: &mut Seria
             if is_inside(areas.log_area, col, row) {
                 // Middle click in log area - clear log
                 app.message_log.clear();
-                app.add_info("已清空消息记录");
+                app.add_info(t("notify.log_cleared", app.language).to_string());
             } else if is_inside(areas.tx_area, col, row) {
                 // Middle click in TX area - clear input
                 app.tx_input.clear();
@@ -1095,7 +1179,7 @@ fn handle_mouse_event(mouse: MouseEvent, app: &mut AppState, handler: &mut Seria
             } else if is_inside(areas.port, col, row) {
                 // Scroll in port list
                 if !app.can_modify_config() {
-                    app.add_warning("配置已锁定，请先断开连接");
+                    app.add_warning(t("notify.config_locked_warning", app.language).to_string());
                 } else if let Some(idx) = app.port_list_state.selected() {
                     let new_idx = if idx > 0 {
                         idx - 1
@@ -1107,7 +1191,7 @@ fn handle_mouse_event(mouse: MouseEvent, app: &mut AppState, handler: &mut Seria
             } else if is_inside(areas.baud_rate, col, row) {
                 // Scroll in baud rate list
                 if !app.can_modify_config() {
-                    app.add_warning("配置已锁定，请先断开连接");
+                    app.add_warning(t("notify.config_locked_warning", app.language).to_string());
                 } else {
                     app.prev_baud_rate();
                 }
@@ -1135,7 +1219,7 @@ fn handle_mouse_event(mouse: MouseEvent, app: &mut AppState, handler: &mut Seria
             } else if is_inside(areas.port, col, row) {
                 // Scroll in port list
                 if !app.can_modify_config() {
-                    app.add_warning("配置已锁定，请先断开连接");
+                    app.add_warning(t("notify.config_locked_warning", app.language).to_string());
                 } else if let Some(idx) = app.port_list_state.selected() {
                     let new_idx = if idx < app.ports.len().saturating_sub(1) {
                         idx + 1
@@ -1147,7 +1231,7 @@ fn handle_mouse_event(mouse: MouseEvent, app: &mut AppState, handler: &mut Seria
             } else if is_inside(areas.baud_rate, col, row) {
                 // Scroll in baud rate list
                 if !app.can_modify_config() {
-                    app.add_warning("配置已锁定，请先断开连接");
+                    app.add_warning(t("notify.config_locked_warning", app.language).to_string());
                 } else {
                     app.next_baud_rate();
                 }
