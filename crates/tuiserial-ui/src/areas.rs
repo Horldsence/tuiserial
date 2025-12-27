@@ -258,14 +258,17 @@ pub fn get_clicked_tab(x: u16, y: u16, tab_count: usize) -> Option<usize> {
         return None;
     }
 
-    // Estimate tab width (simplified, actual width depends on tab names)
-    let tab_width = areas.tab_bar.width / tab_count.max(1) as u16;
-    let relative_x = x.saturating_sub(areas.tab_bar.x);
-    let tab_index = (relative_x / tab_width.max(1)) as usize;
-
-    if tab_index < tab_count {
-        Some(tab_index)
-    } else {
-        None
+    let width = areas.tab_bar.width;
+    if width == 0 {
+        return None;
     }
+
+    let relative_x = x.saturating_sub(areas.tab_bar.x);
+    let mut tab_index = (relative_x as usize * tab_count) / width as usize;
+
+    if tab_index >= tab_count {
+        tab_index = tab_count - 1;
+    }
+
+    Some(tab_index)
 }

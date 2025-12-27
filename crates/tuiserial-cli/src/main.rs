@@ -83,9 +83,9 @@ fn handle_menu_action(
         }
         MenuAction::ShowAbout => {
             let about_text = if app.language == tuiserial_core::Language::English {
-                "TuiSerial v0.1.0\nTerminal Serial Port Monitor\n\nA modern serial port debugging tool with mouse support and internationalization."
+                "TuiSerial v0.1.4\nTerminal Serial Port Monitor\n\nA modern serial port debugging tool with mouse support and internationalization."
             } else {
-                "TuiSerial v0.1.0\n终端串口监控工具\n\n一个现代化的串口调试工具，支持鼠标操作和国际化。"
+                "TuiSerial v0.1.4\n终端串口监控工具\n\n一个现代化的串口调试工具，支持鼠标操作和国际化。"
             };
             app.add_info(about_text.to_string());
             false
