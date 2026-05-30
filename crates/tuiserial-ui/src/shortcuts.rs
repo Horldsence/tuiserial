@@ -326,7 +326,7 @@ mod tests {
     fn test_shortcuts_rendering() {
         // Just ensure the functions can be called without panic
         // Actual rendering tests would require a terminal backend
-        let shortcuts = vec![("Ctrl+T", "New Session"), ("Ctrl+W", "Close Session")];
+        let shortcuts = [("Ctrl+T", "New Session"), ("Ctrl+W", "Close Session")];
         assert_eq!(shortcuts.len(), 2);
     }
 }

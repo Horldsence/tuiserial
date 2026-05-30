@@ -71,30 +71,69 @@ fn draw_tx_input(f: &mut Frame, app: &AppState, area: Rect) {
 
     let prompt_text = t("label.input_prompt", app.language);
 
-    // Track text-before-cursor for native cursor positioning
-    let mut text_before_cursor = String::new();
+    let inner_width = area.width.saturating_sub(2) as usize; // minus borders
 
-    let cursor_line = if app.tx_input.is_empty() {
-        if focused {
-            // Empty input, cursor at position 0 (start of line)
-            Line::from(Span::styled(
-                prompt_text,
-                Style::default().fg(Color::DarkGray),
-            ))
-        } else {
-            Line::from(Span::styled(
-                prompt_text,
-                Style::default().fg(Color::DarkGray),
-            ))
-        }
+    // Compute visible text and cursor visual position, with horizontal scrolling
+    let (visible_text, cursor_visual_x) = if app.tx_input.is_empty() {
+        (prompt_text.to_string(), 0)
     } else {
         let chars: Vec<char> = app.tx_input.chars().collect();
         let cursor_pos = app.tx_cursor.min(chars.len());
+        let text_before_cursor: String = chars[..cursor_pos].iter().collect();
+        let cursor_x = display_width(&text_before_cursor);
+        let text_width = display_width(&app.tx_input);
 
-        text_before_cursor = chars[..cursor_pos].iter().collect();
+        if text_width <= inner_width {
+            (app.tx_input.clone(), cursor_x)
+        } else {
+            // Stateless scroll: keep cursor visible within the input box
+            let max_scroll = text_width.saturating_sub(inner_width);
+            let scroll = if cursor_x < inner_width {
+                0
+            } else {
+                cursor_x
+                    .saturating_sub(inner_width.saturating_sub(1))
+                    .min(max_scroll)
+            };
 
+            // Find start char index from display scroll position
+            let mut acc = 0;
+            let mut start = 0;
+            for (i, c) in chars.iter().enumerate() {
+                let w = if c.is_ascii() { 1 } else { 2 };
+                if acc + w > scroll {
+                    start = i;
+                    break;
+                }
+                acc += w;
+            }
+
+            // Find end char index within visible area
+            let mut acc = 0;
+            let mut end = chars.len();
+            for (i, c) in chars.iter().enumerate().skip(start) {
+                let w = if c.is_ascii() { 1 } else { 2 };
+                if acc + w > inner_width {
+                    end = i;
+                    break;
+                }
+                acc += w;
+            }
+
+            let visible: String = chars[start..end].iter().collect();
+            let visual_x = cursor_x.saturating_sub(scroll);
+            (visible, visual_x)
+        }
+    };
+
+    let cursor_line = if app.tx_input.is_empty() {
         Line::from(Span::styled(
-            app.tx_input.clone(),
+            visible_text,
+            Style::default().fg(Color::DarkGray),
+        ))
+    } else {
+        Line::from(Span::styled(
+            visible_text,
             Style::default().fg(Color::White),
         ))
     };
@@ -139,7 +178,7 @@ fn draw_tx_input(f: &mut Frame, app: &AppState, area: Rect) {
 
     // Position native terminal cursor
     if focused {
-        let cursor_x = area.x + 1 + display_width(&text_before_cursor) as u16;
+        let cursor_x = area.x + 1 + cursor_visual_x.min(inner_width) as u16;
         let cursor_y = area.y + 2; // border top + empty first line
         f.set_cursor_position((cursor_x, cursor_y));
         update_cursor_state(cursor_x, cursor_y, true);

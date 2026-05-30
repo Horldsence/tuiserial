@@ -80,7 +80,7 @@ pub fn write_data(port: &mut dyn SerialPort, data: &[u8]) -> Result<usize, Strin
 /// ```
 pub fn hex_to_bytes(hex_str: &str) -> Result<Vec<u8>, String> {
     let hex_str = hex_str.trim().replace(" ", "");
-    if hex_str.len() % 2 != 0 {
+    if !hex_str.len().is_multiple_of(2) {
         return Err("Hex string must have even length".to_string());
     }
 
@@ -123,7 +123,7 @@ pub fn bytes_to_string(bytes: &[u8]) -> String {
     bytes
         .iter()
         .map(|&b| {
-            if b >= 32 && b < 127 {
+            if (32..127).contains(&b) {
                 (b as char).to_string()
             } else {
                 format!("\\x{:02X}", b)

@@ -268,21 +268,21 @@ fn handle_paste_event(data: &str, app: &mut AppState) {
     }
 
     if app.tx_mode == TxMode::Hex {
-        // Filter: keep only hex digits and whitespace
-        let filtered: String = data
+        // Extract only hex digits, stripping all non-hex characters.
+        // This handles common paste formats: "0x41, 0x42", "41:42:43", "\x41\x42", etc.
+        let hex_only: String = data
             .chars()
-            .filter(|c| c.is_ascii_hexdigit() || c.is_whitespace())
+            .filter(|c| c.is_ascii_hexdigit())
             .collect();
-        if !filtered.is_empty() {
-            // Insert at cursor position
+        if !hex_only.is_empty() {
             let byte_idx = app
                 .tx_input
                 .char_indices()
                 .nth(app.tx_cursor)
                 .map(|(i, _)| i)
                 .unwrap_or(app.tx_input.len());
-            app.tx_input.insert_str(byte_idx, &filtered);
-            app.tx_cursor += filtered.chars().count();
+            app.tx_input.insert_str(byte_idx, &hex_only);
+            app.tx_cursor += hex_only.chars().count();
             rebuild_hex_input(app);
         }
     } else {
@@ -465,16 +465,7 @@ fn handle_key_event(key: KeyEvent, app: &mut AppState, handler: &mut SerialHandl
                             rebuild_hex_input(app);
                         }
                         ' ' => {
-                            // Allow manual space insertion
-                            let byte_idx = app
-                                .tx_input
-                                .char_indices()
-                                .nth(app.tx_cursor)
-                                .map(|(i, _)| i)
-                                .unwrap_or(app.tx_input.len());
-                            app.tx_input.insert(byte_idx, ' ');
-                            app.tx_cursor += 1;
-                            rebuild_hex_input(app);
+                            // Spaces are auto-managed by rebuild_hex_input; ignore manual space
                         }
                         _ => {} // Ignore non-hex chars in hex mode
                     }
@@ -662,15 +653,12 @@ fn handle_key_event(key: KeyEvent, app: &mut AppState, handler: &mut SerialHandl
                 if app.config.port.is_empty() {
                     app.add_error(t("notify.please_select_port", app.language).to_string());
                 } else {
-                    match handler.connect(&app) {
+                    match handler.connect(app) {
                         Ok(_) => {
                             app.is_connected = true;
                             app.lock_config();
-                            app.add_success(format!(
-                                "{}",
-                                t("notify.connected_locked", app.language)
-                                    .replace("{}", &app.config.port)
-                            ));
+                            app.add_success(t("notify.connected_locked", app.language)
+                                    .replace("{}", &app.config.port).to_string());
                         }
                         Err(e) => {
                             app.is_connected = false;
@@ -878,23 +866,15 @@ fn handle_key_event(key: KeyEvent, app: &mut AppState, handler: &mut SerialHandl
         },
 
         // Left/Right for BaudRate and other controls
-        KeyCode::Right | KeyCode::Char('l') => match app.focused_field {
-            FocusedField::BaudRate => {
-                if !app.next_baud_rate() {
-                    app.add_warning(t("notify.config_locked_warning", app.language).to_string());
-                }
-            }
-            _ => {}
-        },
+        KeyCode::Right | KeyCode::Char('l') => if app.focused_field == FocusedField::BaudRate
+            && !app.next_baud_rate() {
+                app.add_warning(t("notify.config_locked_warning", app.language).to_string());
+            },
 
-        KeyCode::Left | KeyCode::Char('h') => match app.focused_field {
-            FocusedField::BaudRate => {
-                if !app.prev_baud_rate() {
-                    app.add_warning(t("notify.config_locked_warning", app.language).to_string());
-                }
-            }
-            _ => {}
-        },
+        KeyCode::Left | KeyCode::Char('h') => if app.focused_field == FocusedField::BaudRate
+            && !app.prev_baud_rate() {
+                app.add_warning(t("notify.config_locked_warning", app.language).to_string());
+            },
 
         // Display mode toggle (HEX/TEXT)
         KeyCode::Char('x') => {
@@ -1122,15 +1102,14 @@ fn handle_mouse_event(mouse: MouseEvent, app: &mut AppState, handler: &mut Seria
                         } else if !app.ports.is_empty() && is_inside(areas.port, col, row) {
                             // Calculate which port was clicked (considering borders)
                             let relative_row = row.saturating_sub(areas.port.y + 1);
-                            if relative_row < app.ports.len() as u16 {
-                                if app.select_port(relative_row as usize) {
+                            if relative_row < app.ports.len() as u16
+                                && app.select_port(relative_row as usize) {
                                     app.add_info(format!(
                                         "{}: {}",
                                         t("notify.port_selected", app.language),
                                         app.config.port
                                     ));
                                 }
-                            }
                         }
                     }
                     FocusedField::BaudRate => {

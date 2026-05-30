@@ -306,7 +306,7 @@ pub fn get_tab_at_position(
     _active_index: usize,
 ) -> Option<usize> {
     // Check if click is within tab bar area
-    if y < area.y || y >= area.y + 1 || x < area.x || x >= area.x + area.width {
+    if y != area.y || x < area.x || x >= area.x + area.width {
         return None;
     }
 

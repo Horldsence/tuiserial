@@ -204,7 +204,7 @@ impl SerialSession {
                 if !self.tx_input.is_empty() {
                     let cleaned: String =
                         self.tx_input.chars().filter(|c| !c.is_whitespace()).collect();
-                    if cleaned.len() % 2 == 0
+                    if cleaned.len().is_multiple_of(2)
                         && cleaned.chars().all(|c| c.is_ascii_hexdigit())
                     {
                         let bytes: Vec<u8> = cleaned
@@ -413,8 +413,7 @@ pub struct SessionManager {
 impl SessionManager {
     /// Create a new session manager with one default session
     pub fn new() -> Self {
-        let mut sessions = Vec::new();
-        sessions.push(SerialSession::new(0, "Session 1".to_string()));
+        let sessions = vec![SerialSession::new(0, "Session 1".to_string())];
 
         Self {
             sessions,

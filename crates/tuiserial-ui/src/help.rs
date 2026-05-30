@@ -321,7 +321,7 @@ fn add_shortcut_line(lines: &mut Vec<Line<'static>>, key: &str, description: &st
     let desc = if description.contains(':') {
         description
             .split(':')
-            .last()
+            .next_back()
             .unwrap_or(description)
             .trim()
             .to_string()

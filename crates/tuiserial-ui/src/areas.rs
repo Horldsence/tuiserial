@@ -7,6 +7,7 @@ use tuiserial_core::FocusedField;
 
 /// UI area rectangles for mouse interaction
 #[derive(Debug, Clone, Copy)]
+#[derive(Default)]
 pub struct UiAreas {
     pub menu_bar: Rect,
     pub port: Rect,
@@ -28,29 +29,6 @@ pub struct UiAreas {
     pub show_cursor: bool,
 }
 
-impl Default for UiAreas {
-    fn default() -> Self {
-        Self {
-            menu_bar: Rect::default(),
-            port: Rect::default(),
-            baud_rate: Rect::default(),
-            data_bits: Rect::default(),
-            parity: Rect::default(),
-            stop_bits: Rect::default(),
-            flow_control: Rect::default(),
-            status_panel: Rect::default(),
-            log_area: Rect::default(),
-            tx_area: Rect::default(),
-            control_area: Rect::default(),
-            notification_area: Rect::default(),
-            shortcuts_hint: Rect::default(),
-            tab_bar: Rect::default(),
-            cursor_x: 0,
-            cursor_y: 0,
-            show_cursor: false,
-        }
-    }
-}
 
 // Global static for UI areas (thread-local would be better in production)
 static mut UI_AREAS: UiAreas = UiAreas {
@@ -250,13 +228,13 @@ pub fn get_clicked_menu(x: u16, y: u16) -> Option<usize> {
 
     if relative_x < 7 {
         Some(0) // File
-    } else if relative_x >= 8 && relative_x < 17 {
+    } else if (8..17).contains(&relative_x) {
         Some(1) // Session
-    } else if relative_x >= 18 && relative_x < 25 {
+    } else if (18..25).contains(&relative_x) {
         Some(2) // View
-    } else if relative_x >= 26 && relative_x < 36 {
+    } else if (26..36).contains(&relative_x) {
         Some(3) // Settings
-    } else if relative_x >= 37 && relative_x < 43 {
+    } else if (37..43).contains(&relative_x) {
         Some(4) // Help
     } else {
         None

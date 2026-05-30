@@ -148,8 +148,8 @@ fn calculate_dropdown_item(dropdown_area: Rect, y: u16) -> usize {
         return 0;
     }
 
-    // Each item is 1 line, subtract 1 for top border
-    relative_y.saturating_sub(1) as usize
+    // 1-based index: 0 = border/outside, 1+ = menu items
+    relative_y as usize
 }
 
 /// Get the area for a dropdown menu
@@ -317,7 +317,6 @@ mod tests {
     fn test_is_clickable_area() {
         // This would need actual UI areas set up
         // For now, just test that the function exists
-        let result = is_clickable_area(0, 0);
-        assert!(result == true || result == false);
+        let _result = is_clickable_area(0, 0);
     }
 }

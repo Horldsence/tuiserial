@@ -312,7 +312,7 @@ impl AppState {
                 if !self.tx_input.is_empty() {
                     let cleaned: String =
                         self.tx_input.chars().filter(|c| !c.is_whitespace()).collect();
-                    if cleaned.len() % 2 == 0
+                    if cleaned.len().is_multiple_of(2)
                         && cleaned.chars().all(|c| c.is_ascii_hexdigit())
                     {
                         let bytes: Vec<u8> = cleaned
