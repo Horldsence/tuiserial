@@ -10,9 +10,9 @@ use ratatui::{
     widgets::{Block, Borders, List, ListItem, Paragraph, Wrap},
     Frame,
 };
-use tuiserial_core::{i18n::t, AppState, FocusedField, TxMode};
+use tuiserial_core::{display_width, i18n::t, AppState, FocusedField, TxMode};
 
-use crate::areas::{update_area, UiAreaField};
+use crate::areas::{update_area, update_cursor_state, UiAreaField};
 
 /// Draw the transmit input area
 pub fn draw_tx_area(f: &mut Frame, app: &AppState, area: Rect) {
@@ -70,15 +70,17 @@ fn draw_tx_input(f: &mut Frame, app: &AppState, area: Rect) {
     };
 
     let prompt_text = t("label.input_prompt", app.language);
+
+    // Track text-before-cursor for native cursor positioning
+    let mut text_before_cursor = String::new();
+
     let cursor_line = if app.tx_input.is_empty() {
         if focused {
-            Line::from(vec![
-                Span::styled("|", Style::default().fg(Color::Yellow)),
-                Span::styled(
-                    format!(" {}", prompt_text),
-                    Style::default().fg(Color::DarkGray),
-                ),
-            ])
+            // Empty input, cursor at position 0 (start of line)
+            Line::from(Span::styled(
+                prompt_text,
+                Style::default().fg(Color::DarkGray),
+            ))
         } else {
             Line::from(Span::styled(
                 prompt_text,
@@ -86,26 +88,15 @@ fn draw_tx_input(f: &mut Frame, app: &AppState, area: Rect) {
             ))
         }
     } else {
-        if focused {
-            // Insert cursor at the correct position
-            // Use char indices to ensure we split on character boundaries, not bytes
-            let chars: Vec<char> = app.tx_input.chars().collect();
-            let cursor_pos = app.tx_cursor.min(chars.len());
+        let chars: Vec<char> = app.tx_input.chars().collect();
+        let cursor_pos = app.tx_cursor.min(chars.len());
 
-            let before_cursor: String = chars[..cursor_pos].iter().collect();
-            let after_cursor: String = chars[cursor_pos..].iter().collect();
+        text_before_cursor = chars[..cursor_pos].iter().collect();
 
-            Line::from(vec![
-                Span::styled(before_cursor, Style::default().fg(Color::White)),
-                Span::styled("|", Style::default().fg(Color::Yellow)),
-                Span::styled(after_cursor, Style::default().fg(Color::White)),
-            ])
-        } else {
-            Line::from(Span::styled(
-                app.tx_input.clone(),
-                Style::default().fg(Color::White),
-            ))
-        }
+        Line::from(Span::styled(
+            app.tx_input.clone(),
+            Style::default().fg(Color::White),
+        ))
     };
 
     let help_text = match app.tx_mode {
@@ -145,6 +136,16 @@ fn draw_tx_input(f: &mut Frame, app: &AppState, area: Rect) {
         .wrap(Wrap { trim: false });
 
     f.render_widget(para, area);
+
+    // Position native terminal cursor
+    if focused {
+        let cursor_x = area.x + 1 + display_width(&text_before_cursor) as u16;
+        let cursor_y = area.y + 2; // border top + empty first line
+        f.set_cursor_position((cursor_x, cursor_y));
+        update_cursor_state(cursor_x, cursor_y, true);
+    } else {
+        update_cursor_state(0, 0, false);
+    }
 }
 
 /// Draw the append mode selector

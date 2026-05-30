@@ -183,7 +183,7 @@ fn create_help_content(lang: Language) -> Vec<Line<'static>> {
             "切换帮助"
         },
     );
-    add_shortcut_line(&mut lines, "Ctrl+Q", t("shortcuts.quit", lang));
+    add_shortcut_line(&mut lines, "Ctrl+C / Ctrl+Q", t("shortcuts.quit", lang));
 
     lines.push(Line::from(""));
 
@@ -345,9 +345,9 @@ fn add_shortcut_line(lines: &mut Vec<Line<'static>>, key: &str, description: &st
 #[allow(dead_code)]
 pub fn draw_help_hint(f: &mut Frame, area: Rect, lang: Language) {
     let hint_text = if lang == Language::English {
-        " F1: Help | F10: Menu | Ctrl+Q: Quit "
+        " F1: Help | F10: Menu | Ctrl+C/Q: Quit "
     } else {
-        " F1: 帮助 | F10: 菜单 | Ctrl+Q: 退出 "
+        " F1: 帮助 | F10: 菜单 | Ctrl+C/Q: 退出 "
     };
 
     let hint = Paragraph::new(hint_text)

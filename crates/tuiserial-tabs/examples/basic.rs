@@ -72,7 +72,10 @@ impl DemoApp {
         self.last_key = format!("{:?} {:?}", key, modifiers);
 
         match (key, modifiers) {
-            // Quit
+            // Quit — Ctrl+C or Ctrl+Q
+            (KeyCode::Char('c'), m) if m.contains(KeyModifiers::CONTROL) => {
+                self.should_quit = true;
+            }
             (KeyCode::Char('q'), m) if m.contains(KeyModifiers::CONTROL) => {
                 self.should_quit = true;
             }

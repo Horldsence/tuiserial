@@ -32,6 +32,17 @@ pub use types::{
     AppendMode, DisplayMode, FlowControl, FocusedField, Language, MenuState, Parity, TxMode,
 };
 
+// Utility functions
+
+/// Calculate display width of a string (handles CJK characters)
+///
+/// ASCII characters occupy 1 terminal cell; CJK and other wide characters occupy 2.
+pub fn display_width(s: &str) -> usize {
+    s.chars()
+        .map(|c| if c.is_ascii() { 1 } else { 2 })
+        .sum()
+}
+
 // Re-export commonly used dependencies
 pub use chrono;
 pub use ratatui;

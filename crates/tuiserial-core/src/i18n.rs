@@ -177,7 +177,7 @@ static EN: phf::Map<&'static str, &'static str> = phf::phf_map! {
     "shortcuts.display_mode" => "X: Toggle Display Mode",
     "shortcuts.auto_scroll" => "A: Toggle Auto Scroll",
     "shortcuts.menu" => "F10: Open Menu",
-    "shortcuts.quit" => "Ctrl+Q: Quit",
+    "shortcuts.quit" => "Ctrl+C / Ctrl+Q: Quit",
 
     // Empty state messages
     "empty.no_messages" => "No messages yet",
@@ -349,7 +349,7 @@ static ZH: phf::Map<&'static str, &'static str> = phf::phf_map! {
     "shortcuts.display_mode" => "X: 切换显示模式",
     "shortcuts.auto_scroll" => "A: 切换自动滚动",
     "shortcuts.menu" => "F10: 打开菜单",
-    "shortcuts.quit" => "Ctrl+Q: 退出",
+    "shortcuts.quit" => "Ctrl+C / Ctrl+Q: 退出",
 
     // Empty state messages
     "empty.no_messages" => "暂无消息",

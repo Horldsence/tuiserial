@@ -206,8 +206,8 @@ pub fn draw_shortcuts_help(f: &mut Frame, lang: Language) {
             Span::raw("Open menu"),
         ]),
         Line::from(vec![
-            Span::styled("  Ctrl+Q", Style::default().fg(Color::Yellow)),
-            Span::raw("          "),
+            Span::styled("  Ctrl+C/Q", Style::default().fg(Color::Yellow)),
+            Span::raw("        "),
             Span::raw("Quit application"),
         ]),
         Line::from(""),

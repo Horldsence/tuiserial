@@ -7,9 +7,10 @@ use std::io;
 use std::time::Duration;
 
 use crossterm::{
+    cursor::{Hide, MoveTo, Show},
     event::{
         self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyEvent, KeyEventKind,
-        MouseButton, MouseEvent, MouseEventKind,
+        KeyModifiers, MouseButton, MouseEvent, MouseEventKind,
     },
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
@@ -158,6 +159,20 @@ fn run_app(mut terminal: Terminal<CrosstermBackend<io::Stdout>>) -> io::Result<(
         app.update_notifications();
         terminal.draw(|f| draw(f, &app))?;
 
+        // Apply native cursor state (set during rendering)
+        {
+            let areas = tuiserial_ui::get_ui_areas();
+            if areas.show_cursor {
+                execute!(
+                    io::stdout(),
+                    MoveTo(areas.cursor_x, areas.cursor_y),
+                    Show
+                )?;
+            } else {
+                execute!(io::stdout(), Hide)?;
+            }
+        }
+
         if event::poll(Duration::from_millis(100))? {
             match event::read()? {
                 Event::Key(key) => {
@@ -170,6 +185,9 @@ fn run_app(mut terminal: Terminal<CrosstermBackend<io::Stdout>>) -> io::Result<(
                 }
                 Event::Resize(_, _) => {
                     // Terminal auto-redraws on resize
+                }
+                Event::Paste(data) => {
+                    handle_paste_event(&data, &mut app);
                 }
                 _ => {}
             }
@@ -194,6 +212,90 @@ fn run_app(mut terminal: Terminal<CrosstermBackend<io::Stdout>>) -> io::Result<(
     }
 
     Ok(())
+}
+
+/// Rebuild hex-mode input with auto-spacing: extract hex digits, group in pairs with spaces.
+/// Preserves cursor position relative to hex content.
+fn rebuild_hex_input(app: &mut AppState) {
+    // Extract only hex digits
+    let hex_only: String = app
+        .tx_input
+        .chars()
+        .filter(|c| c.is_ascii_hexdigit())
+        .collect();
+
+    // Count hex digits before cursor in the old string
+    let hex_before_cursor: usize = app.tx_input[..app
+        .tx_input
+        .char_indices()
+        .nth(app.tx_cursor)
+        .map(|(i, _)| i)
+        .unwrap_or(app.tx_input.len())]
+        .chars()
+        .filter(|c| c.is_ascii_hexdigit())
+        .count();
+
+    // Rebuild with spaces every 2 hex digits
+    let mut new_input = String::new();
+    for (i, ch) in hex_only.chars().enumerate() {
+        new_input.push(ch);
+        if i % 2 == 1 && i < hex_only.len() - 1 {
+            new_input.push(' ');
+        }
+    }
+
+    // Map cursor: find position after hex_before_cursor hex digits in new string
+    let mut hex_count = 0;
+    let mut new_cursor = 0;
+    for (i, ch) in new_input.chars().enumerate() {
+        if ch.is_ascii_hexdigit() {
+            hex_count += 1;
+        }
+        if hex_count == hex_before_cursor {
+            new_cursor = i + 1;
+            break;
+        }
+    }
+
+    app.tx_input = new_input;
+    app.tx_cursor = new_cursor;
+}
+
+/// Handle paste events: in hex mode filter non-hex chars and rebuild spacing; in ASCII insert as-is
+fn handle_paste_event(data: &str, app: &mut AppState) {
+    if app.focused_field != FocusedField::TxInput {
+        return;
+    }
+
+    if app.tx_mode == TxMode::Hex {
+        // Filter: keep only hex digits and whitespace
+        let filtered: String = data
+            .chars()
+            .filter(|c| c.is_ascii_hexdigit() || c.is_whitespace())
+            .collect();
+        if !filtered.is_empty() {
+            // Insert at cursor position
+            let byte_idx = app
+                .tx_input
+                .char_indices()
+                .nth(app.tx_cursor)
+                .map(|(i, _)| i)
+                .unwrap_or(app.tx_input.len());
+            app.tx_input.insert_str(byte_idx, &filtered);
+            app.tx_cursor += filtered.chars().count();
+            rebuild_hex_input(app);
+        }
+    } else {
+        // ASCII mode: insert as-is at cursor
+        let byte_idx = app
+            .tx_input
+            .char_indices()
+            .nth(app.tx_cursor)
+            .map(|(i, _)| i)
+            .unwrap_or(app.tx_input.len());
+        app.tx_input.insert_str(byte_idx, data);
+        app.tx_cursor += data.chars().count();
+    }
 }
 
 fn handle_key_event(key: KeyEvent, app: &mut AppState, handler: &mut SerialHandler) -> bool {
@@ -348,15 +450,45 @@ fn handle_key_event(key: KeyEvent, app: &mut AppState, handler: &mut SerialHandl
                 return false;
             }
             KeyCode::Char(c) => {
-                // Convert character index to byte index for insertion
-                let byte_idx = app
-                    .tx_input
-                    .char_indices()
-                    .nth(app.tx_cursor)
-                    .map(|(i, _)| i)
-                    .unwrap_or(app.tx_input.len());
-                app.tx_input.insert(byte_idx, c);
-                app.tx_cursor += 1;
+                if app.tx_mode == TxMode::Hex {
+                    match c {
+                        '0'..='9' | 'a'..='f' | 'A'..='F' => {
+                            let upper = c.to_ascii_uppercase();
+                            let byte_idx = app
+                                .tx_input
+                                .char_indices()
+                                .nth(app.tx_cursor)
+                                .map(|(i, _)| i)
+                                .unwrap_or(app.tx_input.len());
+                            app.tx_input.insert(byte_idx, upper);
+                            app.tx_cursor += 1;
+                            rebuild_hex_input(app);
+                        }
+                        ' ' => {
+                            // Allow manual space insertion
+                            let byte_idx = app
+                                .tx_input
+                                .char_indices()
+                                .nth(app.tx_cursor)
+                                .map(|(i, _)| i)
+                                .unwrap_or(app.tx_input.len());
+                            app.tx_input.insert(byte_idx, ' ');
+                            app.tx_cursor += 1;
+                            rebuild_hex_input(app);
+                        }
+                        _ => {} // Ignore non-hex chars in hex mode
+                    }
+                } else {
+                    // ASCII mode: accept any character
+                    let byte_idx = app
+                        .tx_input
+                        .char_indices()
+                        .nth(app.tx_cursor)
+                        .map(|(i, _)| i)
+                        .unwrap_or(app.tx_input.len());
+                    app.tx_input.insert(byte_idx, c);
+                    app.tx_cursor += 1;
+                }
                 return false;
             }
             KeyCode::Backspace => {
@@ -372,13 +504,17 @@ fn handle_key_event(key: KeyEvent, app: &mut AppState, handler: &mut SerialHandl
                         app.tx_input.remove(byte_idx);
                     }
                     app.tx_cursor -= 1;
+                    if app.tx_mode == TxMode::Hex {
+                        rebuild_hex_input(app);
+                    }
                 }
                 return false;
             }
             KeyCode::Up => {
                 app.toggle_tx_mode();
                 app.add_info(format!(
-                    "发送模式: {}",
+                    "{}: {}",
+                    t("notify.tx_mode", app.language),
                     match app.tx_mode {
                         TxMode::Hex => "HEX",
                         TxMode::Ascii => "ASCII",
@@ -389,7 +525,8 @@ fn handle_key_event(key: KeyEvent, app: &mut AppState, handler: &mut SerialHandl
             KeyCode::Down => {
                 app.toggle_tx_mode();
                 app.add_info(format!(
-                    "发送模式: {}",
+                    "{}: {}",
+                    t("notify.tx_mode", app.language),
                     match app.tx_mode {
                         TxMode::Hex => "HEX",
                         TxMode::Ascii => "ASCII",
@@ -409,6 +546,9 @@ fn handle_key_event(key: KeyEvent, app: &mut AppState, handler: &mut SerialHandl
                         .unwrap_or(app.tx_input.len());
                     if byte_idx < app.tx_input.len() {
                         app.tx_input.remove(byte_idx);
+                    }
+                    if app.tx_mode == TxMode::Hex {
+                        rebuild_hex_input(app);
                     }
                 }
                 return false;
@@ -505,6 +645,9 @@ fn handle_key_event(key: KeyEvent, app: &mut AppState, handler: &mut SerialHandl
 
     // Global/dropdown navigation
     match key.code {
+        // Exit: Ctrl+C, Ctrl+Q, plain q, or Esc
+        KeyCode::Char('c') if key.modifiers.contains(KeyModifiers::CONTROL) => return true,
+        KeyCode::Char('q') if key.modifiers.contains(KeyModifiers::CONTROL) => return true,
         KeyCode::Char('q') | KeyCode::Esc => return true,
 
         // Connect/Disconnect
@@ -1137,7 +1280,8 @@ fn handle_mouse_event(mouse: MouseEvent, app: &mut AppState, handler: &mut Seria
                     // Right click in input area - toggle TX mode
                     app.toggle_tx_mode();
                     app.add_info(format!(
-                        "发送模式: {}",
+                        "{}: {}",
+                        t("notify.tx_mode", app.language),
                         match app.tx_mode {
                             TxMode::Hex => "HEX",
                             TxMode::Ascii => "ASCII",

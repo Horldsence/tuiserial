@@ -22,6 +22,10 @@ pub struct UiAreas {
     pub notification_area: Rect,
     pub shortcuts_hint: Rect,
     pub tab_bar: Rect,
+    /// Native terminal cursor position (set during rendering, used after draw)
+    pub cursor_x: u16,
+    pub cursor_y: u16,
+    pub show_cursor: bool,
 }
 
 impl Default for UiAreas {
@@ -41,6 +45,9 @@ impl Default for UiAreas {
             notification_area: Rect::default(),
             shortcuts_hint: Rect::default(),
             tab_bar: Rect::default(),
+            cursor_x: 0,
+            cursor_y: 0,
+            show_cursor: false,
         }
     }
 }
@@ -131,6 +138,9 @@ static mut UI_AREAS: UiAreas = UiAreas {
         width: 0,
         height: 0,
     },
+    cursor_x: 0,
+    cursor_y: 0,
+    show_cursor: false,
 };
 
 /// Get the UI areas for mouse interaction
@@ -185,6 +195,15 @@ pub enum UiAreaField {
     ShortcutsHint,
     #[allow(dead_code)]
     TabBar,
+}
+
+/// Update terminal cursor position and visibility (called during rendering)
+pub fn update_cursor_state(x: u16, y: u16, show: bool) {
+    unsafe {
+        UI_AREAS.cursor_x = x;
+        UI_AREAS.cursor_y = y;
+        UI_AREAS.show_cursor = show;
+    }
 }
 
 /// Check if a point is inside a rectangle

@@ -37,7 +37,7 @@ mod utils;
 // Re-exports for external use
 pub use areas::{
     get_clicked_field, get_clicked_menu, get_clicked_tab, get_ui_areas, is_inside,
-    is_shortcuts_hint_clicked, UiAreas,
+    is_shortcuts_hint_clicked, update_cursor_state, UiAreas,
 };
 pub use crossterm;
 pub use mouse::{
