@@ -29,6 +29,8 @@ mod log;
 mod menu;
 mod mouse;
 mod notification;
+mod plugin_modal;
+mod plugin_registry;
 mod shortcuts;
 mod status;
 mod tx;
@@ -87,6 +89,11 @@ pub fn draw(f: &mut Frame, app: &AppState) {
     // Render shortcuts help overlay if active (on top of everything)
     if app.show_shortcuts_help {
         shortcuts::draw_shortcuts_help(f, app.language);
+    }
+
+    // Render plugin manager modal if active (on top of everything)
+    if app.show_plugin_modal {
+        plugin_modal::draw_plugin_modal(f, app);
     }
 
     // Store menu bar, notification area, and shortcuts hint for mouse interaction

@@ -245,6 +245,7 @@ pub fn draw_shortcuts_help(f: &mut Frame, lang: Language) {
 pub fn draw_shortcuts_hint(f: &mut Frame, area: Rect, _lang: Language) {
     let hints = vec![
         ("F10", "Menu"),
+        ("P", "Plugins"),
         ("Ctrl+T", "New"),
         ("Ctrl+W", "Close"),
         ("Ctrl+L", "Layout"),

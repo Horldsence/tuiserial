@@ -17,10 +17,12 @@ path = "src/main.rs"
 tuiserial-core = { workspace = true }
 tuiserial-serial = { workspace = true }
 tuiserial-ui = { workspace = true }
+tuiserial-plugin = { workspace = true, optional = true }
 ratatui = { workspace = true }
 crossterm = { workspace = true }
 tokio = { workspace = true }
 color-eyre = { workspace = true }
+dirs = "6"
 
 [package.metadata.deb]
 maintainer = "pengheng <m18511047688@163.com>"
@@ -38,3 +40,6 @@ depends = "$auto, libudev1"
 assets = [
     { source = "target/release/tuiserial", dest = "/usr/bin/tuiserial", mode = "755" },
 ]
+
+[features]
+plugin = ["tuiserial-plugin"]

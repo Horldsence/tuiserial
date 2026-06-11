@@ -123,6 +123,19 @@ pub enum MenuState {
     Dropdown(usize, usize), // Menu index, selected item index
 }
 
+/// Plugin load state — per-plugin status for the plugin manager modal
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum PluginLoadState {
+    /// Plugin is loading (discovery phase)
+    Loading,
+    /// Plugin loaded successfully
+    Loaded,
+    /// Plugin has an error (script error or other)
+    Error,
+    /// Plugin is disabled (in disabled/ subdirectory or disabled by user)
+    Disabled,
+}
+
 /// Layout mode for multiple serial ports
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum LayoutMode {
@@ -158,4 +171,29 @@ impl LayoutMode {
             LayoutMode::Grid2x2 => 4,
         }
     }
+}
+
+// ── Plugin registry ─────────────────────────────────────────────
+
+/// Entry in the plugin registry (available plugins list).
+///
+/// Plugins are discovered from a monorepo registry where each top-level
+/// folder is a plugin. The `name` is the folder name (or the value from
+/// `plugin.json` if present).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RegistryEntry {
+    pub name: String,
+    #[serde(default)]
+    pub description: Option<String>,
+    #[serde(default)]
+    pub author: Option<String>,
+}
+
+/// Which view the plugin manager modal is showing.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum PluginModalMode {
+    /// Installed plugins (default)
+    Local,
+    /// Registry — browse / search / install
+    Registry,
 }

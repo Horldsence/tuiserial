@@ -23,6 +23,7 @@ pub struct UiAreas {
     pub notification_area: Rect,
     pub shortcuts_hint: Rect,
     pub tab_bar: Rect,
+    pub plugin_modal: Rect,
     /// Native terminal cursor position (set during rendering, used after draw)
     pub cursor_x: u16,
     pub cursor_y: u16,
@@ -116,6 +117,12 @@ static mut UI_AREAS: UiAreas = UiAreas {
         width: 0,
         height: 0,
     },
+    plugin_modal: Rect {
+        x: 0,
+        y: 0,
+        width: 0,
+        height: 0,
+    },
     cursor_x: 0,
     cursor_y: 0,
     show_cursor: false,
@@ -152,6 +159,7 @@ pub fn update_area(field: UiAreaField, rect: Rect) {
             UiAreaField::NotificationArea => UI_AREAS.notification_area = rect,
             UiAreaField::ShortcutsHint => UI_AREAS.shortcuts_hint = rect,
             UiAreaField::TabBar => UI_AREAS.tab_bar = rect,
+            UiAreaField::PluginModal => UI_AREAS.plugin_modal = rect,
         }
     }
 }
@@ -173,6 +181,7 @@ pub enum UiAreaField {
     ShortcutsHint,
     #[allow(dead_code)]
     TabBar,
+    PluginModal,
 }
 
 /// Update terminal cursor position and visibility (called during rendering)

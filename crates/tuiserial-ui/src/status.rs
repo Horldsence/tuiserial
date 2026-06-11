@@ -184,9 +184,37 @@ pub fn draw_control_area(f: &mut Frame, app: &AppState, area: Rect) {
                 Style::default().fg(Color::Yellow)
             },
         ),
+        Span::raw(" │ "),
+        Span::styled(
+            format!("{}: ", t("plugin.bar.loaded", app.language)),
+            Style::default()
+                .fg(Color::Magenta)
+                .add_modifier(Modifier::BOLD),
+        ),
+        Span::styled(
+            format!("{}", app.plugin_loaded_count),
+            Style::default().fg(Color::Green),
+        ),
+        Span::raw("/"),
+        Span::styled(
+            format!("{}", app.plugin_total_count),
+            Style::default().fg(Color::White),
+        ),
     ];
 
-    let para = Paragraph::new(Line::from(stats))
+    // Add error count if any
+    let mut final_stats: Vec<Span> = stats;
+    if app.plugin_error_count > 0 {
+        final_stats.push(Span::raw(" "));
+        final_stats.push(Span::styled(
+            format!("✗{}", app.plugin_error_count),
+            Style::default()
+                .fg(Color::Red)
+                .add_modifier(Modifier::BOLD),
+        ));
+    }
+
+    let para = Paragraph::new(Line::from(final_stats))
         .block(
             Block::default()
                 .borders(Borders::ALL)

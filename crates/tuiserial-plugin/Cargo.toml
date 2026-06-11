@@ -1,0 +1,19 @@
+[package]
+name = "tuiserial-plugin"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+readme.workspace = true
+description = "Plugin system for tuiserial - embeddable JS/TS plugin runtime"
+
+[dependencies]
+tuiserial-core = { workspace = true }
+boa_engine = "0.21"
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+[dev-dependencies]
+tempfile = "3"

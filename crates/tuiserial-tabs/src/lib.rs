@@ -149,12 +149,11 @@ impl TabsManager {
         // Update pane mappings if needed
         let total_sessions = self.sessions.len();
         for pane_idx in 0..self.panes.pane_count() {
-            if let Some(session_idx) = self.panes.session_for_pane(pane_idx) {
-                if session_idx >= total_sessions {
+            if let Some(session_idx) = self.panes.session_for_pane(pane_idx)
+                && session_idx >= total_sessions {
                     self.panes
                         .set_pane_session(pane_idx, total_sessions.saturating_sub(1));
                 }
-            }
         }
 
         Some(removed)

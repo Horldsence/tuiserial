@@ -27,9 +27,10 @@ pub use config::SerialConfig;
 pub use log::{LogDirection, LogEntry, MessageLog, MAX_LOG_LINES};
 pub use menu_def::{MenuAction, MenuBar, MENU_BAR};
 pub use notification::{Notification, NotificationLevel};
-pub use state::AppState;
+pub use state::{AppState, PluginLoadStatus, PluginMetadataSimple};
 pub use types::{
-    AppendMode, DisplayMode, FlowControl, FocusedField, Language, MenuState, Parity, TxMode,
+    AppendMode, DisplayMode, FlowControl, FocusedField, Language, MenuState, Parity,
+    PluginLoadState, PluginModalMode, RegistryEntry, TxMode,
 };
 
 // Utility functions

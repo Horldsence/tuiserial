@@ -11,7 +11,8 @@ use crate::config::SerialConfig;
 use crate::log::MessageLog;
 use crate::notification::Notification;
 use crate::types::{
-    AppendMode, DisplayMode, FlowControl, FocusedField, Language, MenuState, Parity, TxMode,
+    AppendMode, DisplayMode, FlowControl, FocusedField, Language, MenuState, Parity,
+    PluginLoadState, PluginModalMode, RegistryEntry, TxMode,
 };
 
 /// Main application state
@@ -67,6 +68,51 @@ pub struct AppState {
 
     // Help overlay
     pub show_shortcuts_help: bool,
+
+    // Plugin management modal
+    pub show_plugin_modal: bool,
+    /// Which view the modal is showing (Local or Registry)
+    pub plugin_modal_mode: PluginModalMode,
+    /// Per-plugin load status for display in the modal
+    pub plugin_statuses: Vec<PluginLoadStatus>,
+    /// Scroll offset in the plugin modal list
+    pub plugin_modal_scroll: usize,
+
+    // Plugin registry (for Registry mode)
+    /// Cached registry entries fetched from the remote
+    pub registry_entries: Vec<RegistryEntry>,
+    /// Search query typed by the user
+    pub registry_search_query: String,
+    /// Scroll offset in the registry result list
+    pub registry_scroll: usize,
+    /// True while the registry is being fetched
+    pub registry_loading: bool,
+
+    // Plugin status bar info
+    pub plugin_loaded_count: usize,
+    pub plugin_error_count: usize,
+    pub plugin_total_count: usize,
+}
+
+/// Lightweight per-plugin status for the plugin modal UI.
+#[derive(Debug, Clone)]
+pub struct PluginLoadStatus {
+    pub name: String,
+    pub state: PluginLoadState,
+    pub has_rx_hook: bool,
+    pub has_tx_hook: bool,
+    pub has_connect_hook: bool,
+    pub has_disconnect_hook: bool,
+    pub error_message: Option<String>,
+    pub metadata: Option<PluginMetadataSimple>,
+}
+
+/// Simplified plugin metadata for UI display.
+#[derive(Debug, Clone)]
+pub struct PluginMetadataSimple {
+    pub version: Option<String>,
+    pub description: Option<String>,
+    pub author: Option<String>,
 }
 
 impl Default for AppState {
@@ -117,6 +163,17 @@ impl Default for AppState {
             menu_state: MenuState::None,
             language: Language::English,
             show_shortcuts_help: false,
+            show_plugin_modal: false,
+            plugin_modal_mode: PluginModalMode::Local,
+            plugin_statuses: Vec::new(),
+            plugin_modal_scroll: 0,
+            registry_entries: Vec::new(),
+            registry_search_query: String::new(),
+            registry_scroll: 0,
+            registry_loading: false,
+            plugin_loaded_count: 0,
+            plugin_error_count: 0,
+            plugin_total_count: 0,
         }
     }
 }
@@ -434,8 +491,9 @@ impl AppState {
     pub fn load_config(&mut self) {
         if let Some(config_dir) = dirs::config_dir() {
             let config_path = config_dir.join("tuiserial").join("config.json");
-            if let Ok(json) = std::fs::read_to_string(&config_path) {
-                if let Ok(config) = serde_json::from_str::<SerialConfig>(&json) {
+            if let Ok(json) = std::fs::read_to_string(&config_path)
+                && let Ok(config) = serde_json::from_str::<SerialConfig>(&json)
+            {
                     // Update UI states to match loaded config
                     if let Some(idx) = self
                         .baud_rate_options
@@ -471,7 +529,6 @@ impl AppState {
                     }
                     // Move config assignment to end after all borrows
                     self.config = config;
-                }
             }
         }
     }

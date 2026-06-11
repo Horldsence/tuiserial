@@ -41,6 +41,14 @@ pub enum MenuAction {
     // Settings menu
     ToggleLanguage,
 
+    // Plugins menu
+    PluginsInstall,
+    PluginsCheckUpdate,
+    PluginsUpdateAll,
+    PluginsReload,
+    PluginsList,
+    PluginsManager,
+
     // Help menu
     ShowShortcuts,
     ShowAbout,
@@ -69,6 +77,12 @@ impl MenuAction {
             MenuAction::ToggleLanguage => "menu.settings.toggle_language",
             MenuAction::ShowShortcuts => "menu.help.shortcuts",
             MenuAction::ShowAbout => "menu.help.about",
+            MenuAction::PluginsInstall => "menu.plugins.install",
+            MenuAction::PluginsCheckUpdate => "menu.plugins.check_update",
+            MenuAction::PluginsUpdateAll => "menu.plugins.update_all",
+            MenuAction::PluginsReload => "menu.plugins.reload",
+            MenuAction::PluginsList => "menu.plugins.list",
+            MenuAction::PluginsManager => "menu.plugins.manager",
             MenuAction::Separator => "",
         }
     }
@@ -163,6 +177,17 @@ const VIEW_MENU_ITEMS: &[MenuAction] = &[
 
 const SETTINGS_MENU_ITEMS: &[MenuAction] = &[MenuAction::ToggleLanguage];
 
+const PLUGINS_MENU_ITEMS: &[MenuAction] = &[
+    MenuAction::PluginsManager,
+    MenuAction::Separator,
+    MenuAction::PluginsInstall,
+    MenuAction::PluginsCheckUpdate,
+    MenuAction::PluginsUpdateAll,
+    MenuAction::Separator,
+    MenuAction::PluginsList,
+    MenuAction::PluginsReload,
+];
+
 const HELP_MENU_ITEMS: &[MenuAction] = &[
     MenuAction::ShowShortcuts,
     MenuAction::Separator,
@@ -186,6 +211,10 @@ const ALL_MENUS: &[Menu] = &[
     Menu {
         label_key: "menu.settings",
         items: SETTINGS_MENU_ITEMS,
+    },
+    Menu {
+        label_key: "menu.plugins",
+        items: PLUGINS_MENU_ITEMS,
     },
     Menu {
         label_key: "menu.help",
@@ -235,19 +264,20 @@ mod tests {
 
     #[test]
     fn test_menu_bar_structure() {
-        assert_eq!(MENU_BAR.menu_count(), 5);
+        assert_eq!(MENU_BAR.menu_count(), 6);
         assert_eq!(MENU_BAR.get_item_count(0), 4); // File: Save, Load, Sep, Exit
         assert_eq!(MENU_BAR.get_item_count(1), 5); // Session
         assert_eq!(MENU_BAR.get_item_count(2), 7); // View
         assert_eq!(MENU_BAR.get_item_count(3), 1); // Settings
-        assert_eq!(MENU_BAR.get_item_count(4), 3); // Help: Shortcuts, Sep, About
+        assert_eq!(MENU_BAR.get_item_count(4), 8); // Plugins: Manager, Sep, Install, CheckUpdate, UpdateAll, Sep, List, Reload
+        assert_eq!(MENU_BAR.get_item_count(5), 3); // Help: Shortcuts, Sep, About
     }
 
     #[test]
     fn test_menu_actions() {
         assert_eq!(MENU_BAR.get_action(0, 0), Some(MenuAction::SaveConfig));
         assert_eq!(MENU_BAR.get_action(0, 3), Some(MenuAction::Exit));
-        assert_eq!(MENU_BAR.get_action(4, 0), Some(MenuAction::ShowShortcuts));
+        assert_eq!(MENU_BAR.get_action(5, 0), Some(MenuAction::ShowShortcuts));
     }
 
     #[test]
@@ -266,6 +296,6 @@ mod tests {
     fn test_menu_label_keys() {
         assert_eq!(MENU_BAR.get_menu_label_key(0), Some("menu.file"));
         assert_eq!(MENU_BAR.get_menu_label_key(1), Some("menu.session"));
-        assert_eq!(MENU_BAR.get_menu_label_key(4), Some("menu.help"));
+        assert_eq!(MENU_BAR.get_menu_label_key(5), Some("menu.help"));
     }
 }

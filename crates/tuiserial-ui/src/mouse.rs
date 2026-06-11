@@ -55,8 +55,9 @@ pub fn handle_mouse_click(
     }
 
     // Check menu dropdown first (if open)
-    if let MenuState::Dropdown(menu_idx, _) = app.menu_state {
-        if let Some(dropdown_area) = menu_dropdown_area {
+    if let MenuState::Dropdown(menu_idx, _) = app.menu_state
+        && let Some(dropdown_area) = menu_dropdown_area
+    {
             if is_inside(dropdown_area, x, y) {
                 // Clicked inside dropdown - determine which item
                 let item_idx = calculate_dropdown_item(dropdown_area, y);
@@ -65,7 +66,6 @@ pub fn handle_mouse_click(
                 // Clicked outside dropdown - close it
                 return MouseAction::CloseMenu;
             }
-        }
     }
 
     // Check menu bar
