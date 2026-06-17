@@ -144,7 +144,7 @@ pub fn handle_tx_key_event(
         KeyCode::Enter => {
             if !app.tx_input.is_empty() {
                 if handler.is_connected() {
-                    let mut bytes: Result<Vec<u8>, String> = match app.tx_mode {
+                    let mut bytes: Result<Vec<u8>, tuiserial_serial::SerialError> = match app.tx_mode {
                         TxMode::Ascii => Ok(app.tx_input.as_bytes().to_vec()),
                         TxMode::Hex => tuiserial_serial::hex_to_bytes(&app.tx_input),
                     };

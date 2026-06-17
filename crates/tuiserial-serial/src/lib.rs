@@ -4,12 +4,32 @@
 //! connection management, and data transmission.
 
 use serialport::SerialPort;
+use std::io;
 use std::time::Duration;
+use thiserror::Error;
 use tuiserial_core::{FlowControl, Parity, SerialConfig};
 
 // Re-exports
 pub use serialport;
 pub use tokio;
+
+#[derive(Error, Debug)]
+pub enum SerialError {
+    #[error("Failed to open port: {0}")]
+    PortOpen(#[from] serialport::Error),
+
+    #[error("I/O error: {0}")]
+    Io(#[from] io::Error),
+
+    #[error("Hex string must have an even length")]
+    InvalidHexLength,
+
+    #[error("Invalid hex character {0}")]
+    ParseHex(#[from] std::num::ParseIntError),
+
+    #[error("Port is not connected")]
+    NotConnected,
+}
 
 /// List all available serial ports on the system
 pub fn list_ports() -> Vec<String> {
@@ -50,7 +70,7 @@ pub fn open_port(config: &SerialConfig) -> Result<Box<dyn SerialPort>, String> {
 }
 
 /// Read data from the serial port
-pub fn read_data(port: &mut dyn SerialPort) -> Result<Vec<u8>, String> {
+pub fn read_data(port: &mut dyn SerialPort) -> Result<Vec<u8>, SerialError> {
     let mut buf = vec![0u8; 256];
     match port.read(buf.as_mut_slice()) {
         Ok(n) if n > 0 => {
@@ -59,15 +79,15 @@ pub fn read_data(port: &mut dyn SerialPort) -> Result<Vec<u8>, String> {
         }
         Ok(_) => Ok(Vec::new()),
         Err(ref e) if e.kind() == std::io::ErrorKind::TimedOut => Ok(Vec::new()),
-        Err(e) => Err(format!("Read error: {}", e)),
+        Err(e) => Err(SerialError::Io(e)),
     }
 }
 
 /// Write data to the serial port
-pub fn write_data(port: &mut dyn SerialPort, data: &[u8]) -> Result<usize, String> {
+pub fn write_data(port: &mut dyn SerialPort, data: &[u8]) -> Result<usize, SerialError> {
     port.write_all(data)
         .map(|_| data.len())
-        .map_err(|e| format!("Write error: {}", e))
+        .map_err(SerialError::Io)
 }
 
 /// Convert hex string to bytes
@@ -78,10 +98,10 @@ pub fn write_data(port: &mut dyn SerialPort, data: &[u8]) -> Result<usize, Strin
 /// let bytes = hex_to_bytes("48656C6C6F").unwrap();
 /// assert_eq!(bytes, vec![0x48, 0x65, 0x6C, 0x6C, 0x6F]);
 /// ```
-pub fn hex_to_bytes(hex_str: &str) -> Result<Vec<u8>, String> {
+pub fn hex_to_bytes(hex_str: &str) -> Result<Vec<u8>, SerialError> {
     let hex_str = hex_str.trim().replace(" ", "");
     if !hex_str.len().is_multiple_of(2) {
-        return Err("Hex string must have even length".to_string());
+        return Err(SerialError::InvalidHexLength);
     }
 
     hex_str
@@ -89,8 +109,7 @@ pub fn hex_to_bytes(hex_str: &str) -> Result<Vec<u8>, String> {
         .collect::<Vec<_>>()
         .chunks(2)
         .map(|chunk| {
-            u8::from_str_radix(&chunk.iter().collect::<String>(), 16)
-                .map_err(|_| "Invalid hex character".to_string())
+            u8::from_str_radix(&chunk.iter().collect::<String>(), 16).map_err(SerialError::from)
         })
         .collect()
 }
