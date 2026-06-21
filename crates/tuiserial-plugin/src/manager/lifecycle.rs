@@ -222,6 +222,7 @@ impl PluginManager {
                 Ok(Ok(())) => {}
                 Ok(Err(e)) => {
                     let kind: PluginErrorKind = e.into();
+                    log::error!("[plugin: {}] onConnect error: {}", plugin.name, kind);
                     errors.push(AppError::Plugin {
                         plugin: plugin.name.clone(),
                         kind,
@@ -234,6 +235,7 @@ impl PluginManager {
                 }
                 Err(panic_info) => {
                     let msg = extract_panic_message(&panic_info);
+                    log::error!("[plugin: {}] panic in onConnect: {}", plugin.name, msg);
                     errors.push(AppError::Plugin {
                         plugin: plugin.name.clone(),
                         kind: PluginErrorKind::Panic {
@@ -269,6 +271,7 @@ impl PluginManager {
                 Ok(Ok(())) => {}
                 Ok(Err(e)) => {
                     let kind: PluginErrorKind = e.into();
+                    log::error!("[plugin: {}] onDisconnect error: {}", plugin.name, kind);
                     errors.push(AppError::Plugin {
                         plugin: plugin.name.clone(),
                         kind,
@@ -281,6 +284,7 @@ impl PluginManager {
                 }
                 Err(panic_info) => {
                     let msg = extract_panic_message(&panic_info);
+                    log::error!("[plugin: {}] panic in onDisconnect: {}", plugin.name, msg);
                     errors.push(AppError::Plugin {
                         plugin: plugin.name.clone(),
                         kind: PluginErrorKind::Panic {

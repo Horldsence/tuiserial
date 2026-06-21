@@ -97,6 +97,12 @@ menu.plugins.manager:
 menu.help.shortcuts:
   en: Keyboard Shortcuts
   zh-CN: 键盘快捷键
+menu.help.open_config_dir:
+  en: Open Config Folder
+  zh-CN: 打开配置文件夹
+menu.help.open_log_dir:
+  en: Open Log Folder
+  zh-CN: 打开日志文件夹
 menu.help.about:
   en: About
   zh-CN: 关于
@@ -396,6 +402,12 @@ notify.plugin_all_updated:
 notify.plugin_registry_empty:
   en: No plugins available in registry
   zh-CN: 注册表中没有可用插件
+notify.open_dir_success:
+  en: Opened in file browser
+  zh-CN: 已在文件浏览器中打开
+notify.open_dir_failed:
+  en: Failed to open folder
+  zh-CN: 打开文件夹失败
 notify.plugin_git_missing:
   en: Git is not available — install git to manage plugins
   zh-CN: Git 不可用 — 请安装 git 以管理插件

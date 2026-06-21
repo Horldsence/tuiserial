@@ -253,10 +253,22 @@ impl AppState {
         self.error_log.push(error);
 
         match severity {
-            ErrorSeverity::Info => self.add_info(msg),
-            ErrorSeverity::Warning => self.add_warning(msg),
-            ErrorSeverity::Error | ErrorSeverity::Critical => self.add_error(msg),
-            ErrorSeverity::Fatal => self.add_error(format!("FATAL: {msg}")),
+            ErrorSeverity::Info => {
+                log::info!("{msg}");
+                self.add_info(msg);
+            }
+            ErrorSeverity::Warning => {
+                log::warn!("{msg}");
+                self.add_warning(msg);
+            }
+            ErrorSeverity::Error | ErrorSeverity::Critical => {
+                log::error!("{msg}");
+                self.add_error(msg);
+            }
+            ErrorSeverity::Fatal => {
+                log::error!("FATAL: {msg}");
+                self.add_error(format!("FATAL: {msg}"));
+            }
         }
     }
 

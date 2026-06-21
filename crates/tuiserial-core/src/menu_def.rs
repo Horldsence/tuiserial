@@ -44,6 +44,8 @@ pub enum MenuAction {
     // Help menu
     ShowShortcuts,
     ShowAbout,
+    OpenConfigDir,
+    OpenLogDir,
 
     // Special
     Separator, // Not an action, just for display
@@ -69,6 +71,8 @@ impl MenuAction {
             MenuAction::ToggleLanguage => "menu.settings.toggle_language",
             MenuAction::ShowShortcuts => "menu.help.shortcuts",
             MenuAction::ShowAbout => "menu.help.about",
+            MenuAction::OpenConfigDir => "menu.help.open_config_dir",
+            MenuAction::OpenLogDir => "menu.help.open_log_dir",
             MenuAction::PluginsInstall => "menu.plugins.install",
             MenuAction::PluginsCheckUpdate => "menu.plugins.check_update",
             MenuAction::PluginsUpdateAll => "menu.plugins.update_all",
@@ -183,6 +187,9 @@ const PLUGINS_MENU_ITEMS: &[MenuAction] = &[
 const HELP_MENU_ITEMS: &[MenuAction] = &[
     MenuAction::ShowShortcuts,
     MenuAction::Separator,
+    MenuAction::OpenConfigDir,
+    MenuAction::OpenLogDir,
+    MenuAction::Separator,
     MenuAction::ShowAbout,
 ];
 
@@ -262,7 +269,7 @@ mod tests {
         assert_eq!(MENU_BAR.get_item_count(2), 7); // View
         assert_eq!(MENU_BAR.get_item_count(3), 1); // Settings
         assert_eq!(MENU_BAR.get_item_count(4), 8); // Plugins: Manager, Sep, Install, CheckUpdate, UpdateAll, Sep, List, Reload
-        assert_eq!(MENU_BAR.get_item_count(5), 3); // Help: Shortcuts, Sep, About
+        assert_eq!(MENU_BAR.get_item_count(5), 6); // Help: Shortcuts, Sep, OpenConfigDir, OpenLogDir, Sep, About
     }
 
     #[test]

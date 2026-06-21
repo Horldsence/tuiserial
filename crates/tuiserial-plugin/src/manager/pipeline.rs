@@ -91,6 +91,7 @@ impl PluginManager {
                     plugin.error_count += 1;
                     plugin.consecutive_errors += 1;
                     plugin.record_error(msg.clone());
+                    log::error!("[plugin: {}] data hook error: {}", plugin.name, msg);
 
                     let max = crate::runtime::MAX_CONSECUTIVE_ERRORS;
                     let backoff =
@@ -126,6 +127,7 @@ impl PluginManager {
                     plugin.has_error = true;
                     plugin.error_message = Some(format!("panic in {hook_name}: {msg}"));
                     plugin.record_error(format!("panic in {hook_name}: {msg}"));
+                    log::error!("[plugin: {}] panic in {}: {}", plugin.name, hook_name, msg);
                     plugin.append_log(
                         NotificationLevel::Error,
                         format!("[plugin: {}] panic in {}: {}", plugin.name, hook_name, msg,),

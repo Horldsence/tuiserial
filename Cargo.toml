@@ -34,6 +34,8 @@ tokio = { version = "1.40", features = ["full"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 chrono = "0.4"
+log = "0.4"
+fern = "0.7"
 color-eyre = "0.6"
 anyhow = "1.0"
 thiserror = "2.0"

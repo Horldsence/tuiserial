@@ -12,6 +12,7 @@ description = "Plugin system for tuiserial - embeddable JS/TS plugin runtime"
 [dependencies]
 tuiserial-core = { workspace = true }
 boa_engine = "0.21"
+log = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }

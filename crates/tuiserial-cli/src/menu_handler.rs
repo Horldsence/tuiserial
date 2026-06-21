@@ -60,6 +60,20 @@ pub fn handle_menu_action(
             app.add_info(about_text.to_string());
             false
         }
+        MenuAction::OpenConfigDir => {
+            match open_system_dir(config_dir()) {
+                Ok(_) => app.add_success(t!("notify.open_dir_success").to_string()),
+                Err(e) => app.add_error(format!("{}: {}", t!("notify.open_dir_failed"), e)),
+            }
+            false
+        }
+        MenuAction::OpenLogDir => {
+            match open_system_dir(log_dir()) {
+                Ok(_) => app.add_success(t!("notify.open_dir_success").to_string()),
+                Err(e) => app.add_error(format!("{}: {}", t!("notify.open_dir_failed"), e)),
+            }
+            false
+        }
         MenuAction::NewSession
         | MenuAction::DuplicateSession
         | MenuAction::RenameSession
@@ -101,5 +115,54 @@ pub fn handle_menu_action(
             false
         }
         MenuAction::Separator => false,
+    }
+}
+
+/// Get the application config directory.
+fn config_dir() -> std::path::PathBuf {
+    dirs::config_dir()
+        .expect("Cannot determine config directory")
+        .join("tuiserial")
+}
+
+/// Get the application log directory.
+fn log_dir() -> std::path::PathBuf {
+    tuiserial_core::file_log::log_dir().expect("Cannot determine log directory")
+}
+
+/// Open a directory in the system file browser.
+fn open_system_dir(path: std::path::PathBuf) -> std::io::Result<()> {
+    let path_str = path.to_string_lossy().to_string();
+
+    #[cfg(target_os = "macos")]
+    {
+        std::process::Command::new("open")
+            .arg(&path_str)
+            .spawn()
+            .map(|_| ())
+    }
+
+    #[cfg(target_os = "linux")]
+    {
+        std::process::Command::new("xdg-open")
+            .arg(&path_str)
+            .spawn()
+            .map(|_| ())
+    }
+
+    #[cfg(target_os = "windows")]
+    {
+        std::process::Command::new("explorer")
+            .arg(&path_str)
+            .spawn()
+            .map(|_| ())
+    }
+
+    #[cfg(not(any(target_os = "macos", target_os = "linux", target_os = "windows")))]
+    {
+        Err(std::io::Error::new(
+            std::io::ErrorKind::Unsupported,
+            "Opening directories is not supported on this platform",
+        ))
     }
 }

@@ -147,7 +147,11 @@ fn draw_registry_table(f: &mut Frame, app: &AppState, area: Rect) {
 
     let mut table_state = TableState::default();
     if total > 0 {
-        table_state.select(Some(scroll));
+        // scroll is the absolute index of the first visible row.
+        // registry_scroll is the absolute index of the selected item.
+        // Compute the relative row index within the visible window.
+        let relative_selection = app.registry_scroll.saturating_sub(scroll);
+        table_state.select(Some(relative_selection));
     }
 
     let header_style = Style::default()

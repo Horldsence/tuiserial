@@ -142,7 +142,13 @@ impl PluginRuntime {
         self.context = Some(context);
 
         if self.hooks.on_load {
-            let _ = self.call_lifecycle_hook("onLoad");
+            if let Err(e) = self.call_lifecycle_hook("onLoad") {
+                log::error!("Plugin {} onLoad hook failed: {}", self.name, e);
+                // Drain any remaining log messages so the user sees plugin output
+                if let Some(ref mut ctx) = self.context {
+                    drain_log_queue(ctx, &self.plugin_ctx);
+                }
+            }
         }
 
         Ok(())

@@ -12,6 +12,7 @@ use crossterm::{
 };
 use ratatui::{Terminal, backend::CrosstermBackend};
 use tuiserial_core::AppState;
+use tuiserial_core::file_log;
 use tuiserial_serial::list_ports;
 use tuiserial_ui::draw;
 
@@ -31,8 +32,42 @@ mod tx_handler;
 use handler::SerialHandler;
 use plugin_adapter::PluginProxy;
 
+fn setup_logger() -> Result<()> {
+    let log_dir =
+        file_log::log_dir().ok_or_else(|| anyhow::anyhow!("Cannot determine log directory"))?;
+    std::fs::create_dir_all(&log_dir)?;
+    file_log::rotate_log(&log_dir)?;
+
+    let log_path = log_dir.join("tuiserial.log");
+    fern::Dispatch::new()
+        .format(|out, message, record| {
+            out.finish(format_args!(
+                "{} [{}] {}: {}",
+                chrono::Local::now().format("%Y-%m-%dT%H:%M:%S%.3f"),
+                record.level(),
+                record.target(),
+                message
+            ))
+        })
+        .level(log::LevelFilter::Info)
+        .chain(fern::log_file(&log_path)?)
+        .apply()?;
+
+    // Install panic hook: write panic to log file + keep color_eyre backtrace on stderr
+    let default_hook = std::panic::take_hook();
+    std::panic::set_hook(Box::new(move |info| {
+        log::error!("PANIC: {info}");
+        log::logger().flush();
+        default_hook(info);
+    }));
+
+    Ok(())
+}
+
 fn main() -> Result<()> {
     color_eyre::install().ok();
+    setup_logger()?;
+    log::info!("tuiserial v{} started", env!("CARGO_PKG_VERSION"));
 
     enable_raw_mode()?;
     let mut stdout = io::stdout();
@@ -158,8 +193,10 @@ fn run_app(mut terminal: Terminal<CrosstermBackend<io::Stdout>>) -> Result<()> {
             app.record_error(err);
         }
         handler.disconnect();
+        log::info!("Disconnected from {}", app.config.port);
     }
     plugin_proxy.on_app_exit();
+    log::info!("tuiserial exiting normally");
 
     Ok(())
 }

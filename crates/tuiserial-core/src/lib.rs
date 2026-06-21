@@ -17,6 +17,7 @@
 pub mod config;
 pub mod error;
 pub mod error_log;
+pub mod file_log;
 pub mod log;
 pub mod menu_def;
 pub mod notification;

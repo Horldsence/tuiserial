@@ -163,6 +163,14 @@ pub(crate) fn strip_ts_annotations(source: &str) -> String {
     let mut result = String::with_capacity(source.len());
     let chars: Vec<char> = source.chars().collect();
     let len = chars.len();
+    // Map character index → byte offset in `source`, so we can safely slice
+    // `source` when `i` is a character index. Needed because multi-byte UTF-8
+    // characters (e.g. `—`) make byte offsets larger than character indices.
+    let char_byte_positions: Vec<usize> = source
+        .char_indices()
+        .map(|(pos, _)| pos)
+        .chain(std::iter::once(source.len()))
+        .collect();
     let mut i = 0;
 
     while i < len {
@@ -220,41 +228,95 @@ pub(crate) fn strip_ts_annotations(source: &str) -> String {
             continue;
         }
 
-        if c == 'e' && source[i..].starts_with("export ") {
+        if c == 'e' && source[char_byte_positions[i]..].starts_with("export ") {
             i += "export ".len();
             continue;
         }
 
-        if c == ':' {
-            let remaining = &source[i + 1..];
+        // Strip `: type` annotations. Skip when `:` follows a string literal
+        // (e.g. `"key": value` in object literals — the `:` is a property
+        // separator, not a type annotation).
+        if c == ':' && i > 0 {
+            let prev = chars[i - 1];
+            if prev == '\'' || prev == '"' || prev == '`' {
+                result.push(c);
+                i += 1;
+                continue;
+            }
+            let remaining = &source[char_byte_positions[i + 1]..];
             if remaining.starts_with(' ') {
                 let mut j = i + 1;
+                let mut depth: i32 = 0;
+                let mut seen_type_content = false;
                 while j < len {
                     let nc = chars[j];
-                    if nc == ',' || nc == ')' || nc == '{' || nc == '=' || nc == ';' || nc == '\n' {
-                        break;
+                    // Track bracket depth so we skip nested {…}, […], (…)
+                    if nc == '{' || nc == '[' || nc == '(' {
+                        depth += 1;
+                        seen_type_content = true;
+                        j += 1;
+                        continue;
+                    }
+                    if depth > 0 && (nc == '}' || nc == ']' || nc == ')') {
+                        depth -= 1;
+                        j += 1;
+                        continue;
+                    }
+                    if depth == 0 {
+                        match nc {
+                            // End-of-type delimiters
+                            ',' | '=' | ';' | '\n' | ')' => break,
+                            // Closing brackets at top-level: consume and break
+                            // (the bracket belongs to the type, e.g. `{…}` type literal)
+                            '}' | ']' => {
+                                j += 1;
+                                break;
+                            }
+                            // A `{` after we've already seen type content means
+                            // the type ended and a new block started (e.g. function body).
+                            '{' if seen_type_content => break,
+                            // Whitespace at depth 0: peek ahead — if a break
+                            // character follows, stop now so the formatting space
+                            // is preserved in the output. Otherwise consume it
+                            // (it's whitespace inside the type, e.g. `|` spacing).
+                            // `{` only terminates when we've already seen type
+                            // content (same as the explicit `{` rule above).
+                            c if c.is_whitespace() => {
+                                let mut peek = j + 1;
+                                while peek < len && chars[peek].is_whitespace() {
+                                    peek += 1;
+                                }
+                                if peek < len {
+                                    let pc = chars[peek];
+                                    if matches!(pc, ',' | '=' | ';' | '\n' | ')') {
+                                        break;
+                                    }
+                                    if pc == '{' && seen_type_content {
+                                        break;
+                                    }
+                                }
+                            }
+                            _ => {}
+                        }
                     }
                     if nc == '<' {
-                        let mut depth = 1;
+                        // Skip generic type parameters, e.g. `Array<…>`
+                        let mut gdepth = 1;
                         j += 1;
-                        while j < len && depth > 0 {
+                        while j < len && gdepth > 0 {
                             if chars[j] == '<' {
-                                depth += 1;
+                                gdepth += 1;
                             }
                             if chars[j] == '>' {
-                                depth -= 1;
+                                gdepth -= 1;
                             }
                             j += 1;
                         }
+                        seen_type_content = true;
                         continue;
                     }
-                    if nc == '[' {
-                        j += 1;
-                        while j < len && chars[j] != ']' {
-                            j += 1;
-                        }
-                        j += 1;
-                        continue;
+                    if !nc.is_whitespace() {
+                        seen_type_content = true;
                     }
                     j += 1;
                 }
@@ -263,7 +325,7 @@ pub(crate) fn strip_ts_annotations(source: &str) -> String {
             }
         }
 
-        if c == ' ' && source[i..].starts_with(" as ") {
+        if c == ' ' && source[char_byte_positions[i]..].starts_with(" as ") {
             let mut j = i + 4;
             while j < len {
                 match chars[j] {
@@ -275,7 +337,7 @@ pub(crate) fn strip_ts_annotations(source: &str) -> String {
             continue;
         }
 
-        if c == 'i' && source[i..].starts_with("interface ") {
+        if c == 'i' && source[char_byte_positions[i]..].starts_with("interface ") {
             while i < len && chars[i] != '\n' && chars[i] != '{' {
                 i += 1;
             }
@@ -295,7 +357,7 @@ pub(crate) fn strip_ts_annotations(source: &str) -> String {
             continue;
         }
 
-        if c == 't' && source[i..].starts_with("type ") {
+        if c == 't' && source[char_byte_positions[i]..].starts_with("type ") {
             while i < len && chars[i] != '\n' && chars[i] != ';' {
                 i += 1;
             }
@@ -344,7 +406,7 @@ mod tests {
     fn test_strip_type_annotation() {
         let ts = "function foo(x: number, y: string): boolean { return true; }";
         let js = strip_ts_annotations(ts);
-        assert_eq!(js.trim(), "function foo(x, y){ return true; }");
+        assert_eq!(js.trim(), "function foo(x, y) { return true; }");
     }
 
     #[test]
@@ -355,7 +417,7 @@ mod tests {
 
         let ts2 = "var x: string = 'hello: world';";
         let js2 = strip_ts_annotations(ts2);
-        assert_eq!(js2.trim(), "var x= 'hello: world';");
+        assert_eq!(js2.trim(), "var x = 'hello: world';");
 
         let ts3 = "var msg = `result: ${value}`;";
         let js3 = strip_ts_annotations(ts3);
@@ -373,7 +435,7 @@ mod tests {
     fn test_strip_preserves_block_comments() {
         let ts = "/* type: foo */ var x: number = 1;";
         let js = strip_ts_annotations(ts);
-        assert_eq!(js.trim(), "/* type: foo */ var x= 1;");
+        assert_eq!(js.trim(), "/* type: foo */ var x = 1;");
     }
 
     #[test]
@@ -394,6 +456,71 @@ mod tests {
         let result = parse_hook_result("[72,101,108,108,111]");
         assert!(
             matches!(result, PluginResult::Modified(ref v) if v == &vec![72, 101, 108, 108, 111])
+        );
+    }
+
+    #[test]
+    fn test_strip_with_unicode() {
+        let ts = "var msg = \"loaded — OK\";\nfunction onLoad(): void { }";
+        let js = strip_ts_annotations(ts);
+        assert!(!js.contains(": void"));
+        assert!(js.contains("loaded — OK"));
+    }
+
+    #[test]
+    fn test_strip_bridge_plugin_style() {
+        // Simulates the real mcp-bridge plugin.ts that crashed
+        let ts = r#"var msg = tuiserial.log.success("MCP Bridge loaded — NDJSON/JSON-RPC 2.0 over serial");"#;
+        let js = strip_ts_annotations(ts);
+        assert_eq!(js.trim(), ts.trim());
+    }
+
+    #[test]
+    fn test_strip_jsonrpc_with_unicode_and_interface() {
+        // jsonrpc.ts uses interface, type annotations, index signatures, and △ chars
+        let ts = r#"interface JsonRpcMessage {
+    jsonrpc: string;
+    method?: string;
+    error?: { code: number; message: string; data?: any };
+    id?: string | number | null;
+}
+var MCP_METHODS: { [key: string]: string } = {
+    "initialize": "init",
+    "notifications/tools/list_changed": "ntf/tools△",
+};
+function parse(line: string): JsonRpcMessage | null {
+    var msg: any;
+    return null;
+}"#;
+        let js = strip_ts_annotations(ts);
+        // Interface should be removed
+        assert!(!js.contains("interface"));
+        // Type annotations should be removed
+        assert!(!js.contains("JsonRpcMessage"));
+        // Unicode chars in string literals preserved
+        assert!(js.contains("ntf/tools△"), "expected unicode △ preserved");
+        // Function signature simplified
+        assert!(!js.contains(": string"));
+        assert!(!js.contains(": any"));
+        assert!(!js.contains("| null"));
+    }
+
+    #[test]
+    fn test_strip_index_signature() {
+        // Index signatures like { [key: string]: string } are tricky
+        let ts = r#"var MCP_METHODS: { [key: string]: string } = {
+    "tools/list": "tools/list",
+};"#;
+        let js = strip_ts_annotations(ts);
+        assert!(!js.contains(": {"), "should not contain ': {{'");
+        assert!(
+            js.contains("MCP_METHODS = {"),
+            "expected 'MCP_METHODS = {{', got: {}",
+            js
+        );
+        assert!(
+            js.contains("\"tools/list\": \"tools/list\""),
+            "expected property preserved"
         );
     }
 

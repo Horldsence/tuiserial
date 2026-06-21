@@ -41,6 +41,7 @@ pub fn handle_global_key(
                 handler.disconnect();
                 app.is_connected = false;
                 app.unlock_config();
+                log::info!("Disconnected from {}", app.config.port);
                 app.add_info(t!("notify.disconnected_unlocked").to_string());
             } else {
                 if app.config.port.is_empty() {
@@ -53,6 +54,11 @@ pub fn handle_global_key(
                             for err in plugin_proxy.on_connect(&app.config) {
                                 app.record_error(err);
                             }
+                            log::info!(
+                                "Connected to {} @ {} baud",
+                                app.config.port,
+                                app.config.baud_rate
+                            );
                             app.add_success(
                                 t!("notify.connected_locked", port = &app.config.port).to_string(),
                             );
