@@ -78,7 +78,16 @@ fn run_app(mut terminal: Terminal<CrosstermBackend<io::Stdout>>) -> Result<()> {
             }
             Err(e) => {
                 menu_handler::sync_plugin_status(&mut app, &pm);
-                app.add_error(format!("{}: {}", t!("notify.plugin_error"), e));
+                let kind: tuiserial_core::PluginErrorKind = e.into();
+                app.record_error(tuiserial_core::AppError::Plugin {
+                    plugin: "<init>".into(),
+                    kind,
+                    ctx: tuiserial_core::ErrorContext::new(
+                        "plugin",
+                        "discover_and_load",
+                        tuiserial_core::RecoveryStrategy::Retry,
+                    ),
+                });
             }
         }
         for err in pm.drain_load_errors() {
@@ -153,19 +162,40 @@ fn run_app(mut terminal: Terminal<CrosstermBackend<io::Stdout>>) -> Result<()> {
         }
 
         // Try to read from serial port if connected
-        if handler.is_connected()
-            && let Ok(data) = handler.read()
-            && !data.is_empty()
-        {
-            #[cfg(feature = "plugin")]
-            let (processed, suppressed) = plugin_manager.process_rx(data, &app.config);
-            #[cfg(not(feature = "plugin"))]
-            let (processed, suppressed) = (data, false);
-            if !suppressed {
-                app.message_log.push_rx(processed);
-                if app.auto_scroll {
-                    let lines_count = app.message_log.entries.len() as u16;
-                    app.scroll_offset = lines_count.saturating_sub(1);
+        if handler.is_connected() {
+            match handler.read() {
+                Ok(data) if !data.is_empty() => {
+                    handler.reset_read_errors();
+                    #[cfg(feature = "plugin")]
+                    let (processed, suppressed) = plugin_manager.process_rx(data, &app.config);
+                    #[cfg(not(feature = "plugin"))]
+                    let (processed, suppressed) = (data, false);
+                    if !suppressed {
+                        app.message_log.push_rx(processed);
+                        if app.auto_scroll {
+                            let lines_count = app.message_log.entries.len() as u16;
+                            app.scroll_offset = lines_count.saturating_sub(1);
+                        }
+                    }
+                }
+                Ok(_) => {
+                    // Timeout or empty read — normal, reset error counter.
+                    handler.reset_read_errors();
+                }
+                Err(e) => {
+                    let (app_error, should_disconnect) = handler.handle_read_error(e);
+                    app.record_error(app_error);
+                    if should_disconnect {
+                        app.add_error("Auto-disconnecting due to repeated serial errors");
+                        #[cfg(feature = "plugin")]
+                        {
+                            for err in plugin_manager.on_disconnect() {
+                                app.record_error(err);
+                            }
+                        }
+                        handler.disconnect();
+                        app.is_connected = false;
+                    }
                 }
             }
         }
@@ -173,7 +203,11 @@ fn run_app(mut terminal: Terminal<CrosstermBackend<io::Stdout>>) -> Result<()> {
 
     if handler.is_connected() {
         #[cfg(feature = "plugin")]
-        plugin_manager.on_disconnect();
+        {
+            for err in plugin_manager.on_disconnect() {
+                app.record_error(err);
+            }
+        }
         handler.disconnect();
     }
     #[cfg(feature = "plugin")]

@@ -5,8 +5,10 @@
 //! to support multi-file plugins.
 
 use std::cell::RefCell;
+use std::collections::VecDeque;
 use std::path::PathBuf;
 use std::rc::Rc;
+use std::time::Instant;
 
 use boa_engine::{Context, Source};
 use tuiserial_core::NotificationLevel;
@@ -14,6 +16,18 @@ use tuiserial_core::NotificationLevel;
 use crate::native::register_native_functions;
 use crate::script::{self, drain_log_queue, make_config_json};
 use crate::types::{PluginContext, PluginError, PluginHooks, PluginResult};
+
+/// Maximum number of consecutive data-hook errors before the plugin
+/// is permanently disabled (has_error = true).
+pub(crate) const MAX_CONSECUTIVE_ERRORS: u32 = 3;
+
+/// Backoff duration applied after a transient data-hook error.
+/// The plugin is skipped during this window but automatically
+/// re-enabled once the backoff expires.
+pub(crate) const ERROR_BACKOFF_SECS: u64 = 5;
+
+/// Maximum number of error history entries kept per plugin.
+const MAX_ERROR_HISTORY: usize = 10;
 
 /// JS bootstrap that sets up the `tuiserial` global object.
 ///
@@ -54,8 +68,17 @@ pub struct PluginRuntime {
     pub source_path: PathBuf,
     pub plugin_dir: PathBuf,
     pub hooks: PluginHooks,
+    /// Permanently disabled (load error or too many consecutive runtime errors).
     pub has_error: bool,
     pub error_message: Option<String>,
+    /// Total error count since last load.
+    pub error_count: u32,
+    /// Errors in a row (reset on success).
+    pub consecutive_errors: u32,
+    /// If set, the plugin is temporarily skipped until this instant.
+    pub disabled_until: Option<Instant>,
+    /// Ring buffer of recent error messages for diagnostics.
+    pub error_history: VecDeque<(Instant, String)>,
     context: Option<Context>,
     plugin_ctx: Rc<RefCell<PluginContext>>,
 }
@@ -69,6 +92,10 @@ impl PluginRuntime {
             hooks: PluginHooks::default(),
             has_error: false,
             error_message: None,
+            error_count: 0,
+            consecutive_errors: 0,
+            disabled_until: None,
+            error_history: VecDeque::new(),
             context: None,
             plugin_ctx: Rc::new(RefCell::new(PluginContext::new(name.to_string()))),
         })
@@ -183,6 +210,27 @@ impl PluginRuntime {
             let _ = self.call_lifecycle_hook("onUnload");
         }
         self.context = None;
+    }
+
+    /// Reset all error counters and the backoff timer.
+    ///
+    /// Called when a plugin is manually reloaded or when it succeeds
+    /// after a transient error.
+    pub fn clear_errors(&mut self) {
+        self.has_error = false;
+        self.error_message = None;
+        self.error_count = 0;
+        self.consecutive_errors = 0;
+        self.disabled_until = None;
+        self.error_history.clear();
+    }
+
+    /// Record an error in the plugin's history ring buffer.
+    pub(crate) fn record_error(&mut self, msg: String) {
+        if self.error_history.len() >= MAX_ERROR_HISTORY {
+            self.error_history.pop_front();
+        }
+        self.error_history.push_back((Instant::now(), msg));
     }
 
     pub fn drain_log_messages(&self) -> Vec<(NotificationLevel, String)> {

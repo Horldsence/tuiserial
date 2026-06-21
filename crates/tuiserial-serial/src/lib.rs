@@ -7,7 +7,7 @@ use serialport::SerialPort;
 use std::io;
 use std::time::Duration;
 use thiserror::Error;
-use tuiserial_core::{FlowControl, Parity, SerialConfig};
+use tuiserial_core::{FlowControl, Parity, SerialConfig, SerialErrorKind};
 
 // Re-exports
 pub use serialport;
@@ -29,6 +29,18 @@ pub enum SerialError {
 
     #[error("Port is not connected")]
     NotConnected,
+}
+
+impl From<SerialError> for SerialErrorKind {
+    fn from(e: SerialError) -> Self {
+        match e {
+            SerialError::PortOpen(e) => SerialErrorKind::PortOpen(e.to_string()),
+            SerialError::Io(e) => SerialErrorKind::Io(e.to_string()),
+            SerialError::InvalidHexLength => SerialErrorKind::InvalidHexLength,
+            SerialError::ParseHex(e) => SerialErrorKind::ParseHex(e.to_string()),
+            SerialError::NotConnected => SerialErrorKind::NotConnected,
+        }
+    }
 }
 
 /// List all available serial ports on the system

@@ -5,7 +5,7 @@
 
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
-use tuiserial_core::{NotificationLevel, SerialConfig};
+use tuiserial_core::{NotificationLevel, PluginErrorKind, SerialConfig};
 
 /// Per-plugin mutable state shared between Rust and JS.
 ///
@@ -98,6 +98,17 @@ pub enum PluginError {
     Git(String),
 }
 
+impl From<PluginError> for PluginErrorKind {
+    fn from(e: PluginError) -> Self {
+        match e {
+            PluginError::Io(e) => PluginErrorKind::Io(e.to_string()),
+            PluginError::Script(m) => PluginErrorKind::Script(m),
+            PluginError::Runtime(m) => PluginErrorKind::Runtime(m),
+            PluginError::Git(m) => PluginErrorKind::Git(m),
+        }
+    }
+}
+
 // ── Plugin metadata & registry ──────────────────────────────────
 
 /// Metadata stored in a plugin's `plugin.json` file.
@@ -115,6 +126,13 @@ pub struct PluginMetadata {
 }
 // RegistryEntry is defined in tuiserial-core so it can be used in AppState.
 pub use tuiserial_core::RegistryEntry;
+
+/// Record of a plugin that failed to load, kept for status reporting.
+#[derive(Debug, Clone)]
+pub(crate) struct FailedPlugin {
+    pub name: String,
+    pub error: String,
+}
 
 /// Status of a plugin relative to its git remote.
 #[derive(Debug, Clone)]

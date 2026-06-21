@@ -425,6 +425,12 @@ plugin.modal.hint_close:
 plugin.modal.hint_reload:
   en: "R: Reload All"
   zh-CN: "R: 重新加载"
+plugin.modal.hint_enable:
+  en: "e: Enable"
+  zh-CN: "e: 启用"
+plugin.modal.hint_disable:
+  en: "d: Disable"
+  zh-CN: "d: 禁用"
 plugin.modal.hint_navigate:
   en: "↑↓: Navigate"
   zh-CN: "↑↓: 导航"

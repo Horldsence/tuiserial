@@ -71,8 +71,38 @@ fn draw_active_notification(
     f.render_widget(para, area);
 }
 
-/// Draw empty notification bar (ready state)
+/// Draw empty notification bar — shows the most recent persistent error
+/// if one exists, otherwise shows "Ready".
 fn draw_empty_notification(f: &mut Frame, app: &AppState, area: Rect) {
+    // If there's a recent error in the log, show it persistently.
+    if let Some(entry) = app.error_log.most_recent_error() {
+        let count_hint = if entry.count > 1 {
+            format!(" (×{})", entry.count)
+        } else {
+            String::new()
+        };
+        let text = Line::from(vec![
+            Span::raw(" "),
+            Span::styled("❌", Style::default().add_modifier(Modifier::BOLD)),
+            Span::raw(" "),
+            Span::styled(
+                format!("{}{}", entry.error.to_user_message(), count_hint),
+                Style::default().fg(Color::Red).add_modifier(Modifier::BOLD),
+            ),
+        ]);
+
+        let para = Paragraph::new(text).block(
+            Block::default()
+                .borders(Borders::ALL)
+                .title(format!(" {} ", t!("label.message")))
+                .title_alignment(Alignment::Left)
+                .border_style(Style::default().fg(Color::Red)),
+        );
+
+        f.render_widget(para, area);
+        return;
+    }
+
     let ready_text = if app.language == tuiserial_core::Language::Chinese {
         "准备就绪"
     } else {

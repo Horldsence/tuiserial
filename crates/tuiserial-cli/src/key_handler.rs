@@ -2,7 +2,9 @@
 
 use crossterm::event::{KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 use rust_i18n::t;
-use tuiserial_core::{AppState, FocusedField, MenuState, PluginModalMode, menu_def::MENU_BAR};
+use tuiserial_core::{
+    AppState, FocusedField, MenuState, PluginLoadState, PluginModalMode, menu_def::MENU_BAR,
+};
 #[cfg(feature = "plugin")]
 use tuiserial_plugin::PluginManager;
 
@@ -232,6 +234,72 @@ fn handle_plugin_modal_key(
                             app.add_success(format!("{} plugin(s) reloaded", n));
                         }
                         Err(e) => app.add_error(format!("Plugin reload error: {}", e)),
+                    }
+                }
+                #[cfg(not(feature = "plugin"))]
+                {
+                    app.add_error(t!("notify.plugin_disabled").to_string());
+                }
+                false
+            }
+            KeyCode::Char('e') => {
+                #[cfg(feature = "plugin")]
+                {
+                    let scroll = app.plugin_modal_scroll;
+                    let target = app.plugin_statuses.get(scroll).and_then(|ps| {
+                        if ps.state == PluginLoadState::Disabled {
+                            Some(ps.name.clone())
+                        } else {
+                            None
+                        }
+                    });
+                    if let Some(name) = target {
+                        match plugin_manager.enable_plugin(&name) {
+                            Ok(()) => {
+                                sync_plugin_status(app, plugin_manager);
+                                app.add_success(format!("Plugin '{}' enabled", name));
+                            }
+                            Err(err) => {
+                                app.add_error(format!(
+                                    "Failed to enable '{}': {}",
+                                    name, err
+                                ));
+                            }
+                        }
+                    }
+                }
+                #[cfg(not(feature = "plugin"))]
+                {
+                    app.add_error(t!("notify.plugin_disabled").to_string());
+                }
+                false
+            }
+            KeyCode::Char('d') => {
+                #[cfg(feature = "plugin")]
+                {
+                    let scroll = app.plugin_modal_scroll;
+                    let target = app.plugin_statuses.get(scroll).and_then(|ps| {
+                        if ps.state == PluginLoadState::Loaded
+                            || ps.state == PluginLoadState::Error
+                        {
+                            Some(ps.name.clone())
+                        } else {
+                            None
+                        }
+                    });
+                    if let Some(name) = target {
+                        match plugin_manager.disable_plugin(&name) {
+                            Ok(()) => {
+                                sync_plugin_status(app, plugin_manager);
+                                app.add_success(format!("Plugin '{}' disabled", name));
+                            }
+                            Err(err) => {
+                                app.add_error(format!(
+                                    "Failed to disable '{}': {}",
+                                    name, err
+                                ));
+                            }
+                        }
                     }
                 }
                 #[cfg(not(feature = "plugin"))]

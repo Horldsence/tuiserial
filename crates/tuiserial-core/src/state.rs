@@ -8,7 +8,8 @@ use serde_json;
 use std::collections::VecDeque;
 
 use crate::config::SerialConfig;
-use crate::error::CoreError;
+use crate::error::{AppError, CoreError, ErrorSeverity};
+use crate::error_log::ErrorLog;
 use crate::log::MessageLog;
 use crate::notification::Notification;
 use crate::types::{
@@ -93,6 +94,9 @@ pub struct AppState {
     pub plugin_loaded_count: usize,
     pub plugin_error_count: usize,
     pub plugin_total_count: usize,
+
+    // Unified error log
+    pub error_log: ErrorLog,
 }
 
 /// Lightweight per-plugin status for the plugin modal UI.
@@ -175,6 +179,7 @@ impl Default for AppState {
             plugin_loaded_count: 0,
             plugin_error_count: 0,
             plugin_total_count: 0,
+            error_log: ErrorLog::new(),
         }
     }
 }
@@ -238,6 +243,27 @@ impl AppState {
                 break;
             }
         }
+    }
+
+    /// Record an `AppError`: push it into the persistent error log and
+    /// also add a user-facing notification at the appropriate level.
+    pub fn record_error(&mut self, error: AppError) {
+        let severity = error.severity();
+        let msg = error.to_user_message();
+        self.error_log.push(error);
+
+        match severity {
+            ErrorSeverity::Info => self.add_info(msg),
+            ErrorSeverity::Warning => self.add_warning(msg),
+            ErrorSeverity::Error | ErrorSeverity::Critical => self.add_error(msg),
+            ErrorSeverity::Fatal => self.add_error(format!("FATAL: {msg}")),
+        }
+    }
+
+    /// Return a compact error summary string for the status bar,
+    /// e.g. `"E:3"` or `"C:1 E:2"`.
+    pub fn error_summary(&self) -> String {
+        self.error_log.summary()
     }
 
     // Baud rate management

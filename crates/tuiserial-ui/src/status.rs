@@ -200,13 +200,25 @@ pub fn draw_control_area(f: &mut Frame, app: &AppState, area: Rect) {
         ),
     ];
 
-    // Add error count if any
+    // Add plugin error count if any
     let mut final_stats: Vec<Span> = stats;
     if app.plugin_error_count > 0 {
         final_stats.push(Span::raw(" "));
         final_stats.push(Span::styled(
             format!("✗{}", app.plugin_error_count),
             Style::default().fg(Color::Red).add_modifier(Modifier::BOLD),
+        ));
+    }
+
+    // Add global error summary badge if there are errors
+    let err_summary = app.error_summary();
+    if !err_summary.is_empty() {
+        final_stats.push(Span::raw(" │ "));
+        final_stats.push(Span::styled(
+            format!("[{}]", err_summary),
+            Style::default()
+                .fg(Color::Red)
+                .add_modifier(Modifier::BOLD),
         ));
     }
 

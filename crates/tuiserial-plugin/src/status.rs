@@ -3,19 +3,10 @@
 //! Methods in this module populate `PluginLoadStatus` and `PluginInfo` from
 //! the manager's internal state, and provide metadata access helpers.
 
-use std::path::Path;
-
 use tuiserial_core::{PluginLoadState, PluginLoadStatus, PluginMetadataSimple};
 
 use crate::manager::PluginManager;
 use crate::types::{PluginInfo, PluginMetadata};
-
-/// Record of a plugin that failed to load, kept for status reporting.
-#[derive(Debug, Clone)]
-pub(crate) struct FailedPlugin {
-    pub name: String,
-    pub error: String,
-}
 
 impl PluginManager {
     /// Get detailed plugin statuses for the plugin manager modal.
@@ -120,11 +111,6 @@ impl PluginManager {
         }
 
         infos
-    }
-
-    /// Return a reference to the plugin directory path.
-    pub fn plugin_dir(&self) -> &Path {
-        &self.plugin_dir
     }
 
     /// Read `plugin.json` from a plugin directory.

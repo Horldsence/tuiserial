@@ -264,6 +264,16 @@ fn draw_local_hints(f: &mut Frame, area: Rect) {
         ),
         Span::raw("  "),
         Span::styled(
+            t!("plugin.modal.hint_enable"),
+            Style::default().fg(Color::Green),
+        ),
+        Span::raw("  "),
+        Span::styled(
+            t!("plugin.modal.hint_disable"),
+            Style::default().fg(Color::Yellow),
+        ),
+        Span::raw("  "),
+        Span::styled(
             t!("plugin.modal.hint_reload"),
             Style::default().fg(Color::Yellow),
         ),

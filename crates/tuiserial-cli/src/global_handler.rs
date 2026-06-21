@@ -40,7 +40,11 @@ pub fn handle_global_key(
         KeyCode::Char('o') => {
             if handler.is_connected() {
                 #[cfg(feature = "plugin")]
-                plugin_manager.on_disconnect();
+                {
+                    for err in plugin_manager.on_disconnect() {
+                        app.record_error(err);
+                    }
+                }
                 handler.disconnect();
                 app.is_connected = false;
                 app.unlock_config();
@@ -54,7 +58,11 @@ pub fn handle_global_key(
                             app.is_connected = true;
                             app.lock_config();
                             #[cfg(feature = "plugin")]
-                            plugin_manager.on_connect(&app.config);
+                            {
+                                for err in plugin_manager.on_connect(&app.config) {
+                                    app.record_error(err);
+                                }
+                            }
                             app.add_success(
                                 t!("notify.connected_locked", port = &app.config.port).to_string(),
                             );
@@ -62,7 +70,15 @@ pub fn handle_global_key(
                         Err(e) => {
                             app.is_connected = false;
                             app.unlock_config();
-                            app.add_error(format!("{}: {}", t!("notify.connection_failed"), e));
+                            let kind: tuiserial_core::SerialErrorKind = e.into();
+                            app.record_error(tuiserial_core::AppError::Serial {
+                                kind,
+                                ctx: tuiserial_core::ErrorContext::new(
+                                    "serial",
+                                    "connect",
+                                    tuiserial_core::RecoveryStrategy::Retry,
+                                ),
+                            });
                         }
                     }
                 }

@@ -13,4 +13,4 @@ description = "Serial port communication library for tuiserial"
 tuiserial-core = { workspace = true }
 serialport = { workspace = true }
 tokio = { workspace = true }
-thiserror = "1.0"
+thiserror = { workspace = true }

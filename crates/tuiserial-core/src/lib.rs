@@ -16,6 +16,7 @@
 // Module declarations
 pub mod config;
 pub mod error;
+pub mod error_log;
 pub mod log;
 pub mod menu_def;
 pub mod notification;
@@ -24,7 +25,11 @@ pub mod types;
 
 // Re-exports for convenience
 pub use config::SerialConfig;
-pub use error::CoreError;
+pub use error::{
+    AppError, ConfigErrorKind, CoreError, ErrorContext, ErrorSeverity, PluginErrorKind,
+    RecoveryStrategy, SerialErrorKind,
+};
+pub use error_log::{ErrorLog, ErrorLogEntry};
 pub use log::{LogDirection, LogEntry, MAX_LOG_LINES, MessageLog};
 pub use menu_def::{MENU_BAR, MenuAction, MenuBar};
 pub use notification::{Notification, NotificationLevel};
