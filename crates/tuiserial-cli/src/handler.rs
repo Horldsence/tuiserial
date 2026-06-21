@@ -71,8 +71,7 @@ impl SerialHandler {
             _ => {}
         }
 
-        let should_disconnect =
-            self.consecutive_read_errors >= MAX_CONSECUTIVE_READ_ERRORS;
+        let should_disconnect = self.consecutive_read_errors >= MAX_CONSECUTIVE_READ_ERRORS;
 
         let app_error = AppError::Serial {
             kind,

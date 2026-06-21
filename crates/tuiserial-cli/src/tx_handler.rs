@@ -3,11 +3,10 @@
 use crossterm::event::{KeyCode, KeyEvent, KeyEventKind};
 use rust_i18n::t;
 use tuiserial_core::{AppState, TxMode};
-#[cfg(feature = "plugin")]
-use tuiserial_plugin::PluginManager;
 
 use crate::handler::SerialHandler;
 use crate::input_utils::rebuild_hex_input;
+use crate::plugin_adapter::PluginProxy;
 
 /// Handle key events when the TX input field is focused.
 /// Returns `true` if the application should exit.
@@ -15,7 +14,7 @@ pub fn handle_tx_key_event(
     key: KeyEvent,
     app: &mut AppState,
     handler: &mut SerialHandler,
-    #[cfg(feature = "plugin")] plugin_manager: &mut PluginManager,
+    plugin_proxy: &mut PluginProxy,
 ) -> bool {
     if key.kind != KeyEventKind::Press {
         return false;
@@ -156,11 +155,8 @@ pub fn handle_tx_key_event(
 
                     match bytes {
                         Ok(data) => {
-                            #[cfg(feature = "plugin")]
                             let (processed, suppressed) =
-                                plugin_manager.process_tx(data, &app.config);
-                            #[cfg(not(feature = "plugin"))]
-                            let (processed, suppressed) = (data, false);
+                                plugin_proxy.process_tx(data, &app.config);
 
                             if suppressed {
                                 app.add_info("TX suppressed by plugin".to_string());

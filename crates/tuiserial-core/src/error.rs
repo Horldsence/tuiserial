@@ -275,10 +275,7 @@ pub enum AppError {
 
     /// Internal / unexpected error.
     #[error("Internal: {message}")]
-    Internal {
-        message: String,
-        ctx: ErrorContext,
-    },
+    Internal { message: String, ctx: ErrorContext },
 }
 
 impl AppError {

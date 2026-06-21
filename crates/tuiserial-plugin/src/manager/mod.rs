@@ -87,11 +87,7 @@ mod tests {
     use tempfile::TempDir;
     use tuiserial_core::SerialConfig;
 
-    fn create_plugin_file(
-        dir: &std::path::Path,
-        name: &str,
-        content: &str,
-    ) -> std::path::PathBuf {
+    fn create_plugin_file(dir: &std::path::Path, name: &str, content: &str) -> std::path::PathBuf {
         let plugin_dir = dir.join(name);
         std::fs::create_dir_all(&plugin_dir).unwrap();
         let file_path = plugin_dir.join("plugin.js");

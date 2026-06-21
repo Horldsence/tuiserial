@@ -2,16 +2,12 @@
 
 use crossterm::event::{KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 use rust_i18n::t;
-use tuiserial_core::{
-    AppState, FocusedField, MenuState, PluginLoadState, PluginModalMode, menu_def::MENU_BAR,
-};
-#[cfg(feature = "plugin")]
-use tuiserial_plugin::PluginManager;
+use tuiserial_core::{AppState, FocusedField, MenuState, PluginModalMode, menu_def::MENU_BAR};
 
 use crate::handler::SerialHandler;
 use crate::menu_handler::handle_menu_action;
-#[cfg(feature = "plugin")]
-use crate::menu_handler::sync_plugin_status;
+use crate::plugin_adapter::PluginProxy;
+use crate::plugin_adapter::filtered_registry_count;
 
 /// Main keyboard event handler. Routes to sub-handlers based on application state.
 /// Returns `true` if the application should exit.
@@ -19,28 +15,20 @@ pub fn handle_key_event(
     key: KeyEvent,
     app: &mut AppState,
     handler: &mut SerialHandler,
-    #[cfg(feature = "plugin")] plugin_manager: &mut PluginManager,
+    plugin_proxy: &mut PluginProxy,
 ) -> bool {
     if key.kind != KeyEventKind::Press {
         return false;
     }
 
     // Menu navigation takes priority over everything else
-    #[cfg(feature = "plugin")]
-    if let Some(exit) = handle_menu_navigation(key, app, handler, plugin_manager) {
-        return exit;
-    }
-    #[cfg(not(feature = "plugin"))]
-    if let Some(exit) = handle_menu_navigation(key, app, handler) {
+    if let Some(exit) = handle_menu_navigation(key, app, handler, plugin_proxy) {
         return exit;
     }
 
     // Plugin modal keyboard
     if app.show_plugin_modal {
-        #[cfg(feature = "plugin")]
-        return handle_plugin_modal_key(key, app, plugin_manager);
-        #[cfg(not(feature = "plugin"))]
-        return handle_plugin_modal_key(key, app);
+        return handle_plugin_modal_key(key, app, plugin_proxy);
     }
 
     // Help overlay — consume all keys while showing
@@ -56,17 +44,11 @@ pub fn handle_key_event(
 
     // TX input mode
     if app.focused_field == FocusedField::TxInput {
-        #[cfg(feature = "plugin")]
-        return crate::tx_handler::handle_tx_key_event(key, app, handler, plugin_manager);
-        #[cfg(not(feature = "plugin"))]
-        return crate::tx_handler::handle_tx_key_event(key, app, handler);
+        return crate::tx_handler::handle_tx_key_event(key, app, handler, plugin_proxy);
     }
 
     // Global shortcuts
-    #[cfg(feature = "plugin")]
-    return crate::global_handler::handle_global_key(key, app, handler, plugin_manager);
-    #[cfg(not(feature = "plugin"))]
-    crate::global_handler::handle_global_key(key, app, handler)
+    return crate::global_handler::handle_global_key(key, app, handler, plugin_proxy);
 }
 
 /// Handle menu bar and dropdown navigation. Returns `Some(exit)` when a key is handled
@@ -75,7 +57,7 @@ fn handle_menu_navigation(
     key: KeyEvent,
     app: &mut AppState,
     handler: &mut SerialHandler,
-    #[cfg(feature = "plugin")] plugin_manager: &mut PluginManager,
+    plugin_proxy: &mut PluginProxy,
 ) -> Option<bool> {
     match app.menu_state {
         MenuState::None => {
@@ -155,11 +137,8 @@ fn handle_menu_navigation(
                     app.menu_state = MenuState::Dropdown(new_menu, 0);
                 }
                 KeyCode::Enter => {
-                    #[cfg(feature = "plugin")]
                     let should_exit =
-                        handle_menu_action(app, handler, plugin_manager, menu_idx, item_idx);
-                    #[cfg(not(feature = "plugin"))]
-                    let should_exit = handle_menu_action(app, handler, menu_idx, item_idx);
+                        handle_menu_action(app, handler, plugin_proxy, menu_idx, item_idx);
                     app.menu_state = MenuState::None;
                     return Some(should_exit);
                 }
@@ -173,51 +152,12 @@ fn handle_menu_navigation(
     }
 }
 
-/// Shared: count registry entries matching the current search query.
-fn filtered_registry_count(app: &AppState) -> usize {
-    let query = app.registry_search_query.to_lowercase();
-    if query.is_empty() {
-        app.registry_entries.len()
-    } else {
-        app.registry_entries
-            .iter()
-            .filter(|e| {
-                e.name.to_lowercase().contains(&query)
-                    || e.description
-                        .as_ref()
-                        .map(|d| d.to_lowercase().contains(&query))
-                        .unwrap_or(false)
-            })
-            .count()
-    }
-}
-
-/// Shared: get filtered registry entries matching the current search query.
-#[cfg(feature = "plugin")]
-fn filtered_registry_entries(app: &AppState) -> Vec<&tuiserial_core::RegistryEntry> {
-    let query = app.registry_search_query.to_lowercase();
-    if query.is_empty() {
-        app.registry_entries.iter().collect()
-    } else {
-        app.registry_entries
-            .iter()
-            .filter(|e| {
-                e.name.to_lowercase().contains(&query)
-                    || e.description
-                        .as_ref()
-                        .map(|d| d.to_lowercase().contains(&query))
-                        .unwrap_or(false)
-            })
-            .collect()
-    }
-}
-
 /// Handle key events while the plugin modal is open.
-/// Plugin-specific actions (reload, install) are only compiled with `feature = "plugin"`.
+/// All plugin-specific actions are delegated to `PluginProxy`.
 fn handle_plugin_modal_key(
     key: KeyEvent,
     app: &mut AppState,
-    #[cfg(feature = "plugin")] plugin_manager: &mut PluginManager,
+    plugin_proxy: &mut PluginProxy,
 ) -> bool {
     match app.plugin_modal_mode {
         PluginModalMode::Local => match key.code {
@@ -226,86 +166,15 @@ fn handle_plugin_modal_key(
                 false
             }
             KeyCode::Char('r') | KeyCode::Char('R') => {
-                #[cfg(feature = "plugin")]
-                {
-                    match plugin_manager.reload_all() {
-                        Ok(n) => {
-                            sync_plugin_status(app, plugin_manager);
-                            app.add_success(format!("{} plugin(s) reloaded", n));
-                        }
-                        Err(e) => app.add_error(format!("Plugin reload error: {}", e)),
-                    }
-                }
-                #[cfg(not(feature = "plugin"))]
-                {
-                    app.add_error(t!("notify.plugin_disabled").to_string());
-                }
+                plugin_proxy.reload_all_plugins(app);
                 false
             }
             KeyCode::Char('e') => {
-                #[cfg(feature = "plugin")]
-                {
-                    let scroll = app.plugin_modal_scroll;
-                    let target = app.plugin_statuses.get(scroll).and_then(|ps| {
-                        if ps.state == PluginLoadState::Disabled {
-                            Some(ps.name.clone())
-                        } else {
-                            None
-                        }
-                    });
-                    if let Some(name) = target {
-                        match plugin_manager.enable_plugin(&name) {
-                            Ok(()) => {
-                                sync_plugin_status(app, plugin_manager);
-                                app.add_success(format!("Plugin '{}' enabled", name));
-                            }
-                            Err(err) => {
-                                app.add_error(format!(
-                                    "Failed to enable '{}': {}",
-                                    name, err
-                                ));
-                            }
-                        }
-                    }
-                }
-                #[cfg(not(feature = "plugin"))]
-                {
-                    app.add_error(t!("notify.plugin_disabled").to_string());
-                }
+                plugin_proxy.enable_plugin_action(app);
                 false
             }
             KeyCode::Char('d') => {
-                #[cfg(feature = "plugin")]
-                {
-                    let scroll = app.plugin_modal_scroll;
-                    let target = app.plugin_statuses.get(scroll).and_then(|ps| {
-                        if ps.state == PluginLoadState::Loaded
-                            || ps.state == PluginLoadState::Error
-                        {
-                            Some(ps.name.clone())
-                        } else {
-                            None
-                        }
-                    });
-                    if let Some(name) = target {
-                        match plugin_manager.disable_plugin(&name) {
-                            Ok(()) => {
-                                sync_plugin_status(app, plugin_manager);
-                                app.add_success(format!("Plugin '{}' disabled", name));
-                            }
-                            Err(err) => {
-                                app.add_error(format!(
-                                    "Failed to disable '{}': {}",
-                                    name, err
-                                ));
-                            }
-                        }
-                    }
-                }
-                #[cfg(not(feature = "plugin"))]
-                {
-                    app.add_error(t!("notify.plugin_disabled").to_string());
-                }
+                plugin_proxy.disable_plugin_action(app);
                 false
             }
             KeyCode::Up => {
@@ -342,34 +211,7 @@ fn handle_plugin_modal_key(
                 false
             }
             KeyCode::Enter => {
-                #[cfg(feature = "plugin")]
-                {
-                    let filtered = filtered_registry_entries(app);
-                    if let Some(entry) = filtered.get(app.registry_scroll) {
-                        let target = plugin_manager.plugin_dir().join(&entry.name);
-                        if target.exists() {
-                            app.add_info(format!("{}: already installed", entry.name));
-                        } else {
-                            match plugin_manager.install_plugin_from_cache(&entry.name) {
-                                Ok(()) => {
-                                    app.add_success(t!(
-                                        "notify.plugin_installed",
-                                        name = &entry.name
-                                    ));
-                                    sync_plugin_status(app, plugin_manager);
-                                }
-                                Err(e) => app.add_error(t!(
-                                    "notify.plugin_install_failed",
-                                    error = &e.to_string()
-                                )),
-                            }
-                        }
-                    }
-                }
-                #[cfg(not(feature = "plugin"))]
-                {
-                    app.add_error(t!("notify.plugin_disabled").to_string());
-                }
+                plugin_proxy.install_from_registry(app);
                 false
             }
             KeyCode::Backspace => {

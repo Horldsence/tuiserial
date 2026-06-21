@@ -216,9 +216,7 @@ pub fn draw_control_area(f: &mut Frame, app: &AppState, area: Rect) {
         final_stats.push(Span::raw(" │ "));
         final_stats.push(Span::styled(
             format!("[{}]", err_summary),
-            Style::default()
-                .fg(Color::Red)
-                .add_modifier(Modifier::BOLD),
+            Style::default().fg(Color::Red).add_modifier(Modifier::BOLD),
         ));
     }
 

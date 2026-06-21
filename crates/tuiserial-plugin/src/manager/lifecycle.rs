@@ -217,8 +217,7 @@ impl PluginManager {
                 continue;
             }
             plugin.update_config(config);
-            let result =
-                catch_unwind(AssertUnwindSafe(|| plugin.call_lifecycle_hook("onConnect")));
+            let result = catch_unwind(AssertUnwindSafe(|| plugin.call_lifecycle_hook("onConnect")));
             match result {
                 Ok(Ok(())) => {}
                 Ok(Err(e)) => {

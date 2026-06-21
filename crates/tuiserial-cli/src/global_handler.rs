@@ -3,13 +3,10 @@
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use rust_i18n::t;
 use tuiserial_core::{AppState, DisplayMode, FocusedField};
-#[cfg(feature = "plugin")]
-use tuiserial_plugin::PluginManager;
 use tuiserial_serial::list_ports;
 
 use crate::handler::SerialHandler;
-#[cfg(feature = "plugin")]
-use crate::menu_handler::sync_plugin_status;
+use crate::plugin_adapter::PluginProxy;
 
 /// Handle global keyboard shortcuts (outside TX input, menu, or modals).
 /// Returns `true` if the application should exit.
@@ -17,7 +14,7 @@ pub fn handle_global_key(
     key: KeyEvent,
     app: &mut AppState,
     handler: &mut SerialHandler,
-    #[cfg(feature = "plugin")] plugin_manager: &mut PluginManager,
+    plugin_proxy: &mut PluginProxy,
 ) -> bool {
     match key.code {
         KeyCode::Char('c') if key.modifiers.contains(KeyModifiers::CONTROL) => true,
@@ -28,8 +25,7 @@ pub fn handle_global_key(
             if app.show_plugin_modal {
                 app.show_plugin_modal = false;
             } else {
-                #[cfg(feature = "plugin")]
-                sync_plugin_status(app, plugin_manager);
+                plugin_proxy.sync_status(app);
                 app.plugin_modal_mode = tuiserial_core::PluginModalMode::Local;
                 app.show_plugin_modal = true;
                 app.plugin_modal_scroll = 0;
@@ -39,11 +35,8 @@ pub fn handle_global_key(
 
         KeyCode::Char('o') => {
             if handler.is_connected() {
-                #[cfg(feature = "plugin")]
-                {
-                    for err in plugin_manager.on_disconnect() {
-                        app.record_error(err);
-                    }
+                for err in plugin_proxy.on_disconnect() {
+                    app.record_error(err);
                 }
                 handler.disconnect();
                 app.is_connected = false;
@@ -57,11 +50,8 @@ pub fn handle_global_key(
                         Ok(_) => {
                             app.is_connected = true;
                             app.lock_config();
-                            #[cfg(feature = "plugin")]
-                            {
-                                for err in plugin_manager.on_connect(&app.config) {
-                                    app.record_error(err);
-                                }
+                            for err in plugin_proxy.on_connect(&app.config) {
+                                app.record_error(err);
                             }
                             app.add_success(
                                 t!("notify.connected_locked", port = &app.config.port).to_string(),

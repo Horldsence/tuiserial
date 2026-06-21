@@ -124,7 +124,11 @@ impl PluginManager {
     /// `AppError` describing why it still failed.
     pub fn retry_failed_plugin(&mut self, name: &str) -> Result<(), AppError> {
         // First try to find it among loaded-but-errored plugins
-        if let Some(pos) = self.plugins.iter().position(|p| p.name == name && p.has_error) {
+        if let Some(pos) = self
+            .plugins
+            .iter()
+            .position(|p| p.name == name && p.has_error)
+        {
             let mut plugin = self.plugins.remove(pos);
             let _ = catch_unwind(AssertUnwindSafe(|| plugin.unload()));
             // Re-load
@@ -235,22 +239,14 @@ impl PluginManager {
             return Err(AppError::Plugin {
                 plugin: name.into(),
                 kind: PluginErrorKind::Script("plugin source not found".into()),
-                ctx: ErrorContext::new(
-                    "plugin",
-                    "retry (not found)",
-                    RecoveryStrategy::None,
-                ),
+                ctx: ErrorContext::new("plugin", "retry (not found)", RecoveryStrategy::None),
             });
         }
 
         Err(AppError::Plugin {
             plugin: name.into(),
             kind: PluginErrorKind::Script("plugin not in error list".into()),
-            ctx: ErrorContext::new(
-                "plugin",
-                "retry (unknown)",
-                RecoveryStrategy::None,
-            ),
+            ctx: ErrorContext::new("plugin", "retry (unknown)", RecoveryStrategy::None),
         })
     }
 }

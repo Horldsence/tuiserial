@@ -12,14 +12,10 @@ use crossterm::{
 };
 use ratatui::{Terminal, backend::CrosstermBackend};
 use tuiserial_core::AppState;
-#[cfg(feature = "plugin")]
-use tuiserial_plugin::PluginManager;
 use tuiserial_serial::list_ports;
 use tuiserial_ui::draw;
 
 use rust_i18n::i18n;
-#[cfg(feature = "plugin")]
-use rust_i18n::t;
 // Initialize i18n translations at compile time
 i18n!("../../locales", fallback = "en");
 
@@ -29,9 +25,11 @@ mod input_utils;
 mod key_handler;
 mod menu_handler;
 mod mouse_handler;
+mod plugin_adapter;
 mod tx_handler;
 
 use handler::SerialHandler;
+use plugin_adapter::PluginProxy;
 
 fn main() -> Result<()> {
     color_eyre::install().ok();
@@ -60,41 +58,8 @@ fn run_app(mut terminal: Terminal<CrosstermBackend<io::Stdout>>) -> Result<()> {
     // Initialize locale from saved language preference
     rust_i18n::set_locale(app.language.code());
 
-    // Initialize plugin manager
-    #[cfg(feature = "plugin")]
-    let mut plugin_manager = {
-        let plugin_dir = dirs::home_dir()
-            .unwrap_or_else(|| std::path::PathBuf::from("."))
-            .join(".config")
-            .join("tuiserial")
-            .join("plugins");
-        let mut pm = PluginManager::new(plugin_dir);
-        match pm.discover_and_load() {
-            Ok(n) => {
-                menu_handler::sync_plugin_status(&mut app, &pm);
-                if n > 0 {
-                    app.add_success(t!("notify.plugins_loaded", count = n));
-                }
-            }
-            Err(e) => {
-                menu_handler::sync_plugin_status(&mut app, &pm);
-                let kind: tuiserial_core::PluginErrorKind = e.into();
-                app.record_error(tuiserial_core::AppError::Plugin {
-                    plugin: "<init>".into(),
-                    kind,
-                    ctx: tuiserial_core::ErrorContext::new(
-                        "plugin",
-                        "discover_and_load",
-                        tuiserial_core::RecoveryStrategy::Retry,
-                    ),
-                });
-            }
-        }
-        for err in pm.drain_load_errors() {
-            app.add_error(err);
-        }
-        pm
-    };
+    // Initialize plugin manager (no-op when feature is disabled)
+    let mut plugin_proxy = PluginProxy::init(&mut app);
 
     // Initialize available ports
     app.ports = list_ports();
@@ -112,8 +77,7 @@ fn run_app(mut terminal: Terminal<CrosstermBackend<io::Stdout>>) -> Result<()> {
 
     loop {
         app.update_notifications();
-        #[cfg(feature = "plugin")]
-        plugin_manager.flush_plugin_logs(&mut app);
+        plugin_proxy.flush_plugin_logs(&mut app);
         terminal.draw(|f| draw(f, &app))?;
 
         // Apply native cursor state (set during rendering)
@@ -129,29 +93,23 @@ fn run_app(mut terminal: Terminal<CrosstermBackend<io::Stdout>>) -> Result<()> {
         if event::poll(Duration::from_millis(100))? {
             match event::read()? {
                 Event::Key(key) => {
-                    #[cfg(feature = "plugin")]
                     let should_exit = key_handler::handle_key_event(
                         key,
                         &mut app,
                         &mut handler,
-                        &mut plugin_manager,
+                        &mut plugin_proxy,
                     );
-                    #[cfg(not(feature = "plugin"))]
-                    let should_exit = key_handler::handle_key_event(key, &mut app, &mut handler);
                     if should_exit {
                         break;
                     }
                 }
                 Event::Mouse(mouse) => {
-                    #[cfg(feature = "plugin")]
                     mouse_handler::handle_mouse_event(
                         mouse,
                         &mut app,
                         &mut handler,
-                        &mut plugin_manager,
+                        &mut plugin_proxy,
                     );
-                    #[cfg(not(feature = "plugin"))]
-                    mouse_handler::handle_mouse_event(mouse, &mut app, &mut handler);
                 }
                 Event::Resize(_, _) => {}
                 Event::Paste(data) => {
@@ -166,10 +124,7 @@ fn run_app(mut terminal: Terminal<CrosstermBackend<io::Stdout>>) -> Result<()> {
             match handler.read() {
                 Ok(data) if !data.is_empty() => {
                     handler.reset_read_errors();
-                    #[cfg(feature = "plugin")]
-                    let (processed, suppressed) = plugin_manager.process_rx(data, &app.config);
-                    #[cfg(not(feature = "plugin"))]
-                    let (processed, suppressed) = (data, false);
+                    let (processed, suppressed) = plugin_proxy.process_rx(data, &app.config);
                     if !suppressed {
                         app.message_log.push_rx(processed);
                         if app.auto_scroll {
@@ -187,11 +142,8 @@ fn run_app(mut terminal: Terminal<CrosstermBackend<io::Stdout>>) -> Result<()> {
                     app.record_error(app_error);
                     if should_disconnect {
                         app.add_error("Auto-disconnecting due to repeated serial errors");
-                        #[cfg(feature = "plugin")]
-                        {
-                            for err in plugin_manager.on_disconnect() {
-                                app.record_error(err);
-                            }
+                        for err in plugin_proxy.on_disconnect() {
+                            app.record_error(err);
                         }
                         handler.disconnect();
                         app.is_connected = false;
@@ -202,16 +154,12 @@ fn run_app(mut terminal: Terminal<CrosstermBackend<io::Stdout>>) -> Result<()> {
     }
 
     if handler.is_connected() {
-        #[cfg(feature = "plugin")]
-        {
-            for err in plugin_manager.on_disconnect() {
-                app.record_error(err);
-            }
+        for err in plugin_proxy.on_disconnect() {
+            app.record_error(err);
         }
         handler.disconnect();
     }
-    #[cfg(feature = "plugin")]
-    plugin_manager.on_app_exit();
+    plugin_proxy.on_app_exit();
 
     Ok(())
 }

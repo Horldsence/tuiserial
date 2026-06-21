@@ -4,30 +4,26 @@ use crossterm::event::{MouseButton, MouseEvent, MouseEventKind};
 use ratatui::layout::Rect;
 use rust_i18n::t;
 use tuiserial_core::{AppState, DisplayMode, FocusedField, MenuState, menu_def::MENU_BAR};
-#[cfg(feature = "plugin")]
-use tuiserial_plugin::PluginManager;
 use tuiserial_ui::{find_clicked_menu, get_clicked_field, get_ui_areas, is_inside};
 
 use crate::handler::SerialHandler;
 use crate::input_utils::display_width;
 use crate::menu_handler::handle_menu_action;
+use crate::plugin_adapter::PluginProxy;
 
 /// Handle mouse events (click, scroll, drag).
 pub fn handle_mouse_event(
     mouse: MouseEvent,
     app: &mut AppState,
     handler: &mut SerialHandler,
-    #[cfg(feature = "plugin")] plugin_manager: &mut PluginManager,
+    plugin_proxy: &mut PluginProxy,
 ) {
     let col = mouse.column;
     let row = mouse.row;
 
     match mouse.kind {
         MouseEventKind::Down(MouseButton::Left) => {
-            #[cfg(feature = "plugin")]
-            handle_left_click(col, row, app, handler, plugin_manager);
-            #[cfg(not(feature = "plugin"))]
-            handle_left_click(col, row, app, handler);
+            handle_left_click(col, row, app, handler, plugin_proxy);
         }
         MouseEventKind::Down(MouseButton::Right) => {
             handle_right_click(col, row, app);
@@ -51,7 +47,7 @@ fn handle_left_click(
     row: u16,
     app: &mut AppState,
     handler: &mut SerialHandler,
-    #[cfg(feature = "plugin")] plugin_manager: &mut PluginManager,
+    plugin_proxy: &mut PluginProxy,
 ) {
     let areas = get_ui_areas();
 
@@ -121,10 +117,7 @@ fn handle_left_click(
                 if let Some(action) = MENU_BAR.get_action(menu_idx, item_idx)
                     && !action.is_separator()
                 {
-                    #[cfg(feature = "plugin")]
-                    handle_menu_action(app, handler, plugin_manager, menu_idx, item_idx);
-                    #[cfg(not(feature = "plugin"))]
-                    handle_menu_action(app, handler, menu_idx, item_idx);
+                    handle_menu_action(app, handler, plugin_proxy, menu_idx, item_idx);
                     app.menu_state = MenuState::None;
                 }
             }
