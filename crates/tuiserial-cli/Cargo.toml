@@ -30,7 +30,7 @@ dirs = "6"
 rust-i18n = { workspace = true }
 
 [package.metadata.deb]
-maintainer = "pengheng <m18511047688@163.com>"
+maintainer = "pengheng.wang@foxmail.com"
 depends = "$auto, libudev1"
 section = "utils"
 priority = "optional"

@@ -12,7 +12,7 @@ members = [
 [workspace.package]
 version = "0.2.0"
 edition = "2024"
-authors = ["pengheng <m18511047688@163.com>"]
+authors = ["pengheng <pengheng.wang@foxmail.com>"]
 license = "MIT"
 homepage = "https://github.com/horldsence/tuiserial"
 repository = "https://github.com/horldsence/tuiserial"
