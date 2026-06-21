@@ -1,10 +1,11 @@
 //! Global keyboard shortcut handler — handles keys when no modal is open and no text input is focused.
 
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
-use tuiserial_core::{i18n::t, AppState, DisplayMode, FocusedField};
-use tuiserial_serial::list_ports;
+use rust_i18n::t;
+use tuiserial_core::{AppState, DisplayMode, FocusedField};
 #[cfg(feature = "plugin")]
 use tuiserial_plugin::PluginManager;
+use tuiserial_serial::list_ports;
 
 use crate::handler::SerialHandler;
 #[cfg(feature = "plugin")]
@@ -16,8 +17,7 @@ pub fn handle_global_key(
     key: KeyEvent,
     app: &mut AppState,
     handler: &mut SerialHandler,
-    #[cfg(feature = "plugin")]
-    plugin_manager: &mut PluginManager,
+    #[cfg(feature = "plugin")] plugin_manager: &mut PluginManager,
 ) -> bool {
     match key.code {
         KeyCode::Char('c') if key.modifiers.contains(KeyModifiers::CONTROL) => true,
@@ -44,10 +44,10 @@ pub fn handle_global_key(
                 handler.disconnect();
                 app.is_connected = false;
                 app.unlock_config();
-                app.add_info(t("notify.disconnected_unlocked", app.language).to_string());
+                app.add_info(t!("notify.disconnected_unlocked").to_string());
             } else {
                 if app.config.port.is_empty() {
-                    app.add_error(t("notify.please_select_port", app.language).to_string());
+                    app.add_error(t!("notify.please_select_port").to_string());
                 } else {
                     match handler.connect(app) {
                         Ok(_) => {
@@ -56,8 +56,7 @@ pub fn handle_global_key(
                             #[cfg(feature = "plugin")]
                             plugin_manager.on_connect(&app.config);
                             app.add_success(
-                                t("notify.connected_locked", app.language)
-                                    .replace("{}", &app.config.port)
+                                t!("notify.connected_locked", port = &app.config.port)
                                     .to_string(),
                             );
                         }
@@ -66,7 +65,7 @@ pub fn handle_global_key(
                             app.unlock_config();
                             app.add_error(format!(
                                 "{}: {}",
-                                t("notify.connection_failed", app.language),
+                                t!("notify.connection_failed"),
                                 e
                             ));
                         }
@@ -96,13 +95,13 @@ pub fn handle_global_key(
 
         KeyCode::Right | KeyCode::Char('l') => {
             if app.focused_field == FocusedField::BaudRate && !app.next_baud_rate() {
-                app.add_warning(t("notify.config_locked_warning", app.language).to_string());
+                app.add_warning(t!("notify.config_locked_warning").to_string());
             }
             false
         }
         KeyCode::Left | KeyCode::Char('h') => {
             if app.focused_field == FocusedField::BaudRate && !app.prev_baud_rate() {
-                app.add_warning(t("notify.config_locked_warning", app.language).to_string());
+                app.add_warning(t!("notify.config_locked_warning").to_string());
             }
             false
         }
@@ -115,7 +114,7 @@ pub fn handle_global_key(
             };
             app.add_info(format!(
                 "{}: {}",
-                t("notify.toggle_display_mode", app.language),
+                t!("notify.toggle_display_mode"),
                 mode_str
             ));
             false
@@ -124,13 +123,13 @@ pub fn handle_global_key(
         KeyCode::Char('a') => {
             app.auto_scroll = !app.auto_scroll;
             let status = if app.auto_scroll {
-                t("notify.enabled", app.language)
+                t!("notify.enabled")
             } else {
-                t("notify.disabled", app.language)
+                t!("notify.disabled")
             };
             app.add_info(format!(
                 "{}: {}",
-                t("notify.auto_scroll", app.language),
+                t!("notify.auto_scroll"),
                 status
             ));
             false
@@ -138,7 +137,7 @@ pub fn handle_global_key(
 
         KeyCode::Char('c') => {
             app.message_log.clear();
-            app.add_info(t("notify.log_cleared", app.language).to_string());
+            app.add_info(t!("notify.log_cleared").to_string());
             false
         }
 
@@ -147,11 +146,11 @@ pub fn handle_global_key(
                 let flow_str = format!("{:?}", app.config.flow_control);
                 app.add_info(format!(
                     "{}: {}",
-                    t("notify.flow_control", app.language),
+                    t!("notify.flow_control"),
                     flow_str
                 ));
             } else {
-                app.add_warning(t("notify.config_locked_warning", app.language).to_string());
+                app.add_warning(t!("notify.config_locked_warning").to_string());
             }
             false
         }
@@ -160,8 +159,8 @@ pub fn handle_global_key(
             app.next_append_mode();
             app.add_info(format!(
                 "{}: {}",
-                t("notify.append_mode", app.language),
-                app.tx_append_mode.name(app.language)
+                t!("notify.append_mode"),
+                app.tx_append_mode.name()
             ));
             false
         }
@@ -172,7 +171,7 @@ pub fn handle_global_key(
                 app.port_list_state.select(Some(0));
                 app.config.port = app.ports[0].clone();
             }
-            app.add_success(t("notify.ports_refreshed", app.language).to_string());
+            app.add_success(t!("notify.ports_refreshed").to_string());
             false
         }
 
@@ -205,7 +204,7 @@ fn handle_field_up(app: &mut AppState) {
     match app.focused_field {
         FocusedField::Port => {
             if !app.can_modify_config() {
-                app.add_warning(t("notify.config_locked_warning", app.language).to_string());
+                app.add_warning(t!("notify.config_locked_warning").to_string());
             } else if let Some(idx) = app.port_list_state.selected() {
                 let new_idx = if idx > 0 {
                     idx - 1
@@ -215,7 +214,7 @@ fn handle_field_up(app: &mut AppState) {
                 if app.select_port(new_idx) {
                     app.add_info(format!(
                         "{}: {}",
-                        t("notify.port_selected", app.language),
+                        t!("notify.port_selected"),
                         app.config.port
                     ));
                 }
@@ -223,12 +222,12 @@ fn handle_field_up(app: &mut AppState) {
         }
         FocusedField::BaudRate => {
             if !app.prev_baud_rate() {
-                app.add_warning(t("notify.config_locked_warning", app.language).to_string());
+                app.add_warning(t!("notify.config_locked_warning").to_string());
             }
         }
         FocusedField::DataBits => {
             if !app.can_modify_config() {
-                app.add_warning(t("notify.config_locked_warning", app.language).to_string());
+                app.add_warning(t!("notify.config_locked_warning").to_string());
             } else if let Some(idx) = app.data_bits_state.selected() {
                 let new_idx = if idx > 0 {
                     idx - 1
@@ -241,7 +240,7 @@ fn handle_field_up(app: &mut AppState) {
         }
         FocusedField::Parity => {
             if !app.can_modify_config() {
-                app.add_warning(t("notify.config_locked_warning", app.language).to_string());
+                app.add_warning(t!("notify.config_locked_warning").to_string());
             } else if let Some(idx) = app.parity_state.selected() {
                 let new_idx = if idx > 0 {
                     idx - 1
@@ -254,7 +253,7 @@ fn handle_field_up(app: &mut AppState) {
         }
         FocusedField::StopBits => {
             if !app.can_modify_config() {
-                app.add_warning(t("notify.config_locked_warning", app.language).to_string());
+                app.add_warning(t!("notify.config_locked_warning").to_string());
             } else if let Some(idx) = app.stop_bits_state.selected() {
                 let new_idx = if idx > 0 {
                     idx - 1
@@ -267,7 +266,7 @@ fn handle_field_up(app: &mut AppState) {
         }
         FocusedField::FlowControl => {
             if !app.can_modify_config() {
-                app.add_warning(t("notify.config_locked_warning", app.language).to_string());
+                app.add_warning(t!("notify.config_locked_warning").to_string());
             } else if let Some(idx) = app.flow_control_state.selected() {
                 let new_idx = if idx > 0 {
                     idx - 1
@@ -286,7 +285,7 @@ fn handle_field_up(app: &mut AppState) {
             };
             app.add_info(format!(
                 "{}: {}",
-                t("notify.display_mode", app.language),
+                t!("notify.display_mode"),
                 mode_str
             ));
         }
@@ -298,7 +297,7 @@ fn handle_field_down(app: &mut AppState) {
     match app.focused_field {
         FocusedField::Port => {
             if !app.can_modify_config() {
-                app.add_warning(t("notify.config_locked_warning", app.language).to_string());
+                app.add_warning(t!("notify.config_locked_warning").to_string());
             } else if let Some(idx) = app.port_list_state.selected() {
                 let new_idx = if idx < app.ports.len().saturating_sub(1) {
                     idx + 1
@@ -308,7 +307,7 @@ fn handle_field_down(app: &mut AppState) {
                 if app.select_port(new_idx) {
                     app.add_info(format!(
                         "{}: {}",
-                        t("notify.port_selected", app.language),
+                        t!("notify.port_selected"),
                         app.config.port
                     ));
                 }
@@ -316,12 +315,12 @@ fn handle_field_down(app: &mut AppState) {
         }
         FocusedField::BaudRate => {
             if !app.next_baud_rate() {
-                app.add_warning(t("notify.config_locked_warning", app.language).to_string());
+                app.add_warning(t!("notify.config_locked_warning").to_string());
             }
         }
         FocusedField::DataBits => {
             if !app.can_modify_config() {
-                app.add_warning(t("notify.config_locked_warning", app.language).to_string());
+                app.add_warning(t!("notify.config_locked_warning").to_string());
             } else if let Some(idx) = app.data_bits_state.selected() {
                 let new_idx = if idx < app.data_bits_options.len() - 1 {
                     idx + 1
@@ -334,7 +333,7 @@ fn handle_field_down(app: &mut AppState) {
         }
         FocusedField::Parity => {
             if !app.can_modify_config() {
-                app.add_warning(t("notify.config_locked_warning", app.language).to_string());
+                app.add_warning(t!("notify.config_locked_warning").to_string());
             } else if let Some(idx) = app.parity_state.selected() {
                 let new_idx = if idx < app.parity_options.len() - 1 {
                     idx + 1
@@ -347,7 +346,7 @@ fn handle_field_down(app: &mut AppState) {
         }
         FocusedField::StopBits => {
             if !app.can_modify_config() {
-                app.add_warning(t("notify.config_locked_warning", app.language).to_string());
+                app.add_warning(t!("notify.config_locked_warning").to_string());
             } else if let Some(idx) = app.stop_bits_state.selected() {
                 let new_idx = if idx < app.stop_bits_options.len() - 1 {
                     idx + 1
@@ -360,7 +359,7 @@ fn handle_field_down(app: &mut AppState) {
         }
         FocusedField::FlowControl => {
             if !app.can_modify_config() {
-                app.add_warning(t("notify.config_locked_warning", app.language).to_string());
+                app.add_warning(t!("notify.config_locked_warning").to_string());
             } else if let Some(idx) = app.flow_control_state.selected() {
                 let new_idx = if idx < app.flow_control_options.len() - 1 {
                     idx + 1
@@ -379,7 +378,7 @@ fn handle_field_down(app: &mut AppState) {
             };
             app.add_info(format!(
                 "{}: {}",
-                t("notify.display_mode", app.language),
+                t!("notify.display_mode"),
                 mode_str
             ));
         }

@@ -10,15 +10,15 @@
 use crossterm::{
     event::{self, Event, KeyCode, KeyModifiers},
     execute,
-    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
+    terminal::{EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode},
 };
 use ratatui::{
+    Frame, Terminal,
     backend::CrosstermBackend,
     layout::{Alignment, Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style},
     text::{Line, Span},
     widgets::{Block, Borders, Paragraph},
-    Frame, Terminal,
 };
 use std::{
     error::Error,
@@ -26,7 +26,7 @@ use std::{
     time::{Duration, Instant},
 };
 use tuiserial_tabs::{
-    calculate_tab_bar_height, draw_compact_tab_bar, draw_pane_border, TabsManager,
+    TabsManager, calculate_tab_bar_height, draw_compact_tab_bar, draw_pane_border,
 };
 
 struct DemoApp {
@@ -353,7 +353,7 @@ fn draw_tx_info(f: &mut Frame, session: &tuiserial_tabs::SerialSession, area: Re
         session.tx_mode,
         session
             .tx_append_mode
-            .name(tuiserial_core::Language::English)
+            .name()
     );
 
     let paragraph =

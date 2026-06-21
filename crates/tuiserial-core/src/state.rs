@@ -8,6 +8,7 @@ use serde_json;
 use std::collections::VecDeque;
 
 use crate::config::SerialConfig;
+use crate::error::CoreError;
 use crate::log::MessageLog;
 use crate::notification::Notification;
 use crate::types::{
@@ -367,8 +368,11 @@ impl AppState {
             TxMode::Hex => {
                 // HEX → ASCII: parse hex pairs into bytes, convert to string
                 if !self.tx_input.is_empty() {
-                    let cleaned: String =
-                        self.tx_input.chars().filter(|c| !c.is_whitespace()).collect();
+                    let cleaned: String = self
+                        .tx_input
+                        .chars()
+                        .filter(|c| !c.is_whitespace())
+                        .collect();
                     if cleaned.len().is_multiple_of(2)
                         && cleaned.chars().all(|c| c.is_ascii_hexdigit())
                     {
@@ -470,19 +474,15 @@ impl AppState {
     // Configuration persistence
 
     /// Save configuration to file
-    pub fn save_config(&self) -> Result<(), String> {
-        let config_dir =
-            dirs::config_dir().ok_or_else(|| "Could not determine config directory".to_string())?;
+    pub fn save_config(&self) -> Result<(), CoreError> {
+        let config_dir = dirs::config_dir().ok_or(CoreError::ConfigDirNotFound)?;
         let app_config_dir = config_dir.join("tuiserial");
-        std::fs::create_dir_all(&app_config_dir)
-            .map_err(|e| format!("Failed to create config directory: {}", e))?;
+        std::fs::create_dir_all(&app_config_dir)?;
 
         let config_path = app_config_dir.join("config.json");
-        let json = serde_json::to_string_pretty(&self.config)
-            .map_err(|e| format!("Failed to serialize config: {}", e))?;
+        let json = serde_json::to_string_pretty(&self.config)?;
 
-        std::fs::write(&config_path, json)
-            .map_err(|e| format!("Failed to write config file: {}", e))?;
+        std::fs::write(&config_path, json)?;
 
         Ok(())
     }
@@ -494,41 +494,40 @@ impl AppState {
             if let Ok(json) = std::fs::read_to_string(&config_path)
                 && let Ok(config) = serde_json::from_str::<SerialConfig>(&json)
             {
-                    // Update UI states to match loaded config
-                    if let Some(idx) = self
-                        .baud_rate_options
-                        .iter()
-                        .position(|&b| b == config.baud_rate)
-                    {
-                        self.baud_rate_state.select(Some(idx));
-                    }
-                    if let Some(idx) = self.parity_options.iter().position(|&p| p == config.parity)
-                    {
-                        self.parity_state.select(Some(idx));
-                    }
-                    if let Some(idx) = self
-                        .flow_control_options
-                        .iter()
-                        .position(|&f| f == config.flow_control)
-                    {
-                        self.flow_control_state.select(Some(idx));
-                    }
-                    if let Some(idx) = self
-                        .data_bits_options
-                        .iter()
-                        .position(|&d| d == config.data_bits)
-                    {
-                        self.data_bits_state.select(Some(idx));
-                    }
-                    if let Some(idx) = self
-                        .stop_bits_options
-                        .iter()
-                        .position(|&s| s == config.stop_bits)
-                    {
-                        self.stop_bits_state.select(Some(idx));
-                    }
-                    // Move config assignment to end after all borrows
-                    self.config = config;
+                // Update UI states to match loaded config
+                if let Some(idx) = self
+                    .baud_rate_options
+                    .iter()
+                    .position(|&b| b == config.baud_rate)
+                {
+                    self.baud_rate_state.select(Some(idx));
+                }
+                if let Some(idx) = self.parity_options.iter().position(|&p| p == config.parity) {
+                    self.parity_state.select(Some(idx));
+                }
+                if let Some(idx) = self
+                    .flow_control_options
+                    .iter()
+                    .position(|&f| f == config.flow_control)
+                {
+                    self.flow_control_state.select(Some(idx));
+                }
+                if let Some(idx) = self
+                    .data_bits_options
+                    .iter()
+                    .position(|&d| d == config.data_bits)
+                {
+                    self.data_bits_state.select(Some(idx));
+                }
+                if let Some(idx) = self
+                    .stop_bits_options
+                    .iter()
+                    .position(|&s| s == config.stop_bits)
+                {
+                    self.stop_bits_state.select(Some(idx));
+                }
+                // Move config assignment to end after all borrows
+                self.config = config;
             }
         }
     }
@@ -541,6 +540,7 @@ impl AppState {
             Language::English => Language::Chinese,
             Language::Chinese => Language::English,
         };
+        rust_i18n::set_locale(self.language.code());
     }
 
     /// Toggle shortcuts help overlay

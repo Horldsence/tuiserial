@@ -10,7 +10,8 @@ use ratatui::{
     widgets::{Block, Borders, List, ListItem, Paragraph, Wrap},
     Frame,
 };
-use tuiserial_core::{display_width, i18n::t, AppState, FocusedField, TxMode};
+use rust_i18n::t;
+use tuiserial_core::{display_width, AppState, FocusedField, TxMode};
 
 use crate::areas::{update_area, update_cursor_state, UiAreaField};
 
@@ -33,8 +34,8 @@ pub fn draw_tx_area(f: &mut Frame, app: &AppState, area: Rect) {
 fn draw_tx_input(f: &mut Frame, app: &AppState, area: Rect) {
     let focused = app.focused_field == FocusedField::TxInput;
     let mode_str = match app.tx_mode {
-        TxMode::Hex => t("tx.hex", app.language),
-        TxMode::Ascii => t("tx.ascii", app.language),
+        TxMode::Hex => t!("tx.hex"),
+        TxMode::Ascii => t!("tx.ascii"),
     };
 
     let mode_icon = match app.tx_mode {
@@ -46,17 +47,17 @@ fn draw_tx_input(f: &mut Frame, app: &AppState, area: Rect) {
         format!(
             " {} {} - {} [↑↓ {} | Enter {} | Esc {}] ",
             mode_icon,
-            t("label.send", app.language),
+            t!("label.send"),
             mode_str,
-            t("hint.toggle", app.language),
-            t("button.send", app.language),
-            t("hint.clear", app.language)
+            t!("hint.toggle"),
+            t!("button.send"),
+            t!("hint.clear")
         )
     } else {
         format!(
             " {} {} - {} ",
             mode_icon,
-            t("label.send", app.language),
+            t!("label.send"),
             mode_str
         )
     };
@@ -69,7 +70,7 @@ fn draw_tx_input(f: &mut Frame, app: &AppState, area: Rect) {
         Style::default()
     };
 
-    let prompt_text = t("label.input_prompt", app.language);
+    let prompt_text = t!("label.input_prompt");
 
     let inner_width = area.width.saturating_sub(2) as usize; // minus borders
 
@@ -193,7 +194,7 @@ fn draw_append_selector(f: &mut Frame, app: &AppState, area: Rect) {
         .append_mode_options
         .iter()
         .map(|mode| {
-            let display = mode.name(app.language);
+            let display = mode.name();
             ListItem::new(display)
         })
         .collect();
@@ -202,7 +203,7 @@ fn draw_append_selector(f: &mut Frame, app: &AppState, area: Rect) {
         .block(
             Block::default()
                 .borders(Borders::ALL)
-                .title(format!(" {} ", t("label.append_mode", app.language)))
+                .title(format!(" {} ", t!("label.append_mode")))
                 .title_alignment(Alignment::Left),
         )
         .highlight_style(

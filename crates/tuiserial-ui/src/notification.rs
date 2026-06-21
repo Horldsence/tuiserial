@@ -10,7 +10,8 @@ use ratatui::{
     widgets::{Block, Borders, Paragraph},
     Frame,
 };
-use tuiserial_core::{i18n::t, AppState, NotificationLevel};
+use rust_i18n::t;
+use tuiserial_core::{AppState, NotificationLevel};
 
 use crate::areas::{update_area, UiAreaField};
 
@@ -20,7 +21,7 @@ pub fn draw_notification_bar(f: &mut Frame, app: &AppState, area: Rect) {
     update_area(UiAreaField::NotificationArea, area);
 
     if let Some(notification) = app.notifications.front() {
-        draw_active_notification(f, app, notification, area);
+        draw_active_notification(f, notification, area);
     } else {
         draw_empty_notification(f, app, area);
     }
@@ -29,7 +30,6 @@ pub fn draw_notification_bar(f: &mut Frame, app: &AppState, area: Rect) {
 /// Draw an active notification message
 fn draw_active_notification(
     f: &mut Frame,
-    app: &AppState,
     notification: &tuiserial_core::Notification,
     area: Rect,
 ) {
@@ -63,7 +63,7 @@ fn draw_active_notification(
     let para = Paragraph::new(text).block(
         Block::default()
             .borders(Borders::ALL)
-            .title(format!(" {} ", t("label.message", app.language)))
+            .title(format!(" {} ", t!("label.message")))
             .title_alignment(Alignment::Left)
             .border_style(Style::default().fg(color)),
     );
@@ -86,7 +86,7 @@ fn draw_empty_notification(f: &mut Frame, app: &AppState, area: Rect) {
     .block(
         Block::default()
             .borders(Borders::ALL)
-            .title(format!(" {} ", t("label.message", app.language)))
+            .title(format!(" {} ", t!("label.message")))
             .title_alignment(Alignment::Left),
     )
     .alignment(Alignment::Center);

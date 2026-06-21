@@ -10,7 +10,8 @@ use ratatui::{
     widgets::{Block, Borders, Clear, Paragraph, Wrap},
     Frame,
 };
-use tuiserial_core::{i18n::t, Language};
+use rust_i18n::t;
+use tuiserial_core::Language;
 
 /// Draw the help overlay centered on the screen
 #[allow(dead_code)]
@@ -47,7 +48,7 @@ pub fn draw_help_overlay(f: &mut Frame, lang: Language) {
                         .add_modifier(Modifier::BOLD),
                 )
                 .title(Span::styled(
-                    format!(" {} ", t("shortcuts.title", lang)),
+                    format!(" {} ", t!("shortcuts.title")),
                     Style::default()
                         .fg(Color::Yellow)
                         .add_modifier(Modifier::BOLD),
@@ -103,26 +104,26 @@ fn create_help_content(lang: Language) -> Vec<Line<'static>> {
 
     // Session Management
     lines.push(Line::from(vec![Span::styled(
-        format!("  {}", t("shortcuts.session", lang)),
+        format!("  {}", t!("shortcuts.session")),
         Style::default()
             .fg(Color::Green)
             .add_modifier(Modifier::BOLD),
     )]));
     lines.push(Line::from(""));
 
-    add_shortcut_line(&mut lines, "Ctrl+T", t("shortcuts.new_session", lang));
-    add_shortcut_line(&mut lines, "Ctrl+W", t("shortcuts.close_session", lang));
+    add_shortcut_line(&mut lines, "Ctrl+T", &t!("shortcuts.new_session"));
+    add_shortcut_line(&mut lines, "Ctrl+W", &t!("shortcuts.close_session"));
     add_shortcut_line(
         &mut lines,
         "Ctrl+Tab / Ctrl+→",
-        t("shortcuts.next_session", lang),
+        &t!("shortcuts.next_session"),
     );
     add_shortcut_line(
         &mut lines,
         "Ctrl+Shift+Tab / Ctrl+←",
-        t("shortcuts.prev_session", lang),
+        &t!("shortcuts.prev_session"),
     );
-    add_shortcut_line(&mut lines, "Ctrl+1~9", t("shortcuts.switch_1_9", lang));
+    add_shortcut_line(&mut lines, "Ctrl+1~9", &t!("shortcuts.switch_1_9"));
     add_shortcut_line(
         &mut lines,
         "F2",
@@ -137,43 +138,43 @@ fn create_help_content(lang: Language) -> Vec<Line<'static>> {
 
     // Layout Management
     lines.push(Line::from(vec![Span::styled(
-        format!("  {}", t("shortcuts.layout", lang)),
+        format!("  {}", t!("shortcuts.layout")),
         Style::default()
             .fg(Color::Green)
             .add_modifier(Modifier::BOLD),
     )]));
     lines.push(Line::from(""));
 
-    add_shortcut_line(&mut lines, "Ctrl+L", t("shortcuts.cycle_layout", lang));
-    add_shortcut_line(&mut lines, "Ctrl+Shift+L", t("shortcuts.prev_layout", lang));
-    add_shortcut_line(&mut lines, "Ctrl+P", t("shortcuts.next_pane", lang));
+    add_shortcut_line(&mut lines, "Ctrl+L", &t!("shortcuts.cycle_layout"));
+    add_shortcut_line(&mut lines, "Ctrl+Shift+L", &t!("shortcuts.prev_layout"));
+    add_shortcut_line(&mut lines, "Ctrl+P", &t!("shortcuts.next_pane"));
     add_shortcut_line(
         &mut lines,
         "Ctrl+Shift+P",
-        t("shortcuts.prev_pane_key", lang),
+        &t!("shortcuts.prev_pane_key"),
     );
     add_shortcut_line(
         &mut lines,
         "Ctrl+N",
-        t("shortcuts.cycle_pane_session", lang),
+        &t!("shortcuts.cycle_pane_session"),
     );
 
     lines.push(Line::from(""));
 
     // General Operations
     lines.push(Line::from(vec![Span::styled(
-        format!("  {}", t("shortcuts.general", lang)),
+        format!("  {}", t!("shortcuts.general")),
         Style::default()
             .fg(Color::Green)
             .add_modifier(Modifier::BOLD),
     )]));
     lines.push(Line::from(""));
 
-    add_shortcut_line(&mut lines, "O", t("shortcuts.connect", lang));
-    add_shortcut_line(&mut lines, "C", t("shortcuts.clear", lang));
-    add_shortcut_line(&mut lines, "X", t("shortcuts.display_mode", lang));
-    add_shortcut_line(&mut lines, "A", t("shortcuts.auto_scroll", lang));
-    add_shortcut_line(&mut lines, "F10", t("shortcuts.menu", lang));
+    add_shortcut_line(&mut lines, "O", &t!("shortcuts.connect"));
+    add_shortcut_line(&mut lines, "C", &t!("shortcuts.clear"));
+    add_shortcut_line(&mut lines, "X", &t!("shortcuts.display_mode"));
+    add_shortcut_line(&mut lines, "A", &t!("shortcuts.auto_scroll"));
+    add_shortcut_line(&mut lines, "F10", &t!("shortcuts.menu"));
     add_shortcut_line(
         &mut lines,
         "F1",
@@ -183,7 +184,7 @@ fn create_help_content(lang: Language) -> Vec<Line<'static>> {
             "切换帮助"
         },
     );
-    add_shortcut_line(&mut lines, "Ctrl+C / Ctrl+Q", t("shortcuts.quit", lang));
+    add_shortcut_line(&mut lines, "Ctrl+C / Ctrl+Q", &t!("shortcuts.quit"));
 
     lines.push(Line::from(""));
 
@@ -200,8 +201,8 @@ fn create_help_content(lang: Language) -> Vec<Line<'static>> {
     )]));
     lines.push(Line::from(""));
 
-    add_shortcut_line(&mut lines, "Tab", t("help.tab", lang));
-    add_shortcut_line(&mut lines, "Shift+Tab", t("help.shift_tab", lang));
+    add_shortcut_line(&mut lines, "Tab", &t!("help.tab"));
+    add_shortcut_line(&mut lines, "Shift+Tab", &t!("help.shift_tab"));
     add_shortcut_line(
         &mut lines,
         "↑/↓",
@@ -211,8 +212,8 @@ fn create_help_content(lang: Language) -> Vec<Line<'static>> {
             "导航选项"
         },
     );
-    add_shortcut_line(&mut lines, "Enter", t("help.enter", lang));
-    add_shortcut_line(&mut lines, "Esc", t("help.esc", lang));
+    add_shortcut_line(&mut lines, "Enter", &t!("help.enter"));
+    add_shortcut_line(&mut lines, "Esc", &t!("help.esc"));
 
     lines.push(Line::from(""));
 

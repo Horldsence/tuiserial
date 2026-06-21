@@ -4,7 +4,7 @@
 //! tabs, buttons, and other interactive UI elements.
 
 use ratatui::layout::Rect;
-use tuiserial_core::{AppState, FocusedField, Language, MenuState};
+use tuiserial_core::{AppState, FocusedField, MenuState};
 
 use crate::areas::{get_clicked_field, get_clicked_menu, is_inside, is_shortcuts_hint_clicked};
 
@@ -157,10 +157,9 @@ pub fn calculate_dropdown_area(
     menu_bar_area: Rect,
     menu_idx: usize,
     item_count: usize,
-    lang: Language,
 ) -> Rect {
     // Calculate x position based on menu index using centralized calculation
-    let x_offset = tuiserial_core::menu_def::calculate_menu_x_offset(menu_idx, lang);
+    let x_offset = tuiserial_core::menu_def::calculate_menu_x_offset(menu_idx);
 
     // Calculate dropdown dimensions
     let max_width = 25u16; // Reasonable default width
@@ -308,7 +307,7 @@ mod tests {
             height: 1,
         };
 
-        let area = calculate_dropdown_area(menu_bar, 0, 4, Language::English);
+        let area = calculate_dropdown_area(menu_bar, 0, 4);
         assert_eq!(area.y, 1); // Below menu bar
         assert_eq!(area.height, 6); // 4 items + 2 borders
     }

@@ -22,13 +22,15 @@ pub fn git_available() -> bool {
 /// Run git with the given args in an optional working directory.
 fn git(args: &[&str], cwd: Option<&Path>) -> Result<String, PluginError> {
     let mut cmd = Command::new("git");
-    cmd.args(args).stdout(std::process::Stdio::piped()).stderr(std::process::Stdio::piped());
+    cmd.args(args)
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::piped());
     if let Some(dir) = cwd {
         cmd.current_dir(dir);
     }
-    let output = cmd.output().map_err(|e| {
-        PluginError::Git(format!("failed to run git: {}", e))
-    })?;
+    let output = cmd
+        .output()
+        .map_err(|e| PluginError::Git(format!("failed to run git: {}", e)))?;
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
         return Err(PluginError::Git(stderr.trim().to_string()));
@@ -40,10 +42,7 @@ fn git(args: &[&str], cwd: Option<&Path>) -> Result<String, PluginError> {
 pub fn git_clone(url: &str, target: &Path) -> Result<(), PluginError> {
     let parent = target.parent().unwrap_or(Path::new("."));
     let name = target.file_name().unwrap();
-    git(
-        &["clone", url, name.to_str().unwrap()],
-        Some(parent),
-    )?;
+    git(&["clone", url, name.to_str().unwrap()], Some(parent))?;
     Ok(())
 }
 
@@ -111,10 +110,7 @@ pub fn git_list_top_dirs(repo_dir: &Path) -> Result<Vec<String>, PluginError> {
 /// Returns file and directory names in the given tree. This reads only
 /// metadata — no blobs are downloaded even with `--filter=blob:none`.
 pub fn git_ls_tree_path(repo_dir: &Path, path: &str) -> Result<Vec<String>, PluginError> {
-    let output = git(
-        &["ls-tree", &format!("HEAD:{}", path)],
-        Some(repo_dir),
-    )?;
+    let output = git(&["ls-tree", &format!("HEAD:{}", path)], Some(repo_dir))?;
     let names: Vec<String> = output
         .lines()
         .filter_map(|line| line.split('\t').nth(1).map(|s| s.to_string()))

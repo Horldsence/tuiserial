@@ -10,13 +10,13 @@ use ratatui::{
     widgets::{Block, Borders, Clear, List, ListItem, Paragraph},
     Frame,
 };
-use tuiserial_core::{i18n::t, menu_def::MENU_BAR, AppState, MenuState};
+use rust_i18n::t;
+use tuiserial_core::{menu_def::MENU_BAR, AppState, MenuState};
 
 use crate::utils::display_width;
 
 /// Draw the menu bar at the top
 pub fn draw_menu_bar(f: &mut Frame, app: &AppState, area: Rect) {
-    let lang = app.language;
     let mut spans = Vec::new();
 
     match app.menu_state {
@@ -27,9 +27,9 @@ pub fn draw_menu_bar(f: &mut Frame, app: &AppState, area: Rect) {
                     spans.push(Span::raw("  "));
                 }
                 if let Some(label_key) = MENU_BAR.get_menu_label_key(i) {
-                    let label = t(label_key, lang);
+                    let label = t!(label_key);
                     spans.push(Span::styled(
-                        format!(" {} ", label),
+                        format!(" {} ", &*label),
                         Style::default().fg(Color::White).bg(Color::DarkGray),
                     ));
                 }
@@ -42,7 +42,7 @@ pub fn draw_menu_bar(f: &mut Frame, app: &AppState, area: Rect) {
                     spans.push(Span::raw("  "));
                 }
                 if let Some(label_key) = MENU_BAR.get_menu_label_key(i) {
-                    let label = t(label_key, lang);
+                    let label = t!(label_key);
                     let style = if i == selected {
                         Style::default()
                             .fg(Color::Black)
@@ -51,7 +51,7 @@ pub fn draw_menu_bar(f: &mut Frame, app: &AppState, area: Rect) {
                     } else {
                         Style::default().fg(Color::White).bg(Color::DarkGray)
                     };
-                    spans.push(Span::styled(format!(" {} ", label), style));
+                    spans.push(Span::styled(format!(" {} ", &*label), style));
                 }
             }
         }
@@ -62,7 +62,7 @@ pub fn draw_menu_bar(f: &mut Frame, app: &AppState, area: Rect) {
                     spans.push(Span::raw("  "));
                 }
                 if let Some(label_key) = MENU_BAR.get_menu_label_key(i) {
-                    let label = t(label_key, lang);
+                    let label = t!(label_key);
                     let style = if i == menu_idx {
                         Style::default()
                             .fg(Color::Black)
@@ -71,7 +71,7 @@ pub fn draw_menu_bar(f: &mut Frame, app: &AppState, area: Rect) {
                     } else {
                         Style::default().fg(Color::White).bg(Color::DarkGray)
                     };
-                    spans.push(Span::styled(format!(" {} ", label), style));
+                    spans.push(Span::styled(format!(" {} ", &*label), style));
                 }
             }
         }
@@ -86,13 +86,10 @@ pub fn draw_menu_bar(f: &mut Frame, app: &AppState, area: Rect) {
 /// Draw dropdown menu
 pub fn draw_menu_dropdown(
     f: &mut Frame,
-    app: &AppState,
     menu_bar_area: Rect,
     menu_idx: usize,
     selected_item: usize,
 ) {
-    let lang = app.language;
-
     // Get menu
     let menu = match MENU_BAR.get_menu(menu_idx) {
         Some(m) => m,
@@ -100,17 +97,17 @@ pub fn draw_menu_dropdown(
     };
 
     // Calculate x position based on menu index
-    let x_offset = tuiserial_core::menu_def::calculate_menu_x_offset(menu_idx, lang);
+    let x_offset = tuiserial_core::menu_def::calculate_menu_x_offset(menu_idx);
 
     // Build menu items with translations
-    let items: Vec<(&str, bool)> = menu
+    let items: Vec<(String, bool)> = menu
         .items
         .iter()
         .map(|action| {
             let label = if action.is_separator() {
-                ""
+                String::new()
             } else {
-                t(action.label_key(), lang)
+                t!(action.label_key()).to_string()
             };
             (label, action.is_separator())
         })
@@ -170,7 +167,6 @@ pub fn find_clicked_menu(
     x: u16,
     y: u16,
     menu_bar_area: Rect,
-    lang: tuiserial_core::Language,
 ) -> Option<usize> {
     // Check if click is within menu bar
     if y != menu_bar_area.y || x < menu_bar_area.x || x >= menu_bar_area.x + menu_bar_area.width {
@@ -181,13 +177,12 @@ pub fn find_clicked_menu(
     let relative_x = x.saturating_sub(menu_bar_area.x);
 
     // Use centralized menu position calculation
-    tuiserial_core::menu_def::find_clicked_menu(relative_x, lang)
+    tuiserial_core::menu_def::find_clicked_menu(relative_x)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use tuiserial_core::Language;
 
     #[test]
     fn test_menu_click_detection() {
@@ -199,11 +194,11 @@ mod tests {
         };
 
         // Click on first menu (File)
-        let result = find_clicked_menu(2, 0, area, Language::English);
+        let result = find_clicked_menu(2, 0, area);
         assert_eq!(result, Some(0));
 
         // Click outside menu bar
-        let result = find_clicked_menu(2, 1, area, Language::English);
+        let result = find_clicked_menu(2, 1, area);
         assert_eq!(result, None);
     }
 }

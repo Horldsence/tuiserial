@@ -1,10 +1,7 @@
 //! Menu action handler — dispatches menu bar actions to the appropriate logic.
 
-use tuiserial_core::{
-    i18n::t,
-    menu_def::MENU_BAR,
-    AppState, MenuAction,
-};
+use rust_i18n::t;
+use tuiserial_core::{AppState, MenuAction, menu_def::MENU_BAR};
 #[cfg(feature = "plugin")]
 use tuiserial_core::{PluginLoadState, PluginModalMode};
 #[cfg(feature = "plugin")]
@@ -36,8 +33,7 @@ pub fn sync_plugin_status(app: &mut AppState, manager: &PluginManager) {
 pub fn handle_menu_action(
     app: &mut AppState,
     handler: &mut SerialHandler,
-    #[cfg(feature = "plugin")]
-    plugin_manager: &mut PluginManager,
+    #[cfg(feature = "plugin")] plugin_manager: &mut PluginManager,
     menu_idx: usize,
     item_idx: usize,
 ) -> bool {
@@ -53,10 +49,10 @@ pub fn handle_menu_action(
     match action {
         MenuAction::SaveConfig => {
             match app.save_config() {
-                Ok(_) => app.add_success(t("notify.config_saved", app.language).to_string()),
+                Ok(_) => app.add_success(t!("notify.config_saved").to_string()),
                 Err(e) => app.add_error(format!(
                     "{}: {}",
-                    t("notify.config_save_failed", app.language),
+                    t!("notify.config_save_failed"),
                     e
                 )),
             }
@@ -64,7 +60,7 @@ pub fn handle_menu_action(
         }
         MenuAction::LoadConfig => {
             app.load_config();
-            app.add_success(t("notify.config_loaded", app.language).to_string());
+            app.add_success(t!("notify.config_loaded").to_string());
             false
         }
         MenuAction::Exit => {
@@ -75,7 +71,7 @@ pub fn handle_menu_action(
         }
         MenuAction::ToggleLanguage => {
             app.toggle_language();
-            app.add_success(t("notify.language_changed", app.language).to_string());
+            app.add_success(t!("notify.language_changed").to_string());
             false
         }
         MenuAction::ShowShortcuts => {
@@ -110,7 +106,7 @@ pub fn handle_menu_action(
         #[cfg(feature = "plugin")]
         MenuAction::PluginsInstall => {
             if !tuiserial_plugin::git::git_available() {
-                app.add_error(t("notify.plugin_git_missing", app.language).to_string());
+                app.add_error(t!("notify.plugin_git_missing").to_string());
                 return false;
             }
             sync_plugin_status(app, plugin_manager);
@@ -129,7 +125,7 @@ pub fn handle_menu_action(
                     app.registry_loading = false;
                     app.add_error(format!(
                         "{}: {}",
-                        t("notify.plugin_install_failed", app.language),
+                        t!("notify.plugin_install_failed"),
                         e
                     ));
                 }
@@ -138,16 +134,16 @@ pub fn handle_menu_action(
         }
         #[cfg(not(feature = "plugin"))]
         MenuAction::PluginsInstall => {
-            app.add_error(t("notify.plugin_disabled", app.language).to_string());
+            app.add_error(t!("notify.plugin_disabled").to_string());
             false
         }
         #[cfg(feature = "plugin")]
         MenuAction::PluginsCheckUpdate => {
             if !tuiserial_plugin::git::git_available() {
-                app.add_error(t("notify.plugin_git_missing", app.language).to_string());
+                app.add_error(t!("notify.plugin_git_missing").to_string());
                 return false;
             }
-            app.add_info(t("notify.plugin_checking", app.language).to_string());
+            app.add_info(t!("notify.plugin_checking").to_string());
             match plugin_manager.check_updates() {
                 Ok(statuses) => {
                     if statuses.is_empty() {
@@ -157,17 +153,18 @@ pub fn handle_menu_action(
                         for s in &statuses {
                             if s.has_update {
                                 has_update = true;
-                                app.add_info(format!(
-                                    "{}",
-                                    t("notify.plugin_update_available", app.language)
-                                        .replace("{}", &s.name)
-                                        .replace("{}", &s.current_commit)
-                                        .replace("{}", &s.latest_commit)
-                                ));
+                                app.add_info(
+                                    t!("notify.plugin_update_available",
+                                        name = &s.name,
+                                        current = &s.current_commit,
+                                        latest = &s.latest_commit),
+                                );
                             }
                         }
                         if !has_update {
-                            app.add_success(t("notify.plugin_up_to_date", app.language).to_string());
+                            app.add_success(
+                                t!("notify.plugin_up_to_date").to_string(),
+                            );
                         }
                     }
                 }
@@ -177,39 +174,34 @@ pub fn handle_menu_action(
         }
         #[cfg(not(feature = "plugin"))]
         MenuAction::PluginsCheckUpdate => {
-            app.add_error(t("notify.plugin_disabled", app.language).to_string());
+            app.add_error(t!("notify.plugin_disabled").to_string());
             false
         }
         #[cfg(feature = "plugin")]
         MenuAction::PluginsUpdateAll => {
             if !tuiserial_plugin::git::git_available() {
-                app.add_error(t("notify.plugin_git_missing", app.language).to_string());
+                app.add_error(t!("notify.plugin_git_missing").to_string());
                 return false;
             }
             let (updated, errors) = plugin_manager.update_all();
             if updated > 0 {
-                app.add_success(format!(
-                    "{}",
-                    t("notify.plugin_all_updated", app.language)
-                        .replace("{}", &updated.to_string())
-                ));
+                app.add_success(
+                    t!("notify.plugin_all_updated", count = updated),
+                );
             }
             for err in &errors {
-                app.add_error(format!(
-                    "{}",
-                    t("notify.plugin_update_failed", app.language)
-                        .replace("{}", "")
-                        .replace("{}", err)
-                ));
+                app.add_error(
+                    t!("notify.plugin_update_failed", error = err),
+                );
             }
             if updated == 0 && errors.is_empty() {
-                app.add_success(t("notify.plugin_up_to_date", app.language).to_string());
+                app.add_success(t!("notify.plugin_up_to_date").to_string());
             }
             false
         }
         #[cfg(not(feature = "plugin"))]
         MenuAction::PluginsUpdateAll => {
-            app.add_error(t("notify.plugin_disabled", app.language).to_string());
+            app.add_error(t!("notify.plugin_disabled").to_string());
             false
         }
         #[cfg(feature = "plugin")]
@@ -221,11 +213,14 @@ pub fn handle_menu_action(
                 }
                 Err(e) => app.add_error(format!("Plugin reload error: {}", e)),
             }
+            for err in plugin_manager.drain_load_errors() {
+                app.add_error(err);
+            }
             false
         }
         #[cfg(not(feature = "plugin"))]
         MenuAction::PluginsReload => {
-            app.add_error(t("notify.plugin_disabled", app.language).to_string());
+            app.add_error(t!("notify.plugin_disabled").to_string());
             false
         }
         #[cfg(feature = "plugin")]
@@ -242,7 +237,7 @@ pub fn handle_menu_action(
         }
         #[cfg(not(feature = "plugin"))]
         MenuAction::PluginsManager => {
-            app.add_error(t("notify.plugin_disabled", app.language).to_string());
+            app.add_error(t!("notify.plugin_disabled").to_string());
             false
         }
         #[cfg(feature = "plugin")]
@@ -253,14 +248,17 @@ pub fn handle_menu_action(
             } else {
                 for p in &plugins {
                     let status = if p.has_error { "⚠" } else { "✓" };
-                    app.add_info(format!("{} {} (rx:{}, tx:{})", status, p.name, p.hooks.on_rx, p.hooks.on_tx));
+                    app.add_info(format!(
+                        "{} {} (rx:{}, tx:{})",
+                        status, p.name, p.hooks.on_rx, p.hooks.on_tx
+                    ));
                 }
             }
             false
         }
         #[cfg(not(feature = "plugin"))]
         MenuAction::PluginsList => {
-            app.add_error(t("notify.plugin_disabled", app.language).to_string());
+            app.add_error(t!("notify.plugin_disabled").to_string());
             false
         }
         MenuAction::Separator => false,

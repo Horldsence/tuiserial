@@ -5,6 +5,7 @@
 
 use serde::{Deserialize, Serialize};
 
+use crate::error::CoreError;
 use crate::types::{FlowControl, Parity};
 
 /// Serial port configuration
@@ -46,21 +47,25 @@ impl SerialConfig {
     }
 
     /// Validate the configuration
-    pub fn validate(&self) -> Result<(), String> {
+    pub fn validate(&self) -> Result<(), CoreError> {
         if self.port.is_empty() {
-            return Err("Port cannot be empty".to_string());
+            return Err(CoreError::Validation("Port cannot be empty".into()));
         }
 
         if self.baud_rate == 0 {
-            return Err("Baud rate must be greater than 0".to_string());
+            return Err(CoreError::Validation(
+                "Baud rate must be greater than 0".into(),
+            ));
         }
 
         if self.data_bits < 5 || self.data_bits > 8 {
-            return Err("Data bits must be between 5 and 8".to_string());
+            return Err(CoreError::Validation(
+                "Data bits must be between 5 and 8".into(),
+            ));
         }
 
         if self.stop_bits < 1 || self.stop_bits > 2 {
-            return Err("Stop bits must be 1 or 2".to_string());
+            return Err(CoreError::Validation("Stop bits must be 1 or 2".into()));
         }
 
         Ok(())

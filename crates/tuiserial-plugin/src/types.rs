@@ -4,6 +4,7 @@
 //! and return values from plugin function calls.
 
 use serde::{Deserialize, Serialize};
+use thiserror::Error;
 use tuiserial_core::{NotificationLevel, SerialConfig};
 
 /// Per-plugin mutable state shared between Rust and JS.
@@ -85,31 +86,16 @@ pub struct PluginInfo {
 }
 
 /// Errors that can occur during plugin operations.
-#[derive(Debug)]
+#[derive(Error, Debug)]
 pub enum PluginError {
-    Io(std::io::Error),
+    #[error("IO error: {0}")]
+    Io(#[from] std::io::Error),
+    #[error("Script error: {0}")]
     Script(String),
+    #[error("Runtime error: {0}")]
     Runtime(String),
+    #[error("Git error: {0}")]
     Git(String),
-}
-
-impl std::fmt::Display for PluginError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            PluginError::Io(e) => write!(f, "IO error: {}", e),
-            PluginError::Script(e) => write!(f, "Script error: {}", e),
-            PluginError::Runtime(e) => write!(f, "Runtime error: {}", e),
-            PluginError::Git(e) => write!(f, "Git error: {}", e),
-        }
-    }
-}
-
-impl std::error::Error for PluginError {}
-
-impl From<std::io::Error> for PluginError {
-    fn from(e: std::io::Error) -> Self {
-        PluginError::Io(e)
-    }
 }
 
 // ── Plugin metadata & registry ──────────────────────────────────

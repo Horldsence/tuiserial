@@ -2,10 +2,11 @@
 
 use crossterm::event::{MouseButton, MouseEvent, MouseEventKind};
 use ratatui::layout::Rect;
-use tuiserial_core::{i18n::t, menu_def::MENU_BAR, AppState, DisplayMode, FocusedField, MenuState};
-use tuiserial_ui::{get_clicked_field, get_ui_areas, is_inside, find_clicked_menu};
+use rust_i18n::t;
+use tuiserial_core::{AppState, DisplayMode, FocusedField, MenuState, menu_def::MENU_BAR};
 #[cfg(feature = "plugin")]
 use tuiserial_plugin::PluginManager;
+use tuiserial_ui::{find_clicked_menu, get_clicked_field, get_ui_areas, is_inside};
 
 use crate::handler::SerialHandler;
 use crate::input_utils::display_width;
@@ -16,8 +17,7 @@ pub fn handle_mouse_event(
     mouse: MouseEvent,
     app: &mut AppState,
     handler: &mut SerialHandler,
-    #[cfg(feature = "plugin")]
-    plugin_manager: &mut PluginManager,
+    #[cfg(feature = "plugin")] plugin_manager: &mut PluginManager,
 ) {
     let col = mouse.column;
     let row = mouse.row;
@@ -51,8 +51,7 @@ fn handle_left_click(
     row: u16,
     app: &mut AppState,
     handler: &mut SerialHandler,
-    #[cfg(feature = "plugin")]
-    plugin_manager: &mut PluginManager,
+    #[cfg(feature = "plugin")] plugin_manager: &mut PluginManager,
 ) {
     let areas = get_ui_areas();
 
@@ -62,7 +61,7 @@ fn handle_left_click(
     }
 
     if is_inside(areas.menu_bar, col, row) {
-        if let Some(menu_idx) = find_clicked_menu(col, row, areas.menu_bar, app.language) {
+        if let Some(menu_idx) = find_clicked_menu(col, row, areas.menu_bar) {
             match app.menu_state {
                 MenuState::Dropdown(current_idx, _) if current_idx == menu_idx => {
                     app.menu_state = MenuState::None;
@@ -92,7 +91,7 @@ fn handle_left_click(
                 if action.is_separator() {
                     String::new()
                 } else {
-                    t(action.label_key(), app.language).to_string()
+                    t!(action.label_key()).to_string()
                 }
             })
             .collect();
@@ -105,7 +104,7 @@ fn handle_left_click(
             + 6;
         let height = items.len() as u16 + 2;
 
-        let x_offset = tuiserial_core::menu_def::calculate_menu_x_offset(menu_idx, app.language);
+        let x_offset = tuiserial_core::menu_def::calculate_menu_x_offset(menu_idx);
 
         let dropdown_area = Rect {
             x: areas.menu_bar.x + x_offset,
@@ -120,14 +119,15 @@ fn handle_left_click(
                 let item_idx = (relative_y - 1) as usize;
 
                 if let Some(action) = MENU_BAR.get_action(menu_idx, item_idx)
-                    && !action.is_separator() {
-                        #[cfg(feature = "plugin")]
-                        handle_menu_action(app, handler, plugin_manager, menu_idx, item_idx);
-                        #[cfg(not(feature = "plugin"))]
-                        handle_menu_action(app, handler, menu_idx, item_idx);
-                        app.menu_state = MenuState::None;
-                    }
+                    && !action.is_separator()
+                {
+                    #[cfg(feature = "plugin")]
+                    handle_menu_action(app, handler, plugin_manager, menu_idx, item_idx);
+                    #[cfg(not(feature = "plugin"))]
+                    handle_menu_action(app, handler, menu_idx, item_idx);
+                    app.menu_state = MenuState::None;
                 }
+            }
             return;
         } else {
             app.menu_state = MenuState::None;
@@ -142,7 +142,7 @@ fn handle_left_click(
         match field {
             FocusedField::Port => {
                 if !app.can_modify_config() {
-                    app.add_warning(t("notify.config_locked_warning", app.language).to_string());
+                    app.add_warning(t!("notify.config_locked_warning").to_string());
                 } else if !app.ports.is_empty() && is_inside(areas.port, col, row) {
                     let relative_row = row.saturating_sub(areas.port.y + 1);
                     if relative_row < app.ports.len() as u16
@@ -150,7 +150,7 @@ fn handle_left_click(
                     {
                         app.add_info(format!(
                             "{}: {}",
-                            t("notify.port_selected", app.language),
+                            t!("notify.port_selected"),
                             app.config.port
                         ));
                     }
@@ -158,7 +158,7 @@ fn handle_left_click(
             }
             FocusedField::BaudRate => {
                 if !app.can_modify_config() {
-                    app.add_warning(t("notify.config_locked_warning", app.language).to_string());
+                    app.add_warning(t!("notify.config_locked_warning").to_string());
                 } else if is_inside(areas.baud_rate, col, row) {
                     let relative_row = row.saturating_sub(areas.baud_rate.y + 1);
                     if relative_row < app.baud_rate_options.len() as u16 {
@@ -170,7 +170,7 @@ fn handle_left_click(
             }
             FocusedField::DataBits => {
                 if !app.can_modify_config() {
-                    app.add_warning(t("notify.config_locked_warning", app.language).to_string());
+                    app.add_warning(t!("notify.config_locked_warning").to_string());
                 } else if is_inside(areas.data_bits, col, row) {
                     let relative_row = row.saturating_sub(areas.data_bits.y + 1);
                     if relative_row < app.data_bits_options.len() as u16 {
@@ -182,7 +182,7 @@ fn handle_left_click(
             }
             FocusedField::Parity => {
                 if !app.can_modify_config() {
-                    app.add_warning(t("notify.config_locked_warning", app.language).to_string());
+                    app.add_warning(t!("notify.config_locked_warning").to_string());
                 } else if is_inside(areas.parity, col, row) {
                     let relative_row = row.saturating_sub(areas.parity.y + 1);
                     if relative_row < app.parity_options.len() as u16 {
@@ -190,7 +190,7 @@ fn handle_left_click(
                         app.config.parity = app.parity_options[relative_row as usize];
                         app.add_info(format!(
                             "{}: {:?}",
-                            t("notify.parity", app.language),
+                            t!("notify.parity"),
                             app.config.parity
                         ));
                     }
@@ -198,7 +198,7 @@ fn handle_left_click(
             }
             FocusedField::StopBits => {
                 if !app.can_modify_config() {
-                    app.add_warning(t("notify.config_locked_warning", app.language).to_string());
+                    app.add_warning(t!("notify.config_locked_warning").to_string());
                 } else if is_inside(areas.stop_bits, col, row) {
                     let relative_row = row.saturating_sub(areas.stop_bits.y + 1);
                     if relative_row < app.stop_bits_options.len() as u16 {
@@ -210,7 +210,7 @@ fn handle_left_click(
             }
             FocusedField::FlowControl => {
                 if !app.can_modify_config() {
-                    app.add_warning(t("notify.config_locked_warning", app.language).to_string());
+                    app.add_warning(t!("notify.config_locked_warning").to_string());
                 } else if is_inside(areas.flow_control, col, row) {
                     let relative_row = row.saturating_sub(areas.flow_control.y + 1);
                     if relative_row < app.flow_control_options.len() as u16 {
@@ -218,7 +218,7 @@ fn handle_left_click(
                         app.config.flow_control = app.flow_control_options[relative_row as usize];
                         app.add_info(format!(
                             "{}: {:?}",
-                            t("notify.flow_control", app.language),
+                            t!("notify.flow_control"),
                             app.config.flow_control
                         ));
                     }
@@ -237,13 +237,14 @@ fn handle_left_click(
                             app.tx_append_mode = app.append_mode_options[relative_row as usize];
                             app.add_info(format!(
                                 "{}: {}",
-                                t("notify.append_mode", app.language),
-                                app.tx_append_mode.name(app.language)
+                                t!("notify.append_mode"),
+                                app.tx_append_mode.name()
                             ));
                         }
                     } else {
                         let char_count = app.tx_input.chars().count();
-                        let cursor_pos = relative_col.saturating_sub(1).min(char_count as u16) as usize;
+                        let cursor_pos =
+                            relative_col.saturating_sub(1).min(char_count as u16) as usize;
                         app.tx_cursor = cursor_pos;
                     }
                 }
@@ -264,7 +265,7 @@ fn handle_right_click(col: u16, row: u16, app: &mut AppState) {
         };
         app.add_info(format!(
             "{}: {}",
-            t("notify.toggle_display_mode", app.language),
+            t!("notify.toggle_display_mode"),
             mode_str
         ));
     } else if is_inside(areas.tx_area, col, row) {
@@ -275,14 +276,14 @@ fn handle_right_click(col: u16, row: u16, app: &mut AppState) {
             app.next_append_mode();
             app.add_info(format!(
                 "{}: {}",
-                t("notify.append_mode", app.language),
-                app.tx_append_mode.name(app.language)
+                t!("notify.append_mode"),
+                app.tx_append_mode.name()
             ));
         } else {
             app.toggle_tx_mode();
             app.add_info(format!(
                 "{}: {}",
-                t("notify.tx_mode", app.language),
+                t!("notify.tx_mode"),
                 match app.tx_mode {
                     tuiserial_core::TxMode::Hex => "HEX",
                     tuiserial_core::TxMode::Ascii => "ASCII",
@@ -301,7 +302,7 @@ fn handle_middle_click(col: u16, row: u16, app: &mut AppState) {
 
     if is_inside(areas.log_area, col, row) {
         app.message_log.clear();
-        app.add_info(t("notify.log_cleared", app.language).to_string());
+        app.add_info(t!("notify.log_cleared").to_string());
     } else if is_inside(areas.tx_area, col, row) {
         app.tx_input.clear();
         app.tx_cursor = 0;
@@ -317,7 +318,7 @@ fn handle_scroll_up(col: u16, row: u16, app: &mut AppState) {
         app.scroll_offset = app.scroll_offset.saturating_sub(3);
     } else if is_inside(areas.port, col, row) {
         if !app.can_modify_config() {
-            app.add_warning(t("notify.config_locked_warning", app.language).to_string());
+            app.add_warning(t!("notify.config_locked_warning").to_string());
         } else if let Some(idx) = app.port_list_state.selected() {
             let new_idx = if idx > 0 {
                 idx - 1
@@ -328,17 +329,16 @@ fn handle_scroll_up(col: u16, row: u16, app: &mut AppState) {
         }
     } else if is_inside(areas.baud_rate, col, row) {
         if !app.can_modify_config() {
-            app.add_warning(t("notify.config_locked_warning", app.language).to_string());
+            app.add_warning(t!("notify.config_locked_warning").to_string());
         } else {
             app.prev_baud_rate();
         }
     } else if is_inside(areas.tx_area, col, row) {
         app.prev_append_mode();
-    } else if is_inside(areas.plugin_modal, col, row)
-        && app.plugin_modal_scroll > 0 {
-            app.plugin_modal_scroll = app.plugin_modal_scroll.saturating_sub(1);
-        }
+    } else if is_inside(areas.plugin_modal, col, row) && app.plugin_modal_scroll > 0 {
+        app.plugin_modal_scroll = app.plugin_modal_scroll.saturating_sub(1);
     }
+}
 
 fn handle_scroll_down(col: u16, row: u16, app: &mut AppState) {
     let areas = get_ui_areas();
@@ -354,7 +354,7 @@ fn handle_scroll_down(col: u16, row: u16, app: &mut AppState) {
         }
     } else if is_inside(areas.port, col, row) {
         if !app.can_modify_config() {
-            app.add_warning(t("notify.config_locked_warning", app.language).to_string());
+            app.add_warning(t!("notify.config_locked_warning").to_string());
         } else if let Some(idx) = app.port_list_state.selected() {
             let new_idx = if idx < app.ports.len().saturating_sub(1) {
                 idx + 1
@@ -365,7 +365,7 @@ fn handle_scroll_down(col: u16, row: u16, app: &mut AppState) {
         }
     } else if is_inside(areas.baud_rate, col, row) {
         if !app.can_modify_config() {
-            app.add_warning(t("notify.config_locked_warning", app.language).to_string());
+            app.add_warning(t!("notify.config_locked_warning").to_string());
         } else {
             app.next_baud_rate();
         }

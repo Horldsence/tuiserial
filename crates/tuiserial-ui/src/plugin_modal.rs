@@ -13,7 +13,8 @@ use ratatui::{
     widgets::{Block, Borders, Clear, Paragraph, Row, Table, TableState},
     Frame,
 };
-use tuiserial_core::{i18n::t, AppState, Language, PluginLoadState, PluginModalMode};
+use rust_i18n::t;
+use tuiserial_core::{AppState, PluginLoadState, PluginModalMode};
 
 use crate::areas::{update_area, UiAreaField};
 
@@ -44,18 +45,16 @@ pub fn draw_plugin_modal(f: &mut Frame, app: &AppState) {
     // Clear the area first
     f.render_widget(Clear, modal_area);
 
-    let lang = app.language;
-
     match app.plugin_modal_mode {
-        PluginModalMode::Registry => crate::plugin_registry::draw_registry_view(f, app, modal_area, lang),
-        PluginModalMode::Local => draw_local_view(f, app, modal_area, lang),
+        PluginModalMode::Registry => crate::plugin_registry::draw_registry_view(f, app, modal_area),
+        PluginModalMode::Local => draw_local_view(f, app, modal_area),
     }
 }
 
 // ── Local (installed plugins) view ───────────────────────────────
 
-fn draw_local_view(f: &mut Frame, app: &AppState, modal_area: Rect, lang: Language) {
-    let title = format!(" {} ", t("plugin.modal.title", lang));
+fn draw_local_view(f: &mut Frame, app: &AppState, modal_area: Rect) {
+    let title = format!(" {} ", t!("plugin.modal.title"));
     let inner = Block::default()
         .borders(Borders::ALL)
         .border_style(Style::default().fg(Color::Cyan))
@@ -83,19 +82,19 @@ fn draw_local_view(f: &mut Frame, app: &AppState, modal_area: Rect, lang: Langua
     f.render_widget(inner, modal_area);
 
     if app.plugin_statuses.is_empty() {
-        draw_local_empty(f, inner_area, lang);
+        draw_local_empty(f, inner_area);
     } else {
-        draw_local_table(f, app, table_area, lang);
+        draw_local_table(f, app, table_area);
     }
 
-    draw_local_hints(f, hint_area, lang);
+    draw_local_hints(f, hint_area);
 }
 
-fn draw_local_empty(f: &mut Frame, area: Rect, lang: Language) {
+fn draw_local_empty(f: &mut Frame, area: Rect) {
     let msg = vec![
         Line::from(""),
         Line::from(Span::styled(
-            t("plugin.modal.no_plugins", lang),
+            t!("plugin.modal.no_plugins"),
             Style::default()
                 .fg(Color::DarkGray)
                 .add_modifier(Modifier::ITALIC),
@@ -111,7 +110,7 @@ fn draw_local_empty(f: &mut Frame, area: Rect, lang: Language) {
     f.render_widget(para, area);
 }
 
-fn draw_local_table(f: &mut Frame, app: &AppState, area: Rect, lang: Language) {
+fn draw_local_table(f: &mut Frame, app: &AppState, area: Rect) {
     let header_height: u16 = 3;
     let visible_rows = area.height.saturating_sub(header_height) as usize;
     let total = app.plugin_statuses.len();
@@ -128,10 +127,10 @@ fn draw_local_table(f: &mut Frame, app: &AppState, area: Rect, lang: Language) {
         .add_modifier(Modifier::BOLD);
 
     let header = Row::new(vec![
-        Span::styled(t("plugin.modal.status", lang), header_style),
-        Span::styled(t("plugin.modal.name", lang), header_style),
-        Span::styled(t("plugin.modal.hooks", lang), header_style),
-        Span::styled(t("plugin.modal.error", lang), header_style),
+        Span::styled(t!("plugin.modal.status"), header_style),
+        Span::styled(t!("plugin.modal.name"), header_style),
+        Span::styled(t!("plugin.modal.hooks"), header_style),
+        Span::styled(t!("plugin.modal.error"), header_style),
     ]);
 
     let name_width = (area.width.saturating_sub(8 + 16 + 13)) as usize;
@@ -253,20 +252,20 @@ fn local_row<'a>(ps: &'a tuiserial_core::PluginLoadStatus, name_width: usize) ->
     ])
 }
 
-fn draw_local_hints(f: &mut Frame, area: Rect, lang: Language) {
+fn draw_local_hints(f: &mut Frame, area: Rect) {
     let hints = vec![
         Span::styled(
-            t("plugin.modal.hint_navigate", lang),
+            t!("plugin.modal.hint_navigate"),
             Style::default().fg(Color::DarkGray),
         ),
         Span::raw("  "),
         Span::styled(
-            t("plugin.modal.hint_reload", lang),
+            t!("plugin.modal.hint_reload"),
             Style::default().fg(Color::Yellow),
         ),
         Span::raw("  "),
         Span::styled(
-            t("plugin.modal.hint_close", lang),
+            t!("plugin.modal.hint_close"),
             Style::default().fg(Color::Red),
         ),
     ];

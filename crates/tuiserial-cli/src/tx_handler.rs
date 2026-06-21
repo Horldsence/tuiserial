@@ -1,7 +1,8 @@
 //! TX input keyboard handler — handles key events when the focus is on the TX input field.
 
 use crossterm::event::{KeyCode, KeyEvent, KeyEventKind};
-use tuiserial_core::{i18n::t, AppState, TxMode};
+use rust_i18n::t;
+use tuiserial_core::{AppState, TxMode};
 #[cfg(feature = "plugin")]
 use tuiserial_plugin::PluginManager;
 
@@ -14,8 +15,7 @@ pub fn handle_tx_key_event(
     key: KeyEvent,
     app: &mut AppState,
     handler: &mut SerialHandler,
-    #[cfg(feature = "plugin")]
-    plugin_manager: &mut PluginManager,
+    #[cfg(feature = "plugin")] plugin_manager: &mut PluginManager,
 ) -> bool {
     if key.kind != KeyEventKind::Press {
         return false;
@@ -82,7 +82,7 @@ pub fn handle_tx_key_event(
             app.toggle_tx_mode();
             app.add_info(format!(
                 "{}: {}",
-                t("notify.tx_mode", app.language),
+                t!("notify.tx_mode"),
                 match app.tx_mode {
                     TxMode::Hex => "HEX",
                     TxMode::Ascii => "ASCII",
@@ -94,7 +94,7 @@ pub fn handle_tx_key_event(
             app.toggle_tx_mode();
             app.add_info(format!(
                 "{}: {}",
-                t("notify.tx_mode", app.language),
+                t!("notify.tx_mode"),
                 match app.tx_mode {
                     TxMode::Hex => "HEX",
                     TxMode::Ascii => "ASCII",
@@ -144,10 +144,11 @@ pub fn handle_tx_key_event(
         KeyCode::Enter => {
             if !app.tx_input.is_empty() {
                 if handler.is_connected() {
-                    let mut bytes: Result<Vec<u8>, tuiserial_serial::SerialError> = match app.tx_mode {
-                        TxMode::Ascii => Ok(app.tx_input.as_bytes().to_vec()),
-                        TxMode::Hex => tuiserial_serial::hex_to_bytes(&app.tx_input),
-                    };
+                    let mut bytes: Result<Vec<u8>, tuiserial_serial::SerialError> =
+                        match app.tx_mode {
+                            TxMode::Ascii => Ok(app.tx_input.as_bytes().to_vec()),
+                            TxMode::Hex => tuiserial_serial::hex_to_bytes(&app.tx_input),
+                        };
 
                     if let Ok(ref mut data) = bytes {
                         data.extend_from_slice(app.tx_append_mode.as_bytes());
@@ -173,11 +174,11 @@ pub fn handle_tx_key_event(
                                     let append_info = if app.tx_append_mode.as_bytes().is_empty() {
                                         String::new()
                                     } else {
-                                        format!(" + {}", app.tx_append_mode.name(app.language))
+                                        format!(" + {}", app.tx_append_mode.name())
                                     };
                                     app.add_success(format!(
                                         "{}{}",
-                                        t("notify.send_success", app.language),
+                                        t!("notify.send_success"),
                                         append_info
                                     ));
                                     app.tx_input.clear();
@@ -188,27 +189,19 @@ pub fn handle_tx_key_event(
                                     }
                                 }
                                 Err(e) => {
-                                    app.add_error(format!(
-                                        "{}: {}",
-                                        t("notify.send_failed", app.language),
-                                        e
-                                    ));
+                                    app.add_error(format!("{}: {}", t!("notify.send_failed"), e));
                                 }
                             }
                         }
                         Err(e) => {
-                            app.add_error(format!(
-                                "{}: {}",
-                                t("notify.hex_format_error", app.language),
-                                e
-                            ));
+                            app.add_error(format!("{}: {}", t!("notify.hex_format_error"), e));
                         }
                     }
                 } else {
-                    app.add_error(t("notify.not_connected", app.language).to_string());
+                    app.add_error(t!("notify.not_connected").to_string());
                 }
             } else {
-                app.add_warning(t("notify.input_empty", app.language).to_string());
+                app.add_warning(t!("notify.input_empty").to_string());
             }
             false
         }

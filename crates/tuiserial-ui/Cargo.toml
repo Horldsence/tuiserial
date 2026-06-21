@@ -14,3 +14,4 @@ tuiserial-core = { workspace = true }
 tuiserial-serial = { workspace = true }
 ratatui = { workspace = true }
 crossterm = { workspace = true }
+rust-i18n = { workspace = true }

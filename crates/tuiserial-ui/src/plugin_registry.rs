@@ -7,11 +7,12 @@ use ratatui::{
     widgets::{Block, Borders, Paragraph, Row, Table, TableState},
     Frame,
 };
-use tuiserial_core::{i18n::t, AppState, Language};
+use rust_i18n::t;
+use tuiserial_core::AppState;
 
 /// Draw the registry view inside the plugin modal.
-pub(crate) fn draw_registry_view(f: &mut Frame, app: &AppState, modal_area: Rect, lang: Language) {
-    let title = format!(" {} ", t("plugin.registry.title", lang));
+pub(crate) fn draw_registry_view(f: &mut Frame, app: &AppState, modal_area: Rect) {
+    let title = format!(" {} ", t!("plugin.registry.title"));
     let inner = Block::default()
         .borders(Borders::ALL)
         .border_style(Style::default().fg(Color::Cyan))
@@ -48,21 +49,21 @@ pub(crate) fn draw_registry_view(f: &mut Frame, app: &AppState, modal_area: Rect
         height: hint_height,
     };
 
-    draw_search_bar(f, app, search_area, lang);
+    draw_search_bar(f, app, search_area);
 
     if app.registry_loading {
-        draw_registry_loading(f, table_area, lang);
+        draw_registry_loading(f, table_area);
     } else if app.registry_entries.is_empty() {
-        draw_registry_empty(f, table_area, lang);
+        draw_registry_empty(f, table_area);
     } else {
-        draw_registry_table(f, app, table_area, lang);
+        draw_registry_table(f, app, table_area);
     }
 
-    draw_registry_hints(f, hint_area, lang);
+    draw_registry_hints(f, hint_area);
 }
 
-fn draw_search_bar(f: &mut Frame, app: &AppState, area: Rect, lang: Language) {
-    let placeholder = t("plugin.registry.search_placeholder", lang);
+fn draw_search_bar(f: &mut Frame, app: &AppState, area: Rect) {
+    let placeholder = t!("plugin.registry.search_placeholder");
     let display = if app.registry_search_query.is_empty() {
         Span::styled(placeholder, Style::default().fg(Color::DarkGray))
     } else {
@@ -84,11 +85,11 @@ fn draw_search_bar(f: &mut Frame, app: &AppState, area: Rect, lang: Language) {
     f.render_widget(para, area);
 }
 
-fn draw_registry_loading(f: &mut Frame, area: Rect, lang: Language) {
+fn draw_registry_loading(f: &mut Frame, area: Rect) {
     let msg = vec![
         Line::from(""),
         Line::from(Span::styled(
-            t("plugin.registry.loading", lang),
+            t!("plugin.registry.loading"),
             Style::default()
                 .fg(Color::Yellow)
                 .add_modifier(Modifier::ITALIC),
@@ -99,11 +100,11 @@ fn draw_registry_loading(f: &mut Frame, area: Rect, lang: Language) {
     f.render_widget(para, area);
 }
 
-fn draw_registry_empty(f: &mut Frame, area: Rect, lang: Language) {
+fn draw_registry_empty(f: &mut Frame, area: Rect) {
     let msg = vec![
         Line::from(""),
         Line::from(Span::styled(
-            t("plugin.registry.empty", lang),
+            t!("plugin.registry.empty"),
             Style::default()
                 .fg(Color::DarkGray)
                 .add_modifier(Modifier::ITALIC),
@@ -114,7 +115,7 @@ fn draw_registry_empty(f: &mut Frame, area: Rect, lang: Language) {
     f.render_widget(para, area);
 }
 
-fn draw_registry_table(f: &mut Frame, app: &AppState, area: Rect, lang: Language) {
+fn draw_registry_table(f: &mut Frame, app: &AppState, area: Rect) {
     let query = app.registry_search_query.to_lowercase();
     let filtered: Vec<&tuiserial_core::RegistryEntry> = if query.is_empty() {
         app.registry_entries.iter().collect()
@@ -132,7 +133,7 @@ fn draw_registry_table(f: &mut Frame, app: &AppState, area: Rect, lang: Language
     };
 
     if filtered.is_empty() {
-        draw_registry_empty(f, area, lang);
+        draw_registry_empty(f, area);
         return;
     }
 
@@ -152,7 +153,7 @@ fn draw_registry_table(f: &mut Frame, app: &AppState, area: Rect, lang: Language
         .add_modifier(Modifier::BOLD);
 
     let header = Row::new(vec![
-        Span::styled(t("plugin.modal.name", lang), header_style),
+        Span::styled(t!("plugin.modal.name"), header_style),
         Span::styled("Description", header_style),
         Span::styled("Author", header_style),
     ]);
@@ -251,20 +252,20 @@ fn registry_row<'a>(
     ])
 }
 
-fn draw_registry_hints(f: &mut Frame, area: Rect, lang: Language) {
+fn draw_registry_hints(f: &mut Frame, area: Rect) {
     let hints = vec![
         Span::styled(
-            t("plugin.registry.hint_search", lang),
+            t!("plugin.registry.hint_search"),
             Style::default().fg(Color::DarkGray),
         ),
         Span::raw("  "),
         Span::styled(
-            t("plugin.registry.hint_install", lang),
+            t!("plugin.registry.hint_install"),
             Style::default().fg(Color::Green),
         ),
         Span::raw("  "),
         Span::styled(
-            t("plugin.registry.hint_back", lang),
+            t!("plugin.registry.hint_back"),
             Style::default().fg(Color::Red),
         ),
     ];

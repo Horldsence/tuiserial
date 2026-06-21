@@ -1,7 +1,8 @@
 //! Keyboard event handler — routes key events to the appropriate sub-handler.
 
 use crossterm::event::{KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
-use tuiserial_core::{i18n::t, menu_def::MENU_BAR, AppState, FocusedField, MenuState, PluginModalMode};
+use rust_i18n::t;
+use tuiserial_core::{AppState, FocusedField, MenuState, PluginModalMode, menu_def::MENU_BAR};
 #[cfg(feature = "plugin")]
 use tuiserial_plugin::PluginManager;
 
@@ -16,8 +17,7 @@ pub fn handle_key_event(
     key: KeyEvent,
     app: &mut AppState,
     handler: &mut SerialHandler,
-    #[cfg(feature = "plugin")]
-    plugin_manager: &mut PluginManager,
+    #[cfg(feature = "plugin")] plugin_manager: &mut PluginManager,
 ) -> bool {
     if key.kind != KeyEventKind::Press {
         return false;
@@ -73,8 +73,7 @@ fn handle_menu_navigation(
     key: KeyEvent,
     app: &mut AppState,
     handler: &mut SerialHandler,
-    #[cfg(feature = "plugin")]
-    plugin_manager: &mut PluginManager,
+    #[cfg(feature = "plugin")] plugin_manager: &mut PluginManager,
 ) -> Option<bool> {
     match app.menu_state {
         MenuState::None => {
@@ -87,28 +86,20 @@ fn handle_menu_navigation(
                 app.show_shortcuts_help = !app.show_shortcuts_help;
                 return Some(false);
             }
-            if key.code == KeyCode::Char('s')
-                && key.modifiers.contains(KeyModifiers::CONTROL)
-            {
+            if key.code == KeyCode::Char('s') && key.modifiers.contains(KeyModifiers::CONTROL) {
                 match app.save_config() {
-                    Ok(_) => app.add_success(
-                        t("notify.config_saved", app.language).to_string(),
-                    ),
+                    Ok(_) => app.add_success(t!("notify.config_saved").to_string()),
                     Err(e) => app.add_error(format!(
                         "{}: {}",
-                        t("notify.config_save_failed", app.language),
+                        t!("notify.config_save_failed"),
                         e
                     )),
                 }
                 return Some(false);
             }
-            if key.code == KeyCode::Char('o')
-                && key.modifiers.contains(KeyModifiers::CONTROL)
-            {
+            if key.code == KeyCode::Char('o') && key.modifiers.contains(KeyModifiers::CONTROL) {
                 app.load_config();
-                app.add_success(
-                    t("notify.config_loaded", app.language).to_string(),
-                );
+                app.add_success(t!("notify.config_loaded").to_string());
                 return Some(false);
             }
             None
@@ -149,8 +140,7 @@ fn handle_menu_navigation(
                     app.menu_state = MenuState::Dropdown(menu_idx, new_idx);
                 }
                 KeyCode::Down => {
-                    app.menu_state =
-                        MenuState::Dropdown(menu_idx, (item_idx + 1) % item_count);
+                    app.menu_state = MenuState::Dropdown(menu_idx, (item_idx + 1) % item_count);
                 }
                 KeyCode::Left => {
                     let menu_count = MENU_BAR.menu_count();
@@ -171,8 +161,7 @@ fn handle_menu_navigation(
                     let should_exit =
                         handle_menu_action(app, handler, plugin_manager, menu_idx, item_idx);
                     #[cfg(not(feature = "plugin"))]
-                    let should_exit =
-                        handle_menu_action(app, handler, menu_idx, item_idx);
+                    let should_exit = handle_menu_action(app, handler, menu_idx, item_idx);
                     app.menu_state = MenuState::None;
                     return Some(should_exit);
                 }
@@ -284,18 +273,14 @@ fn handle_plugin_modal_key(
                     } else {
                         match plugin_manager.install_plugin_from_cache(&entry.name) {
                             Ok(()) => {
-                                app.add_success(format!(
-                                    "{}",
-                                    t("notify.plugin_installed", app.language)
-                                        .replace("{}", &entry.name)
-                                ));
+                                app.add_success(
+                                    t!("notify.plugin_installed", name = &entry.name),
+                                );
                                 sync_plugin_status(app, plugin_manager);
                             }
-                            Err(e) => app.add_error(format!(
-                                "{}",
-                                t("notify.plugin_install_failed", app.language)
-                                    .replace("{}", &e.to_string())
-                            )),
+                            Err(e) => app.add_error(
+                                t!("notify.plugin_install_failed", error = &e.to_string()),
+                            ),
                         }
                     }
                 }
@@ -319,10 +304,7 @@ fn handle_plugin_modal_key(
 /// Handle key events while the plugin modal is open (plugin feature disabled).
 /// Navigation still works; plugin actions show a guidance message.
 #[cfg(not(feature = "plugin"))]
-fn handle_plugin_modal_key(
-    key: KeyEvent,
-    app: &mut AppState,
-) -> bool {
+fn handle_plugin_modal_key(key: KeyEvent, app: &mut AppState) -> bool {
     match app.plugin_modal_mode {
         PluginModalMode::Local => match key.code {
             KeyCode::Esc | KeyCode::Char('q') | KeyCode::Char('p') => {
@@ -330,7 +312,7 @@ fn handle_plugin_modal_key(
                 false
             }
             KeyCode::Char('r') | KeyCode::Char('R') => {
-                app.add_error(t("notify.plugin_disabled", app.language).to_string());
+                app.add_error(t!("notify.plugin_disabled").to_string());
                 false
             }
             KeyCode::Up => {
@@ -386,7 +368,7 @@ fn handle_plugin_modal_key(
                 false
             }
             KeyCode::Enter => {
-                app.add_error(t("notify.plugin_disabled", app.language).to_string());
+                app.add_error(t!("notify.plugin_disabled").to_string());
                 false
             }
             KeyCode::Backspace => {

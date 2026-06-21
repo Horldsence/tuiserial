@@ -4,11 +4,11 @@
 //! allowing users to see and switch between multiple serial port sessions.
 
 use ratatui::{
+    Frame,
     layout::{Alignment, Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style},
     text::{Line, Span},
     widgets::{Block, Borders, Paragraph, Tabs},
-    Frame,
 };
 
 use crate::session::SessionManager;

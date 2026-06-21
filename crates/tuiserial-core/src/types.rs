@@ -3,9 +3,10 @@
 //! This module contains fundamental type definitions and enums used throughout
 //! the application, including display modes, transmission modes, parity settings, etc.
 
-use serde::{Deserialize, Serialize};
+use std::borrow::Cow;
 
-use crate::i18n::t;
+use rust_i18n::t;
+use serde::{Deserialize, Serialize};
 
 /// Display mode for serial data
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -44,13 +45,13 @@ impl AppendMode {
     }
 
     /// Get the display name with i18n support
-    pub fn name(&self, lang: Language) -> &str {
+    pub fn name(&self) -> Cow<'static, str> {
         match self {
-            AppendMode::None => t("append.none", lang),
-            AppendMode::LF => t("append.lf", lang),
-            AppendMode::CR => t("append.cr", lang),
-            AppendMode::CRLF => t("append.crlf", lang),
-            AppendMode::LFCR => t("append.lfcr", lang),
+            AppendMode::None => t!("append.none"),
+            AppendMode::LF => t!("append.lf"),
+            AppendMode::CR => t!("append.cr"),
+            AppendMode::CRLF => t!("append.crlf"),
+            AppendMode::LFCR => t!("append.lfcr"),
         }
     }
 
@@ -111,6 +112,14 @@ impl Language {
         match self {
             Language::English => "English",
             Language::Chinese => "中文",
+        }
+    }
+
+    /// Get the BCP 47 language code used by rust-i18n
+    pub fn code(&self) -> &'static str {
+        match self {
+            Language::English => "en",
+            Language::Chinese => "zh-CN",
         }
     }
 }

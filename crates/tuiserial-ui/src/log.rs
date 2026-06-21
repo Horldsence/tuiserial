@@ -9,7 +9,8 @@ use ratatui::{
     widgets::{Block, Borders, Paragraph},
     Frame,
 };
-use tuiserial_core::{i18n::t, AppState, DisplayMode, FocusedField, LogDirection};
+use rust_i18n::t;
+use tuiserial_core::{AppState, DisplayMode, FocusedField, LogDirection};
 use tuiserial_serial::{bytes_to_hex, bytes_to_string};
 
 use crate::areas::{update_area, UiAreaField};
@@ -32,9 +33,9 @@ pub fn draw_log_area(f: &mut Frame, app: &AppState, area: Rect) {
 /// Draw empty log area with help text
 fn draw_empty_log(f: &mut Frame, app: &AppState, area: Rect, focused: bool) {
     let status_msg = if app.is_connected {
-        t("empty.connect_hint", app.language)
+        t!("empty.connect_hint")
     } else {
-        t("status.not_connected", app.language)
+        t!("status.not_connected")
     };
 
     let help_text = vec![
@@ -53,13 +54,13 @@ fn draw_empty_log(f: &mut Frame, app: &AppState, area: Rect, focused: bool) {
         Line::from(""),
         Line::from(""),
         Line::from(Span::styled(
-            t("shortcuts.title", app.language),
+            t!("shortcuts.title"),
             Style::default()
                 .fg(Color::Green)
                 .add_modifier(Modifier::BOLD),
         )),
         Line::from(""),
-        Line::from(format!("  {}", t("empty.shortcuts", app.language))),
+        Line::from(format!("  {}", t!("empty.shortcuts"))),
     ];
 
     let para = Paragraph::new(help_text)
@@ -75,10 +76,10 @@ fn draw_empty_log(f: &mut Frame, app: &AppState, area: Rect, focused: bool) {
                 })
                 .title(format!(
                     " {} - {} ",
-                    t("label.message", app.language),
+                    t!("label.message"),
                     match app.display_mode {
-                        DisplayMode::Hex => t("display.hex", app.language),
-                        DisplayMode::Text => t("display.text", app.language),
+                        DisplayMode::Hex => t!("display.hex"),
+                        DisplayMode::Text => t!("display.text"),
                     }
                 ))
                 .title_alignment(Alignment::Left),
@@ -94,8 +95,8 @@ fn draw_log_entries(f: &mut Frame, app: &AppState, area: Rect, focused: bool) {
 
     for entry in app.message_log.entries.iter() {
         let (time_color, dir_str, dir_icon) = match entry.direction {
-            LogDirection::Rx => (Color::Cyan, t("label.rx_count", app.language), "<"),
-            LogDirection::Tx => (Color::Green, t("label.tx_count", app.language), ">"),
+            LogDirection::Rx => (Color::Cyan, t!("label.rx_count"), "<"),
+            LogDirection::Tx => (Color::Green, t!("label.tx_count"), ">"),
         };
 
         let time_str = entry.timestamp.format("%H:%M:%S%.3f").to_string();
@@ -128,17 +129,17 @@ fn draw_log_entries(f: &mut Frame, app: &AppState, area: Rect, focused: bool) {
     }
 
     let display_mode_str = match app.display_mode {
-        DisplayMode::Hex => t("display.hex", app.language),
-        DisplayMode::Text => t("display.text", app.language),
+        DisplayMode::Hex => t!("display.hex"),
+        DisplayMode::Text => t!("display.text"),
     };
 
     let title = format!(
         " {} - {} | {} 条 [x {} | c {}] ",
-        t("label.message", app.language),
+        t!("label.message"),
         display_mode_str,
         app.message_log.entries.len(),
-        t("hint.toggle", app.language),
-        t("hint.clear", app.language)
+        t!("hint.toggle"),
+        t!("hint.clear")
     );
 
     let total_lines = lines.len() as u16;

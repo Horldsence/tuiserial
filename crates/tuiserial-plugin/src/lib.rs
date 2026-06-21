@@ -38,8 +38,12 @@
 
 pub mod git;
 pub mod manager;
+pub mod native;
+pub mod operations;
 pub mod registry;
 pub mod runtime;
+pub mod script;
+pub mod status;
 pub mod types;
 
 pub use manager::PluginManager;

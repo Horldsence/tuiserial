@@ -22,7 +22,9 @@ ratatui = { workspace = true }
 crossterm = { workspace = true }
 tokio = { workspace = true }
 color-eyre = { workspace = true }
+anyhow = { workspace = true }
 dirs = "6"
+rust-i18n = { workspace = true }
 
 [package.metadata.deb]
 maintainer = "pengheng <m18511047688@163.com>"

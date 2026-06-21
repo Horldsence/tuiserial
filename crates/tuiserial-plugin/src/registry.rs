@@ -71,7 +71,9 @@ pub fn scan_registry_git(cache_dir: &Path) -> Vec<RegistryEntry> {
             Err(_) => continue,
         };
 
-        let has_ep = contents.iter().any(|f| f == "plugin.ts" || f == "plugin.js");
+        let has_ep = contents
+            .iter()
+            .any(|f| f == "plugin.ts" || f == "plugin.js");
         if !has_ep {
             continue;
         }

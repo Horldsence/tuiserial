@@ -9,7 +9,8 @@ use ratatui::{
     widgets::{Block, Borders, List, ListItem, Paragraph},
     Frame,
 };
-use tuiserial_core::{i18n::t, AppState, FlowControl, FocusedField, Language, MenuState, Parity};
+use rust_i18n::t;
+use tuiserial_core::{AppState, FlowControl, FocusedField, Language, MenuState, Parity};
 
 use crate::areas::{update_area, UiAreaField};
 
@@ -25,16 +26,16 @@ pub fn draw_port_dropdown(f: &mut Frame, app: &AppState, area: Rect) {
 
     let lang = app.language;
     let title = if is_locked {
-        format!(" {} [{}] ", t("label.port", lang), t("label.locked", lang))
+        format!(" {} [{}] ", t!("label.port"), t!("label.locked"))
     } else if focused {
         format!(
             " {} [↑↓ {} | r {}] ",
-            t("label.port", lang),
-            t("hint.select", lang),
-            t("hint.refresh", lang)
+            t!("label.port"),
+            t!("hint.select"),
+            t!("hint.refresh")
         )
     } else {
-        format!(" {} ", t("label.port", lang))
+        format!(" {} ", t!("label.port"))
     };
 
     let style = if is_locked {
@@ -60,7 +61,7 @@ pub fn draw_port_dropdown(f: &mut Frame, app: &AppState, area: Rect) {
             } else {
                 "按"
             },
-            t("hint.refresh", lang)
+            t!("hint.refresh")
         );
         let para = Paragraph::new(empty_text)
             .block(
@@ -107,21 +108,20 @@ pub fn draw_baud_rate_dropdown(f: &mut Frame, app: &AppState, area: Rect) {
     let focused = app.focused_field == FocusedField::BaudRate && !menu_open;
     let is_locked = app.config_locked;
 
-    let lang = app.language;
     let title = if is_locked {
         format!(
             " {} [{}] ",
-            t("label.baud_rate", lang),
-            t("label.locked", lang)
+            t!("label.baud_rate"),
+            t!("label.locked")
         )
     } else if focused {
         format!(
             " {} [←→ {}] ",
-            t("label.baud_rate", lang),
-            t("hint.switch", lang)
+            t!("label.baud_rate"),
+            t!("hint.switch")
         )
     } else {
-        format!(" {} ", t("label.baud_rate", lang))
+        format!(" {} ", t!("label.baud_rate"))
     };
 
     let style = if is_locked {
@@ -167,21 +167,20 @@ pub fn draw_data_bits_dropdown(f: &mut Frame, app: &AppState, area: Rect) {
     let focused = app.focused_field == FocusedField::DataBits && !menu_open;
     let is_locked = app.config_locked;
 
-    let lang = app.language;
     let title = if is_locked {
         format!(
             " {} [{}] ",
-            t("label.data_bits", lang),
-            t("label.locked", lang)
+            t!("label.data_bits"),
+            t!("label.locked")
         )
     } else if focused {
         format!(
             " {} [↑↓ {}] ",
-            t("label.data_bits", lang),
-            t("hint.select", lang)
+            t!("label.data_bits"),
+            t!("hint.select")
         )
     } else {
-        format!(" {} ", t("label.data_bits", lang))
+        format!(" {} ", t!("label.data_bits"))
     };
 
     let style = if is_locked {
@@ -227,22 +226,21 @@ pub fn draw_parity_dropdown(f: &mut Frame, app: &AppState, area: Rect) {
     let focused = app.focused_field == FocusedField::Parity && !menu_open;
     let is_locked = app.config_locked;
 
-    let lang = app.language;
     let title = if is_locked {
         format!(
             " {} [{}] ",
-            t("label.parity", lang),
-            t("label.locked", lang)
+            t!("label.parity"),
+            t!("label.locked")
         )
     } else if focused {
         format!(
             " {} [↑↓ {} | p {}] ",
-            t("label.parity", lang),
-            t("hint.select", lang),
-            t("hint.toggle", lang)
+            t!("label.parity"),
+            t!("hint.select"),
+            t!("hint.toggle")
         )
     } else {
-        format!(" {} ", t("label.parity", lang))
+        format!(" {} ", t!("label.parity"))
     };
 
     let style = if is_locked {
@@ -260,9 +258,9 @@ pub fn draw_parity_dropdown(f: &mut Frame, app: &AppState, area: Rect) {
         .iter()
         .map(|p| {
             let text = match p {
-                Parity::None => t("parity.none", lang),
-                Parity::Even => t("parity.even", lang),
-                Parity::Odd => t("parity.odd", lang),
+                Parity::None => t!("parity.none"),
+                Parity::Even => t!("parity.even"),
+                Parity::Odd => t!("parity.odd"),
             };
             ListItem::new(text)
         })
@@ -295,21 +293,20 @@ pub fn draw_stop_bits_dropdown(f: &mut Frame, app: &AppState, area: Rect) {
     let focused = app.focused_field == FocusedField::StopBits && !menu_open;
     let is_locked = app.config_locked;
 
-    let lang = app.language;
     let title = if is_locked {
         format!(
             " {} [{}] ",
-            t("label.stop_bits", lang),
-            t("label.locked", lang)
+            t!("label.stop_bits"),
+            t!("label.locked")
         )
     } else if focused {
         format!(
             " {} [↑↓ {}] ",
-            t("label.stop_bits", lang),
-            t("hint.select", lang)
+            t!("label.stop_bits"),
+            t!("hint.select")
         )
     } else {
-        format!(" {} ", t("label.stop_bits", lang))
+        format!(" {} ", t!("label.stop_bits"))
     };
 
     let style = if is_locked {
@@ -355,22 +352,21 @@ pub fn draw_flow_control_dropdown(f: &mut Frame, app: &AppState, area: Rect) {
     let focused = app.focused_field == FocusedField::FlowControl && !menu_open;
     let is_locked = app.config_locked;
 
-    let lang = app.language;
     let title = if is_locked {
         format!(
             " {} [{}] ",
-            t("label.flow_control", lang),
-            t("label.locked", lang)
+            t!("label.flow_control"),
+            t!("label.locked")
         )
     } else if focused {
         format!(
             " {} [↑↓ {} | f {}] ",
-            t("label.flow_control", lang),
-            t("hint.select", lang),
-            t("hint.toggle", lang)
+            t!("label.flow_control"),
+            t!("hint.select"),
+            t!("hint.toggle")
         )
     } else {
-        format!(" {} ", t("label.flow_control", lang))
+        format!(" {} ", t!("label.flow_control"))
     };
 
     let style = if is_locked {

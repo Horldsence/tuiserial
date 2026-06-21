@@ -202,8 +202,11 @@ impl SerialSession {
             TxMode::Hex => {
                 // HEX → ASCII: parse hex pairs into bytes, convert to string
                 if !self.tx_input.is_empty() {
-                    let cleaned: String =
-                        self.tx_input.chars().filter(|c| !c.is_whitespace()).collect();
+                    let cleaned: String = self
+                        .tx_input
+                        .chars()
+                        .filter(|c| !c.is_whitespace())
+                        .collect();
                     if cleaned.len().is_multiple_of(2)
                         && cleaned.chars().all(|c| c.is_ascii_hexdigit())
                     {

@@ -57,10 +57,7 @@ pub fn handle_paste_event(data: &str, app: &mut AppState) {
     }
 
     if app.tx_mode == TxMode::Hex {
-        let hex_only: String = data
-            .chars()
-            .filter(|c| c.is_ascii_hexdigit())
-            .collect();
+        let hex_only: String = data.chars().filter(|c| c.is_ascii_hexdigit()).collect();
         if !hex_only.is_empty() {
             let byte_idx = app
                 .tx_input

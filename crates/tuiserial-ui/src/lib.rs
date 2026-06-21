@@ -36,6 +36,10 @@ mod status;
 mod tx;
 mod utils;
 
+use rust_i18n::i18n;
+
+i18n!("../../locales");
+
 // Re-exports for external use
 pub use areas::{
     get_clicked_field, get_clicked_menu, get_clicked_tab, get_ui_areas, is_inside,
@@ -76,19 +80,19 @@ pub fn draw(f: &mut Frame, app: &AppState) {
     notification::draw_notification_bar(f, app, chunks[2]);
 
     // Render shortcuts hint bar
-    shortcuts::draw_shortcuts_hint(f, chunks[3], app.language);
+    shortcuts::draw_shortcuts_hint(f, chunks[3]);
 
     // Render menu bar (without dropdown)
     menu::draw_menu_bar(f, app, chunks[0]);
 
     // Render dropdown last to ensure it's on top
     if let MenuState::Dropdown(menu_idx, item_idx) = app.menu_state {
-        menu::draw_menu_dropdown(f, app, chunks[0], menu_idx, item_idx);
+        menu::draw_menu_dropdown(f, chunks[0], menu_idx, item_idx);
     }
 
     // Render shortcuts help overlay if active (on top of everything)
     if app.show_shortcuts_help {
-        shortcuts::draw_shortcuts_help(f, app.language);
+        shortcuts::draw_shortcuts_help(f);
     }
 
     // Render plugin manager modal if active (on top of everything)

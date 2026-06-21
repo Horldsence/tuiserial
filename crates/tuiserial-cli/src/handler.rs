@@ -15,14 +15,10 @@ impl SerialHandler {
     }
 
     /// Connect to the serial port using the current configuration
-    pub fn connect(&mut self, app: &AppState) -> Result<(), String> {
-        match tuiserial_serial::open_port(&app.config) {
-            Ok(port) => {
-                self.port = Some(port);
-                Ok(())
-            }
-            Err(e) => Err(e),
-        }
+    pub fn connect(&mut self, app: &AppState) -> Result<(), SerialError> {
+        let port = tuiserial_serial::open_port(&app.config)?;
+        self.port = Some(port);
+        Ok(())
     }
 
     /// Disconnect from the serial port

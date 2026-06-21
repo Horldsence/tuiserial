@@ -40,7 +40,7 @@ pub fn list_ports() -> Vec<String> {
 }
 
 /// Open a serial port with the given configuration
-pub fn open_port(config: &SerialConfig) -> Result<Box<dyn SerialPort>, String> {
+pub fn open_port(config: &SerialConfig) -> Result<Box<dyn SerialPort>, SerialError> {
     serialport::new(&config.port, config.baud_rate)
         .timeout(Duration::from_millis(10))
         .data_bits(match config.data_bits {
@@ -65,7 +65,7 @@ pub fn open_port(config: &SerialConfig) -> Result<Box<dyn SerialPort>, String> {
             FlowControl::None => serialport::FlowControl::None,
         })
         .open_native()
-        .map_err(|e| format!("Failed to open port: {}", e))
+        .map_err(SerialError::PortOpen)
         .map(|p| Box::new(p) as Box<dyn SerialPort>)
 }
 

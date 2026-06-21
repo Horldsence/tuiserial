@@ -6,7 +6,7 @@
 //! Following Linus's principle: "Bad programmers worry about the code.
 //! Good programmers worry about data structures."
 
-use crate::Language;
+use rust_i18n::t;
 
 /// Calculate display width of a string (handles CJK characters)
 ///
@@ -226,34 +226,34 @@ const ALL_MENUS: &[Menu] = &[
 pub const MENU_BAR: MenuBar = MenuBar { menus: ALL_MENUS };
 
 /// Calculate x offset for a menu in the menu bar
-pub fn calculate_menu_x_offset(menu_index: usize, lang: Language) -> u16 {
-    use crate::i18n::t;
-
+pub fn calculate_menu_x_offset(menu_index: usize) -> u16 {
     let mut offset = 0u16;
     for i in 0..menu_index.min(MENU_BAR.menu_count()) {
         if let Some(label_key) = MENU_BAR.get_menu_label_key(i) {
-            let label = t(label_key, lang);
+            let label = t!(label_key);
             // Each menu has format " Label " (label + 2 spaces for padding + 2 spaces between menus)
-            offset += display_width(label) as u16 + 4;
+            offset += display_width(&label) as u16 + 4;
         }
     }
     offset
 }
 
 /// Find which menu was clicked based on x position
-pub fn find_clicked_menu(x: u16, lang: Language) -> Option<usize> {
-    use crate::i18n::t;
-
+pub fn find_clicked_menu(x: u16) -> Option<usize> {
     let mut current_x = 0u16;
-    for (i, menu) in MENU_BAR.menus.iter().enumerate() {
-        let label = t(menu.label_key, lang);
-        let menu_width = display_width(label) as u16 + 2; // " Label "
+    for (i, _menu) in MENU_BAR.menus.iter().enumerate() {
+        let label = if let Some(label_key) = MENU_BAR.get_menu_label_key(i) {
+            t!(label_key)
+        } else {
+            continue;
+        };
+        let menu_width = display_width(&label) as u16 + 4; // "  Label  " (2 spaces padding + 2 spaces between menus)
 
         if x >= current_x && x < current_x + menu_width {
             return Some(i);
         }
 
-        current_x += menu_width + 2; // +2 for spacing between menus
+        current_x += menu_width;
     }
     None
 }

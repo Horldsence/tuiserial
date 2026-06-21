@@ -10,10 +10,10 @@ use ratatui::{
     widgets::{Block, Borders, Clear, Paragraph, Wrap},
     Frame,
 };
-use tuiserial_core::{i18n::t, Language};
+use rust_i18n::t;
 
 /// Draw the keyboard shortcuts help overlay
-pub fn draw_shortcuts_help(f: &mut Frame, lang: Language) {
+pub fn draw_shortcuts_help(f: &mut Frame) {
     let area = f.area();
 
     // Calculate centered position
@@ -36,7 +36,7 @@ pub fn draw_shortcuts_help(f: &mut Frame, lang: Language) {
     let lines = vec![
         Line::from(""),
         Line::from(vec![Span::styled(
-            t("shortcuts.session", lang),
+            t!("shortcuts.session"),
             Style::default()
                 .fg(Color::Cyan)
                 .add_modifier(Modifier::BOLD),
@@ -45,40 +45,44 @@ pub fn draw_shortcuts_help(f: &mut Frame, lang: Language) {
             Span::styled("  Ctrl+T", Style::default().fg(Color::Yellow)),
             Span::raw("          "),
             Span::raw(
-                t("shortcuts.new_session", lang)
+                t!("shortcuts.new_session")
                     .split(':')
                     .nth(1)
-                    .unwrap_or("New Session"),
+                    .unwrap_or("New Session")
+                    .to_string(),
             ),
         ]),
         Line::from(vec![
             Span::styled("  Ctrl+W", Style::default().fg(Color::Yellow)),
             Span::raw("          "),
             Span::raw(
-                t("shortcuts.close_session", lang)
+                t!("shortcuts.close_session")
                     .split(':')
                     .nth(1)
-                    .unwrap_or("Close Session"),
+                    .unwrap_or("Close Session")
+                    .to_string(),
             ),
         ]),
         Line::from(vec![
             Span::styled("  Ctrl+Tab", Style::default().fg(Color::Yellow)),
             Span::raw("        "),
             Span::raw(
-                t("shortcuts.next_session", lang)
+                t!("shortcuts.next_session")
                     .split(':')
                     .nth(1)
-                    .unwrap_or("Next Session"),
+                    .unwrap_or("Next Session")
+                    .to_string(),
             ),
         ]),
         Line::from(vec![
             Span::styled("  Ctrl+Shift+Tab", Style::default().fg(Color::Yellow)),
             Span::raw("  "),
             Span::raw(
-                t("shortcuts.prev_session", lang)
+                t!("shortcuts.prev_session")
                     .split(':')
                     .nth(1)
-                    .unwrap_or("Previous Session"),
+                    .unwrap_or("Previous Session")
+                    .to_string(),
             ),
         ]),
         Line::from(vec![
@@ -90,15 +94,16 @@ pub fn draw_shortcuts_help(f: &mut Frame, lang: Language) {
             Span::styled("  Ctrl+1~9", Style::default().fg(Color::Yellow)),
             Span::raw("        "),
             Span::raw(
-                t("shortcuts.switch_1_9", lang)
+                t!("shortcuts.switch_1_9")
                     .split(':')
                     .nth(1)
-                    .unwrap_or("Switch to session"),
+                    .unwrap_or("Switch to session")
+                    .to_string(),
             ),
         ]),
         Line::from(""),
         Line::from(vec![Span::styled(
-            t("shortcuts.layout", lang),
+            t!("shortcuts.layout"),
             Style::default()
                 .fg(Color::Cyan)
                 .add_modifier(Modifier::BOLD),
@@ -107,55 +112,60 @@ pub fn draw_shortcuts_help(f: &mut Frame, lang: Language) {
             Span::styled("  Ctrl+L", Style::default().fg(Color::Yellow)),
             Span::raw("          "),
             Span::raw(
-                t("shortcuts.cycle_layout", lang)
+                t!("shortcuts.cycle_layout")
                     .split(':')
                     .nth(1)
-                    .unwrap_or("Cycle layout mode"),
+                    .unwrap_or("Cycle layout mode")
+                    .to_string(),
             ),
         ]),
         Line::from(vec![
             Span::styled("  Ctrl+Shift+L", Style::default().fg(Color::Yellow)),
             Span::raw("    "),
             Span::raw(
-                t("shortcuts.prev_layout", lang)
+                t!("shortcuts.prev_layout")
                     .split(':')
                     .nth(1)
-                    .unwrap_or("Previous layout"),
+                    .unwrap_or("Previous layout")
+                    .to_string(),
             ),
         ]),
         Line::from(vec![
             Span::styled("  Ctrl+P", Style::default().fg(Color::Yellow)),
             Span::raw("          "),
             Span::raw(
-                t("shortcuts.next_pane", lang)
+                t!("shortcuts.next_pane")
                     .split(':')
                     .nth(1)
-                    .unwrap_or("Focus next pane"),
+                    .unwrap_or("Focus next pane")
+                    .to_string(),
             ),
         ]),
         Line::from(vec![
             Span::styled("  Ctrl+Shift+P", Style::default().fg(Color::Yellow)),
             Span::raw("    "),
             Span::raw(
-                t("shortcuts.prev_pane_key", lang)
+                t!("shortcuts.prev_pane_key")
                     .split(':')
                     .nth(1)
-                    .unwrap_or("Focus previous pane"),
+                    .unwrap_or("Focus previous pane")
+                    .to_string(),
             ),
         ]),
         Line::from(vec![
             Span::styled("  Ctrl+N", Style::default().fg(Color::Yellow)),
             Span::raw("          "),
             Span::raw(
-                t("shortcuts.cycle_pane_session", lang)
+                t!("shortcuts.cycle_pane_session")
                     .split(':')
                     .nth(1)
-                    .unwrap_or("Cycle session in pane"),
+                    .unwrap_or("Cycle session in pane")
+                    .to_string(),
             ),
         ]),
         Line::from(""),
         Line::from(vec![Span::styled(
-            t("shortcuts.general", lang),
+            t!("shortcuts.general"),
             Style::default()
                 .fg(Color::Cyan)
                 .add_modifier(Modifier::BOLD),
@@ -164,20 +174,22 @@ pub fn draw_shortcuts_help(f: &mut Frame, lang: Language) {
             Span::styled("  Tab", Style::default().fg(Color::Yellow)),
             Span::raw("             "),
             Span::raw(
-                t("shortcuts.tab", lang)
+                t!("shortcuts.tab")
                     .split(':')
                     .nth(1)
-                    .unwrap_or("Next field"),
+                    .unwrap_or("Next field")
+                    .to_string(),
             ),
         ]),
         Line::from(vec![
             Span::styled("  Shift+Tab", Style::default().fg(Color::Yellow)),
             Span::raw("       "),
             Span::raw(
-                t("shortcuts.shift_tab", lang)
+                t!("shortcuts.shift_tab")
                     .split(':')
                     .nth(1)
-                    .unwrap_or("Previous field"),
+                    .unwrap_or("Previous field")
+                    .to_string(),
             ),
         ]),
         Line::from(vec![
@@ -228,7 +240,7 @@ pub fn draw_shortcuts_help(f: &mut Frame, lang: Language) {
                 .title(vec![
                     Span::raw(" "),
                     Span::styled(
-                        t("shortcuts.title", lang),
+                        t!("shortcuts.title"),
                         Style::default().add_modifier(Modifier::BOLD),
                     ),
                     Span::raw(" "),
@@ -242,7 +254,7 @@ pub fn draw_shortcuts_help(f: &mut Frame, lang: Language) {
 }
 
 /// Draw a compact shortcuts hint bar
-pub fn draw_shortcuts_hint(f: &mut Frame, area: Rect, _lang: Language) {
+pub fn draw_shortcuts_hint(f: &mut Frame, area: Rect) {
     let hints = vec![
         ("F10", "Menu"),
         ("P", "Plugins"),

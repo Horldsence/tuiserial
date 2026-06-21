@@ -1,0 +1,591 @@
+_version: 2
+
+# ── Menu bar ────────────────────────────────────────────
+menu.file:
+  en: File
+  zh-CN: 文件
+menu.session:
+  en: Session
+  zh-CN: 会话
+menu.view:
+  en: View
+  zh-CN: 视图
+menu.settings:
+  en: Settings
+  zh-CN: 设置
+menu.help:
+  en: Help
+  zh-CN: 帮助
+
+# ── File menu items ─────────────────────────────────────
+menu.file.save_config:
+  en: Save Config
+  zh-CN: 保存配置
+menu.file.load_config:
+  en: Load Config
+  zh-CN: 加载配置
+menu.file.exit:
+  en: Exit
+  zh-CN: 退出
+
+# ── Session menu items ──────────────────────────────────
+menu.session.new:
+  en: New Session
+  zh-CN: 新建会话
+menu.session.duplicate:
+  en: Duplicate Session
+  zh-CN: 复制会话
+menu.session.rename:
+  en: Rename Session
+  zh-CN: 重命名会话
+menu.session.close:
+  en: Close Session
+  zh-CN: 关闭会话
+
+# ── View menu items ─────────────────────────────────────
+menu.view.single:
+  en: Single View
+  zh-CN: 单视图
+menu.view.split_h:
+  en: Split Horizontal
+  zh-CN: 水平分割
+menu.view.split_v:
+  en: Split Vertical
+  zh-CN: 垂直分割
+menu.view.grid_2x2:
+  en: Grid 2×2
+  zh-CN: 2×2 网格
+menu.view.next_pane:
+  en: Next Pane
+  zh-CN: 下一个窗格
+menu.view.prev_pane:
+  en: Previous Pane
+  zh-CN: 上一个窗格
+
+# ── Settings menu items ─────────────────────────────────
+menu.settings.language:
+  en: Language
+  zh-CN: 语言
+menu.settings.toggle_language:
+  en: Toggle Language
+  zh-CN: 切换语言
+
+# ── Plugins menu items ──────────────────────────────────
+menu.plugins:
+  en: Plugins
+  zh-CN: 插件
+menu.plugins.install:
+  en: Install from Registry
+  zh-CN: 从注册表安装
+menu.plugins.check_update:
+  en: Check for Updates
+  zh-CN: 检查更新
+menu.plugins.update_all:
+  en: Update All
+  zh-CN: 更新全部
+menu.plugins.reload:
+  en: Reload Plugins
+  zh-CN: 重新加载插件
+menu.plugins.list:
+  en: Plugin List
+  zh-CN: 插件列表
+menu.plugins.manager:
+  en: Plugin Manager
+  zh-CN: 插件管理器
+
+# ── Help menu items ─────────────────────────────────────
+menu.help.shortcuts:
+  en: Keyboard Shortcuts
+  zh-CN: 键盘快捷键
+menu.help.about:
+  en: About
+  zh-CN: 关于
+
+# ── UI labels ───────────────────────────────────────────
+label.port:
+  en: Port
+  zh-CN: 串口
+label.baud_rate:
+  en: Baud Rate
+  zh-CN: 波特率
+label.data_bits:
+  en: Data Bits
+  zh-CN: 数据位
+label.parity:
+  en: Parity
+  zh-CN: 校验位
+label.stop_bits:
+  en: Stop Bits
+  zh-CN: 停止位
+label.flow_control:
+  en: Flow Control
+  zh-CN: 流控制
+label.display_mode:
+  en: Display Mode
+  zh-CN: 显示模式
+label.tx_mode:
+  en: TX Mode
+  zh-CN: 发送模式
+label.append_mode:
+  en: Append
+  zh-CN: 追加
+label.rx_count:
+  en: RX
+  zh-CN: 接收
+label.tx_count:
+  en: TX
+  zh-CN: 发送
+label.message:
+  en: Message
+  zh-CN: 消息
+label.locked:
+  en: Locked
+  zh-CN: 已锁定
+label.status:
+  en: Status
+  zh-CN: 状态信息
+label.statistics:
+  en: Statistics
+  zh-CN: 统计信息
+label.send:
+  en: Send
+  zh-CN: 发送
+label.input_prompt:
+  en: Input data...
+  zh-CN: 输入数据...
+
+# ── Status ──────────────────────────────────────────────
+status.connected:
+  en: Connected
+  zh-CN: 已连接
+status.disconnected:
+  en: Disconnected
+  zh-CN: 未连接
+status.modifiable:
+  en: Modifiable
+  zh-CN: 可修改
+status.locked:
+  en: Locked
+  zh-CN: 已锁定
+status.not_connected:
+  en: Not connected - press o to connect
+  zh-CN: 未连接 - 请按 o 打开串口连接
+
+# ── Parity values ───────────────────────────────────────
+parity.none:
+  en: None
+  zh-CN: 无
+parity.even:
+  en: Even
+  zh-CN: 偶
+parity.odd:
+  en: Odd
+  zh-CN: 奇
+
+# ── Flow control values ─────────────────────────────────
+flow.none:
+  en: None
+  zh-CN: 无
+flow.hardware:
+  en: Hardware
+  zh-CN: 硬件
+flow.software:
+  en: Software
+  zh-CN: 软件
+
+# ── Display mode ────────────────────────────────────────
+display.hex:
+  en: HEX
+  zh-CN: HEX
+display.text:
+  en: TEXT
+  zh-CN: TEXT
+
+# ── TX mode ─────────────────────────────────────────────
+tx.hex:
+  en: HEX
+  zh-CN: HEX
+tx.ascii:
+  en: ASCII
+  zh-CN: ASCII
+
+# ── Append mode ─────────────────────────────────────────
+append.none:
+  en: None
+  zh-CN: 无追加
+append.lf:
+  en: \n
+  zh-CN: \n
+append.cr:
+  en: \r
+  zh-CN: \r
+append.crlf:
+  en: \r\n
+  zh-CN: \r\n
+append.lfcr:
+  en: \n\r
+  zh-CN: \n\r
+
+# ── Button labels ───────────────────────────────────────
+button.connect:
+  en: Connect
+  zh-CN: 连接
+button.disconnect:
+  en: Disconnect
+  zh-CN: 断开
+button.clear:
+  en: Clear
+  zh-CN: 清空
+button.send:
+  en: Send
+  zh-CN: 发送
+
+# ── Hints ───────────────────────────────────────────────
+hint.select:
+  en: Select
+  zh-CN: 选择
+hint.refresh:
+  en: Refresh
+  zh-CN: 刷新
+hint.switch:
+  en: Switch
+  zh-CN: 切换
+hint.clear:
+  en: Clear
+  zh-CN: 清空
+hint.toggle:
+  en: Toggle
+  zh-CN: 切换
+hint.scroll:
+  en: Scroll
+  zh-CN: 滚动浏览
+hint.quit:
+  en: Quit
+  zh-CN: 退出
+hint.exit:
+  en: Exit
+  zh-CN: 退出
+hint.auto_scroll:
+  en: Auto Scroll
+  zh-CN: 自动滚动
+
+# ── Notifications ───────────────────────────────────────
+notify.config_saved:
+  en: Configuration saved
+  zh-CN: 配置已保存
+notify.config_loaded:
+  en: Configuration loaded
+  zh-CN: 配置已加载
+notify.config_save_failed:
+  en: Failed to save configuration
+  zh-CN: 保存配置失败
+notify.config_load_failed:
+  en: Failed to load configuration
+  zh-CN: 加载配置失败
+notify.language_changed:
+  en: Language changed
+  zh-CN: 语言已切换
+notify.connected:
+  en: Connected
+  zh-CN: 已连接
+notify.disconnected:
+  en: Disconnected
+  zh-CN: 已断开
+notify.connection_failed:
+  en: Connection failed
+  zh-CN: 连接失败
+notify.config_locked_warning:
+  en: Config locked, please disconnect first
+  zh-CN: 配置已锁定，请先断开连接
+notify.port_selected:
+  en: Port selected
+  zh-CN: 选择串口
+notify.send_success:
+  en: Sent
+  zh-CN: 已发送
+notify.send_failed:
+  en: Send failed
+  zh-CN: 发送失败
+notify.hex_format_error:
+  en: HEX format error
+  zh-CN: HEX 格式错误
+notify.not_connected:
+  en: Not connected
+  zh-CN: 未连接串口
+notify.input_empty:
+  en: Input is empty
+  zh-CN: 输入内容为空
+notify.ports_refreshed:
+  en: Ports refreshed
+  zh-CN: 已刷新串口列表
+notify.display_mode:
+  en: Display mode
+  zh-CN: 显示模式
+notify.tx_mode:
+  en: TX mode
+  zh-CN: 发送模式
+notify.append_mode:
+  en: Append
+  zh-CN: 追加
+notify.disconnected_unlocked:
+  en: Disconnected, config unlocked
+  zh-CN: 已断开连接，配置已解锁
+notify.please_select_port:
+  en: Please select a port first
+  zh-CN: 请先选择串口
+notify.connected_locked:
+  en: "Connected: %{port} (config locked)"
+  zh-CN: "已连接: %{port} (配置已锁定)"
+notify.parity:
+  en: Parity
+  zh-CN: 校验位
+notify.flow_control:
+  en: Flow control
+  zh-CN: 流控
+notify.log_cleared:
+  en: Log cleared
+  zh-CN: 已清空消息记录
+notify.toggle_display_mode:
+  en: Display mode toggled
+  zh-CN: 切换显示模式
+notify.auto_scroll:
+  en: Auto scroll
+  zh-CN: 自动滚动
+notify.enabled:
+  en: Enabled
+  zh-CN: 启用
+notify.disabled:
+  en: Disabled
+  zh-CN: 禁用
+notify.plugin_disabled:
+  en: Plugin is Disabled. Please add plugin feature to use plugin
+  zh-CN: 插件被禁用。请启用 Plugin Feature 以使用插件功能
+notify.plugins_loaded:
+  en: "%{count} plugin(s) loaded"
+  zh-CN: "已加载 %{count} 个插件"
+notify.plugins_reloaded:
+  en: Plugins reloaded
+  zh-CN: 插件已重新加载
+notify.plugin_error:
+  en: Plugin error
+  zh-CN: 插件错误
+notify.plugin_installed:
+  en: "Plugin '%{name}' installed — use Reload to activate"
+  zh-CN: "插件 '%{name}' 已安装 — 请使用重新加载激活"
+notify.plugin_install_failed:
+  en: "Install failed: %{error}"
+  zh-CN: "安装失败: %{error}"
+notify.plugin_checking:
+  en: Checking for updates...
+  zh-CN: 正在检查更新...
+notify.plugin_up_to_date:
+  en: All plugins up to date
+  zh-CN: 所有插件已是最新
+notify.plugin_update_available:
+  en: "%{name} has update: %{current} → %{latest}"
+  zh-CN: "%{name} 有更新: %{current} → %{latest}"
+notify.plugin_updated:
+  en: "%{name} updated successfully"
+  zh-CN: "%{name} 已更新"
+notify.plugin_update_failed:
+  en: "Update failed: %{error}"
+  zh-CN: "更新失败: %{error}"
+notify.plugin_all_updated:
+  en: "%{count} plugin(s) updated"
+  zh-CN: "已更新 %{count} 个插件"
+notify.plugin_registry_empty:
+  en: No plugins available in registry
+  zh-CN: 注册表中没有可用插件
+notify.plugin_git_missing:
+  en: Git is not available — install git to manage plugins
+  zh-CN: Git 不可用 — 请安装 git 以管理插件
+
+# ── Plugin modal ────────────────────────────────────────
+plugin.modal.title:
+  en: Plugin Manager
+  zh-CN: 插件管理器
+plugin.modal.status:
+  en: Status
+  zh-CN: 状态
+plugin.modal.name:
+  en: Plugin
+  zh-CN: 插件
+plugin.modal.hooks:
+  en: Hooks
+  zh-CN: 钩子
+plugin.modal.error:
+  en: Error
+  zh-CN: 错误
+plugin.modal.no_plugins:
+  en: No plugins installed
+  zh-CN: 未安装插件
+plugin.modal.hint_close:
+  en: "Esc/Q: Close"
+  zh-CN: "Esc/Q: 关闭"
+plugin.modal.hint_reload:
+  en: "R: Reload All"
+  zh-CN: "R: 重新加载"
+plugin.modal.hint_navigate:
+  en: "↑↓: Navigate"
+  zh-CN: "↑↓: 导航"
+plugin.modal.hint_install:
+  en: "Enter: Install"
+  zh-CN: "Enter: 安装"
+plugin.modal.hint_back:
+  en: "Esc: Back"
+  zh-CN: "Esc: 返回"
+plugin.registry.title:
+  en: Plugin Registry
+  zh-CN: 插件市场
+plugin.registry.search_placeholder:
+  en: Type to search...
+  zh-CN: 输入以搜索...
+plugin.registry.hint_search:
+  en: Type to search
+  zh-CN: 输入搜索
+plugin.registry.hint_install:
+  en: "Enter: Install"
+  zh-CN: "Enter: 安装"
+plugin.registry.hint_back:
+  en: "Esc: Back"
+  zh-CN: "Esc: 返回"
+plugin.registry.loading:
+  en: Fetching registry...
+  zh-CN: 正在获取插件列表...
+plugin.registry.empty:
+  en: No matching plugins
+  zh-CN: 无匹配插件
+plugin.registry.installed:
+  en: "✓ Installed"
+  zh-CN: "✓ 已安装"
+plugin.status.loading:
+  en: Loading…
+  zh-CN: 加载中…
+plugin.status.loaded:
+  en: Loaded
+  zh-CN: 已加载
+plugin.status.error:
+  en: Error
+  zh-CN: 错误
+plugin.status.disabled:
+  en: Disabled
+  zh-CN: 已禁用
+plugin.hook.rx:
+  en: RX
+  zh-CN: RX
+plugin.hook.tx:
+  en: TX
+  zh-CN: TX
+plugin.hook.connect:
+  en: CN
+  zh-CN: CN
+plugin.hook.disconnect:
+  en: DC
+  zh-CN: DC
+plugin.hook.none:
+  en: "—"
+  zh-CN: "—"
+
+# ── Plugin status bar ───────────────────────────────────
+plugin.bar.loaded:
+  en: Plugins
+  zh-CN: 插件
+plugin.bar.none:
+  en: No plugins
+  zh-CN: 无插件
+
+# ── Help text ───────────────────────────────────────────
+help.f10:
+  en: "F10: Menu"
+  zh-CN: "F10: 菜单"
+help.tab:
+  en: "Tab: Next Field"
+  zh-CN: "Tab: 下一个字段"
+help.shift_tab:
+  en: "Shift+Tab: Prev Field"
+  zh-CN: "Shift+Tab: 上一个字段"
+help.esc:
+  en: "Esc: Cancel/Close"
+  zh-CN: "Esc: 取消/关闭"
+help.enter:
+  en: "Enter: Select/Send"
+  zh-CN: "Enter: 选择/发送"
+
+# ── Keyboard shortcuts ──────────────────────────────────
+shortcuts.title:
+  en: Keyboard Shortcuts
+  zh-CN: 键盘快捷键
+shortcuts.session:
+  en: "Session Management:"
+  zh-CN: "会话管理："
+shortcuts.new_session:
+  en: "Ctrl+T: New Session"
+  zh-CN: "Ctrl+T: 新建会话"
+shortcuts.close_session:
+  en: "Ctrl+W: Close Session"
+  zh-CN: "Ctrl+W: 关闭会话"
+shortcuts.next_session:
+  en: "Ctrl+Tab / Ctrl+→: Next Session"
+  zh-CN: "Ctrl+Tab / Ctrl+→: 下一个会话"
+shortcuts.prev_session:
+  en: "Ctrl+Shift+Tab / Ctrl+←: Previous Session"
+  zh-CN: "Ctrl+Shift+Tab / Ctrl+←: 上一个会话"
+shortcuts.switch_1_9:
+  en: "Ctrl+1~9: Switch to Session 1~9"
+  zh-CN: "Ctrl+1~9: 切换到会话 1~9"
+shortcuts.layout:
+  en: "Layout Management:"
+  zh-CN: "布局管理："
+shortcuts.cycle_layout:
+  en: "Ctrl+L: Cycle Layout Mode"
+  zh-CN: "Ctrl+L: 切换布局模式"
+shortcuts.prev_layout:
+  en: "Ctrl+Shift+L: Previous Layout"
+  zh-CN: "Ctrl+Shift+L: 上一个布局"
+shortcuts.next_pane:
+  en: "Ctrl+P: Focus Next Pane"
+  zh-CN: "Ctrl+P: 聚焦下一个窗格"
+shortcuts.prev_pane_key:
+  en: "Ctrl+Shift+P: Focus Previous Pane"
+  zh-CN: "Ctrl+Shift+P: 聚焦上一个窗格"
+shortcuts.cycle_pane_session:
+  en: "Ctrl+N: Cycle Session in Pane"
+  zh-CN: "Ctrl+N: 切换窗格会话"
+shortcuts.general:
+  en: "General:"
+  zh-CN: "常规："
+shortcuts.tab:
+  en: "Tab: Next Field"
+  zh-CN: "Tab: 下一个字段"
+shortcuts.shift_tab:
+  en: "Shift+Tab: Previous Field"
+  zh-CN: "Shift+Tab: 上一个字段"
+shortcuts.connect:
+  en: "O: Connect/Disconnect"
+  zh-CN: "O: 连接/断开"
+shortcuts.clear:
+  en: "C: Clear Log"
+  zh-CN: "C: 清空日志"
+shortcuts.display_mode:
+  en: "X: Toggle Display Mode"
+  zh-CN: "X: 切换显示模式"
+shortcuts.auto_scroll:
+  en: "A: Toggle Auto Scroll"
+  zh-CN: "A: 切换自动滚动"
+shortcuts.menu:
+  en: "F10: Open Menu"
+  zh-CN: "F10: 打开菜单"
+shortcuts.quit:
+  en: "Ctrl+C / Ctrl+Q: Quit"
+  zh-CN: "Ctrl+C / Ctrl+Q: 退出"
+
+# ── Empty state ─────────────────────────────────────────
+empty.no_messages:
+  en: No messages yet
+  zh-CN: 暂无消息
+empty.connect_hint:
+  en: Connect to start receiving data
+  zh-CN: 未连接 - 请按 o 打开串口连接
+empty.shortcuts:
+  en: "x - Toggle display | c - Clear | a - Auto scroll"
+  zh-CN: "x - 切换 HEX/TEXT 显示模式 | c - 清空消息日志 | a - 自动滚动开关"
