@@ -7,16 +7,16 @@
 //! Registry view lives in the sibling [`super::plugin_registry`] module.
 
 use ratatui::{
+    Frame,
     layout::{Alignment, Rect},
     style::{Color, Modifier, Style},
     text::{Line, Span},
     widgets::{Block, Borders, Clear, Paragraph, Row, Table, TableState},
-    Frame,
 };
 use rust_i18n::t;
 use tuiserial_core::{AppState, PluginLoadState, PluginModalMode};
 
-use crate::areas::{update_area, UiAreaField};
+use crate::areas::{UiAreaField, update_area};
 
 /// Draw the plugin manager modal overlay.
 ///
@@ -115,7 +115,9 @@ fn draw_local_table(f: &mut Frame, app: &AppState, area: Rect) {
     let visible_rows = area.height.saturating_sub(header_height) as usize;
     let total = app.plugin_statuses.len();
 
-    let scroll = app.plugin_modal_scroll.min(total.saturating_sub(visible_rows.max(1)));
+    let scroll = app
+        .plugin_modal_scroll
+        .min(total.saturating_sub(visible_rows.max(1)));
 
     let mut table_state = TableState::default();
     if total > 0 {
@@ -138,7 +140,9 @@ fn draw_local_table(f: &mut Frame, app: &AppState, area: Rect) {
 
     let status_w = 8u16;
     let hooks_w = 16u16;
-    let error_w = area.width.saturating_sub(status_w + name_width as u16 + hooks_w + 6);
+    let error_w = area
+        .width
+        .saturating_sub(status_w + name_width as u16 + hooks_w + 6);
 
     let widths = [
         ratatui::layout::Constraint::Length(status_w),

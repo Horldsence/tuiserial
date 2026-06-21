@@ -50,11 +50,7 @@ pub fn handle_menu_action(
         MenuAction::SaveConfig => {
             match app.save_config() {
                 Ok(_) => app.add_success(t!("notify.config_saved").to_string()),
-                Err(e) => app.add_error(format!(
-                    "{}: {}",
-                    t!("notify.config_save_failed"),
-                    e
-                )),
+                Err(e) => app.add_error(format!("{}: {}", t!("notify.config_save_failed"), e)),
             }
             false
         }
@@ -123,11 +119,7 @@ pub fn handle_menu_action(
                 }
                 Err(e) => {
                     app.registry_loading = false;
-                    app.add_error(format!(
-                        "{}: {}",
-                        t!("notify.plugin_install_failed"),
-                        e
-                    ));
+                    app.add_error(format!("{}: {}", t!("notify.plugin_install_failed"), e));
                 }
             }
             false
@@ -153,18 +145,16 @@ pub fn handle_menu_action(
                         for s in &statuses {
                             if s.has_update {
                                 has_update = true;
-                                app.add_info(
-                                    t!("notify.plugin_update_available",
-                                        name = &s.name,
-                                        current = &s.current_commit,
-                                        latest = &s.latest_commit),
-                                );
+                                app.add_info(t!(
+                                    "notify.plugin_update_available",
+                                    name = &s.name,
+                                    current = &s.current_commit,
+                                    latest = &s.latest_commit
+                                ));
                             }
                         }
                         if !has_update {
-                            app.add_success(
-                                t!("notify.plugin_up_to_date").to_string(),
-                            );
+                            app.add_success(t!("notify.plugin_up_to_date").to_string());
                         }
                     }
                 }
@@ -185,14 +175,10 @@ pub fn handle_menu_action(
             }
             let (updated, errors) = plugin_manager.update_all();
             if updated > 0 {
-                app.add_success(
-                    t!("notify.plugin_all_updated", count = updated),
-                );
+                app.add_success(t!("notify.plugin_all_updated", count = updated));
             }
             for err in &errors {
-                app.add_error(
-                    t!("notify.plugin_update_failed", error = err),
-                );
+                app.add_error(t!("notify.plugin_update_failed", error = err));
             }
             if updated == 0 && errors.is_empty() {
                 app.add_success(t!("notify.plugin_up_to_date").to_string());

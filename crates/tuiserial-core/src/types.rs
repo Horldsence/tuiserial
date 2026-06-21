@@ -5,6 +5,7 @@
 
 use std::borrow::Cow;
 
+use ratatui::layout::{Constraint, Direction, Layout, Rect};
 use rust_i18n::t;
 use serde::{Deserialize, Serialize};
 
@@ -64,6 +65,45 @@ impl AppendMode {
             AppendMode::CRLF,
             AppendMode::LFCR,
         ]
+    }
+}
+
+/// Convert TX input text when switching between Hex and Ascii mode.
+///
+/// - Hex → Ascii: parse hex pairs into bytes, decode as UTF-8
+/// - Ascii → Hex: encode each byte as %02X with space separators
+pub fn convert_tx_input(input: &str, from_mode: TxMode) -> String {
+    match from_mode {
+        TxMode::Hex => {
+            if input.is_empty() {
+                return String::new();
+            }
+            let cleaned: String = input.chars().filter(|c| !c.is_whitespace()).collect();
+            if cleaned.len().is_multiple_of(2) && cleaned.chars().all(|c| c.is_ascii_hexdigit()) {
+                let bytes: Vec<u8> = cleaned
+                    .chars()
+                    .collect::<Vec<_>>()
+                    .chunks(2)
+                    .filter_map(|chunk| {
+                        u8::from_str_radix(&chunk.iter().collect::<String>(), 16).ok()
+                    })
+                    .collect();
+                String::from_utf8_lossy(&bytes).to_string()
+            } else {
+                String::new()
+            }
+        }
+        TxMode::Ascii => {
+            if input.is_empty() {
+                return String::new();
+            }
+            input
+                .as_bytes()
+                .iter()
+                .map(|b| format!("{:02X}", b))
+                .collect::<Vec<_>>()
+                .join(" ")
+        }
     }
 }
 
@@ -152,6 +192,8 @@ pub enum LayoutMode {
     SplitHorizontal, // Split horizontally (top/bottom)
     SplitVertical,   // Split vertically (left/right)
     Grid2x2,         // 2x2 grid
+    Grid1x2,         // 3 panes: 1 large + 2 small (horizontal)
+    Grid2x1,         // 3 panes: 1 large + 2 small (vertical)
 }
 
 impl LayoutMode {
@@ -161,6 +203,8 @@ impl LayoutMode {
             LayoutMode::SplitHorizontal,
             LayoutMode::SplitVertical,
             LayoutMode::Grid2x2,
+            LayoutMode::Grid1x2,
+            LayoutMode::Grid2x1,
         ]
     }
 
@@ -169,7 +213,9 @@ impl LayoutMode {
             LayoutMode::Single => "Single",
             LayoutMode::SplitHorizontal => "Split Horizontal",
             LayoutMode::SplitVertical => "Split Vertical",
-            LayoutMode::Grid2x2 => "Grid 2x2",
+            LayoutMode::Grid2x2 => "Grid 2×2",
+            LayoutMode::Grid1x2 => "Grid 1×2",
+            LayoutMode::Grid2x1 => "Grid 2×1",
         }
     }
 
@@ -177,7 +223,102 @@ impl LayoutMode {
         match self {
             LayoutMode::Single => 1,
             LayoutMode::SplitHorizontal | LayoutMode::SplitVertical => 2,
+            LayoutMode::Grid1x2 | LayoutMode::Grid2x1 => 3,
             LayoutMode::Grid2x2 => 4,
+        }
+    }
+
+    /// Get the next layout mode in the cycle
+    pub fn next(&self) -> LayoutMode {
+        match self {
+            LayoutMode::Single => LayoutMode::SplitHorizontal,
+            LayoutMode::SplitHorizontal => LayoutMode::SplitVertical,
+            LayoutMode::SplitVertical => LayoutMode::Grid2x2,
+            LayoutMode::Grid2x2 => LayoutMode::Grid1x2,
+            LayoutMode::Grid1x2 => LayoutMode::Grid2x1,
+            LayoutMode::Grid2x1 => LayoutMode::Single,
+        }
+    }
+
+    /// Get the previous layout mode in the cycle
+    pub fn prev(&self) -> LayoutMode {
+        match self {
+            LayoutMode::Single => LayoutMode::Grid2x1,
+            LayoutMode::SplitHorizontal => LayoutMode::Single,
+            LayoutMode::SplitVertical => LayoutMode::SplitHorizontal,
+            LayoutMode::Grid2x2 => LayoutMode::SplitVertical,
+            LayoutMode::Grid1x2 => LayoutMode::Grid2x2,
+            LayoutMode::Grid2x1 => LayoutMode::Grid1x2,
+        }
+    }
+
+    /// Calculate the layout areas for this mode
+    pub fn calculate_areas(&self, area: Rect) -> Vec<Rect> {
+        match self {
+            LayoutMode::Single => vec![area],
+
+            LayoutMode::SplitHorizontal => {
+                let chunks = Layout::default()
+                    .direction(Direction::Vertical)
+                    .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
+                    .split(area);
+                chunks.to_vec()
+            }
+
+            LayoutMode::SplitVertical => {
+                let chunks = Layout::default()
+                    .direction(Direction::Horizontal)
+                    .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
+                    .split(area);
+                chunks.to_vec()
+            }
+
+            LayoutMode::Grid2x2 => {
+                let rows = Layout::default()
+                    .direction(Direction::Vertical)
+                    .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
+                    .split(area);
+
+                let top_cols = Layout::default()
+                    .direction(Direction::Horizontal)
+                    .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
+                    .split(rows[0]);
+
+                let bottom_cols = Layout::default()
+                    .direction(Direction::Horizontal)
+                    .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
+                    .split(rows[1]);
+
+                vec![top_cols[0], top_cols[1], bottom_cols[0], bottom_cols[1]]
+            }
+
+            LayoutMode::Grid1x2 => {
+                let rows = Layout::default()
+                    .direction(Direction::Vertical)
+                    .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
+                    .split(area);
+
+                let bottom_cols = Layout::default()
+                    .direction(Direction::Horizontal)
+                    .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
+                    .split(rows[1]);
+
+                vec![rows[0], bottom_cols[0], bottom_cols[1]]
+            }
+
+            LayoutMode::Grid2x1 => {
+                let cols = Layout::default()
+                    .direction(Direction::Horizontal)
+                    .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
+                    .split(area);
+
+                let right_rows = Layout::default()
+                    .direction(Direction::Vertical)
+                    .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
+                    .split(cols[1]);
+
+                vec![cols[0], right_rows[0], right_rows[1]]
+            }
         }
     }
 }

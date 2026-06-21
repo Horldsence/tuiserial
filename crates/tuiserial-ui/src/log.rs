@@ -3,17 +3,17 @@
 //! This module handles rendering of the log area showing serial communication history.
 
 use ratatui::{
+    Frame,
     layout::{Alignment, Rect},
     style::{Color, Modifier, Style},
     text::{Line, Span},
     widgets::{Block, Borders, Paragraph},
-    Frame,
 };
 use rust_i18n::t;
 use tuiserial_core::{AppState, DisplayMode, FocusedField, LogDirection};
 use tuiserial_serial::{bytes_to_hex, bytes_to_string};
 
-use crate::areas::{update_area, UiAreaField};
+use crate::areas::{UiAreaField, update_area};
 
 /// Draw the log area showing received and transmitted data
 pub fn draw_log_area(f: &mut Frame, app: &AppState, area: Rect) {

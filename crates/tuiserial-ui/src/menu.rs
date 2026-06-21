@@ -4,14 +4,14 @@
 //! All menu structure is now centralized in tuiserial_core::menu_def.
 
 use ratatui::{
+    Frame,
     layout::Rect,
     style::{Color, Modifier, Style},
     text::{Line, Span},
     widgets::{Block, Borders, Clear, List, ListItem, Paragraph},
-    Frame,
 };
 use rust_i18n::t;
-use tuiserial_core::{menu_def::MENU_BAR, AppState, MenuState};
+use tuiserial_core::{AppState, MenuState, menu_def::MENU_BAR};
 
 use crate::utils::display_width;
 
@@ -163,11 +163,7 @@ pub fn draw_menu_dropdown(
 }
 
 /// Find which menu was clicked based on mouse position
-pub fn find_clicked_menu(
-    x: u16,
-    y: u16,
-    menu_bar_area: Rect,
-) -> Option<usize> {
+pub fn find_clicked_menu(x: u16, y: u16, menu_bar_area: Rect) -> Option<usize> {
     // Check if click is within menu bar
     if y != menu_bar_area.y || x < menu_bar_area.x || x >= menu_bar_area.x + menu_bar_area.width {
         return None;

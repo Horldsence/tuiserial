@@ -16,15 +16,14 @@
 //! - `utils`: Utility functions for UI rendering
 
 use ratatui::{
-    layout::{Constraint, Direction, Layout, Rect},
     Frame,
+    layout::{Constraint, Direction, Layout, Rect},
 };
 use tuiserial_core::{AppState, MenuState};
 
 // Module declarations
 mod areas;
 mod config;
-mod help;
 mod log;
 mod menu;
 mod mouse;
@@ -42,14 +41,14 @@ i18n!("../../locales");
 
 // Re-exports for external use
 pub use areas::{
-    get_clicked_field, get_clicked_menu, get_clicked_tab, get_ui_areas, is_inside,
-    is_shortcuts_hint_clicked, update_cursor_state, UiAreas,
+    UiAreas, get_clicked_field, get_clicked_menu, get_clicked_tab, get_ui_areas, is_inside,
+    is_shortcuts_hint_clicked, update_cursor_state,
 };
 pub use crossterm;
 pub use mouse::{
-    calculate_dropdown_area, get_cursor_type, get_hover_style, handle_mouse_click,
-    handle_mouse_hover, handle_mouse_scroll, is_clickable_area, CursorType, MouseAction,
-    ScrollAction, ScrollDirection,
+    CursorType, MouseAction, ScrollAction, ScrollDirection, calculate_dropdown_area,
+    get_cursor_type, get_hover_style, handle_mouse_click, handle_mouse_hover, handle_mouse_scroll,
+    is_clickable_area,
 };
 pub use ratatui;
 pub use shortcuts::{draw_context_shortcuts, draw_shortcuts_help, draw_shortcuts_hint};

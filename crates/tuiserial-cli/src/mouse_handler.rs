@@ -188,11 +188,7 @@ fn handle_left_click(
                     if relative_row < app.parity_options.len() as u16 {
                         app.parity_state.select(Some(relative_row as usize));
                         app.config.parity = app.parity_options[relative_row as usize];
-                        app.add_info(format!(
-                            "{}: {:?}",
-                            t!("notify.parity"),
-                            app.config.parity
-                        ));
+                        app.add_info(format!("{}: {:?}", t!("notify.parity"), app.config.parity));
                     }
                 }
             }

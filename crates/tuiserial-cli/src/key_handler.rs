@@ -89,11 +89,7 @@ fn handle_menu_navigation(
             if key.code == KeyCode::Char('s') && key.modifiers.contains(KeyModifiers::CONTROL) {
                 match app.save_config() {
                     Ok(_) => app.add_success(t!("notify.config_saved").to_string()),
-                    Err(e) => app.add_error(format!(
-                        "{}: {}",
-                        t!("notify.config_save_failed"),
-                        e
-                    )),
+                    Err(e) => app.add_error(format!("{}: {}", t!("notify.config_save_failed"), e)),
                 }
                 return Some(false);
             }
@@ -175,12 +171,51 @@ fn handle_menu_navigation(
     }
 }
 
-/// Handle key events while the plugin modal is open.
+/// Shared: count registry entries matching the current search query.
+fn filtered_registry_count(app: &AppState) -> usize {
+    let query = app.registry_search_query.to_lowercase();
+    if query.is_empty() {
+        app.registry_entries.len()
+    } else {
+        app.registry_entries
+            .iter()
+            .filter(|e| {
+                e.name.to_lowercase().contains(&query)
+                    || e.description
+                        .as_ref()
+                        .map(|d| d.to_lowercase().contains(&query))
+                        .unwrap_or(false)
+            })
+            .count()
+    }
+}
+
+/// Shared: get filtered registry entries matching the current search query.
 #[cfg(feature = "plugin")]
+fn filtered_registry_entries(app: &AppState) -> Vec<&tuiserial_core::RegistryEntry> {
+    let query = app.registry_search_query.to_lowercase();
+    if query.is_empty() {
+        app.registry_entries.iter().collect()
+    } else {
+        app.registry_entries
+            .iter()
+            .filter(|e| {
+                e.name.to_lowercase().contains(&query)
+                    || e.description
+                        .as_ref()
+                        .map(|d| d.to_lowercase().contains(&query))
+                        .unwrap_or(false)
+            })
+            .collect()
+    }
+}
+
+/// Handle key events while the plugin modal is open.
+/// Plugin-specific actions (reload, install) are only compiled with `feature = "plugin"`.
 fn handle_plugin_modal_key(
     key: KeyEvent,
     app: &mut AppState,
-    plugin_manager: &mut PluginManager,
+    #[cfg(feature = "plugin")] plugin_manager: &mut PluginManager,
 ) -> bool {
     match app.plugin_modal_mode {
         PluginModalMode::Local => match key.code {
@@ -189,12 +224,19 @@ fn handle_plugin_modal_key(
                 false
             }
             KeyCode::Char('r') | KeyCode::Char('R') => {
-                match plugin_manager.reload_all() {
-                    Ok(n) => {
-                        sync_plugin_status(app, plugin_manager);
-                        app.add_success(format!("{} plugin(s) reloaded", n));
+                #[cfg(feature = "plugin")]
+                {
+                    match plugin_manager.reload_all() {
+                        Ok(n) => {
+                            sync_plugin_status(app, plugin_manager);
+                            app.add_success(format!("{} plugin(s) reloaded", n));
+                        }
+                        Err(e) => app.add_error(format!("Plugin reload error: {}", e)),
                     }
-                    Err(e) => app.add_error(format!("Plugin reload error: {}", e)),
+                }
+                #[cfg(not(feature = "plugin"))]
+                {
+                    app.add_error(t!("notify.plugin_disabled").to_string());
                 }
                 false
             }
@@ -214,11 +256,7 @@ fn handle_plugin_modal_key(
             _ => false,
         },
         PluginModalMode::Registry => match key.code {
-            KeyCode::Esc => {
-                app.show_plugin_modal = false;
-                false
-            }
-            KeyCode::Char('q') => {
+            KeyCode::Esc | KeyCode::Char('q') => {
                 app.show_plugin_modal = false;
                 false
             }
@@ -229,146 +267,41 @@ fn handle_plugin_modal_key(
                 false
             }
             KeyCode::Down => {
-                let query = app.registry_search_query.to_lowercase();
-                let filtered_count = if query.is_empty() {
-                    app.registry_entries.len()
-                } else {
-                    app.registry_entries
-                        .iter()
-                        .filter(|e| {
-                            e.name.to_lowercase().contains(&query)
-                                || e.description
-                                    .as_ref()
-                                    .map(|d| d.to_lowercase().contains(&query))
-                                    .unwrap_or(false)
-                        })
-                        .count()
-                };
-                let max = filtered_count.saturating_sub(1);
+                let max = filtered_registry_count(app).saturating_sub(1);
                 if app.registry_scroll < max {
                     app.registry_scroll += 1;
                 }
                 false
             }
             KeyCode::Enter => {
-                let query = app.registry_search_query.to_lowercase();
-                let filtered: Vec<&tuiserial_core::RegistryEntry> = if query.is_empty() {
-                    app.registry_entries.iter().collect()
-                } else {
-                    app.registry_entries
-                        .iter()
-                        .filter(|e| {
-                            e.name.to_lowercase().contains(&query)
-                                || e.description
-                                    .as_ref()
-                                    .map(|d| d.to_lowercase().contains(&query))
-                                    .unwrap_or(false)
-                        })
-                        .collect()
-                };
-                if let Some(entry) = filtered.get(app.registry_scroll) {
-                    let target = plugin_manager.plugin_dir().join(&entry.name);
-                    if target.exists() {
-                        app.add_info(format!("{}: already installed", entry.name));
-                    } else {
-                        match plugin_manager.install_plugin_from_cache(&entry.name) {
-                            Ok(()) => {
-                                app.add_success(
-                                    t!("notify.plugin_installed", name = &entry.name),
-                                );
-                                sync_plugin_status(app, plugin_manager);
+                #[cfg(feature = "plugin")]
+                {
+                    let filtered = filtered_registry_entries(app);
+                    if let Some(entry) = filtered.get(app.registry_scroll) {
+                        let target = plugin_manager.plugin_dir().join(&entry.name);
+                        if target.exists() {
+                            app.add_info(format!("{}: already installed", entry.name));
+                        } else {
+                            match plugin_manager.install_plugin_from_cache(&entry.name) {
+                                Ok(()) => {
+                                    app.add_success(t!(
+                                        "notify.plugin_installed",
+                                        name = &entry.name
+                                    ));
+                                    sync_plugin_status(app, plugin_manager);
+                                }
+                                Err(e) => app.add_error(t!(
+                                    "notify.plugin_install_failed",
+                                    error = &e.to_string()
+                                )),
                             }
-                            Err(e) => app.add_error(
-                                t!("notify.plugin_install_failed", error = &e.to_string()),
-                            ),
                         }
                     }
                 }
-                false
-            }
-            KeyCode::Backspace => {
-                app.registry_search_query.pop();
-                app.registry_scroll = 0;
-                false
-            }
-            KeyCode::Char(c) => {
-                app.registry_search_query.push(c);
-                app.registry_scroll = 0;
-                false
-            }
-            _ => false,
-        },
-    }
-}
-
-/// Handle key events while the plugin modal is open (plugin feature disabled).
-/// Navigation still works; plugin actions show a guidance message.
-#[cfg(not(feature = "plugin"))]
-fn handle_plugin_modal_key(key: KeyEvent, app: &mut AppState) -> bool {
-    match app.plugin_modal_mode {
-        PluginModalMode::Local => match key.code {
-            KeyCode::Esc | KeyCode::Char('q') | KeyCode::Char('p') => {
-                app.show_plugin_modal = false;
-                false
-            }
-            KeyCode::Char('r') | KeyCode::Char('R') => {
-                app.add_error(t!("notify.plugin_disabled").to_string());
-                false
-            }
-            KeyCode::Up => {
-                if app.plugin_modal_scroll > 0 {
-                    app.plugin_modal_scroll = app.plugin_modal_scroll.saturating_sub(1);
+                #[cfg(not(feature = "plugin"))]
+                {
+                    app.add_error(t!("notify.plugin_disabled").to_string());
                 }
-                false
-            }
-            KeyCode::Down => {
-                let max = app.plugin_statuses.len().saturating_sub(1);
-                if app.plugin_modal_scroll < max {
-                    app.plugin_modal_scroll += 1;
-                }
-                false
-            }
-            _ => false,
-        },
-        PluginModalMode::Registry => match key.code {
-            KeyCode::Esc => {
-                app.show_plugin_modal = false;
-                false
-            }
-            KeyCode::Char('q') => {
-                app.show_plugin_modal = false;
-                false
-            }
-            KeyCode::Up => {
-                if app.registry_scroll > 0 {
-                    app.registry_scroll = app.registry_scroll.saturating_sub(1);
-                }
-                false
-            }
-            KeyCode::Down => {
-                let query = app.registry_search_query.to_lowercase();
-                let filtered_count = if query.is_empty() {
-                    app.registry_entries.len()
-                } else {
-                    app.registry_entries
-                        .iter()
-                        .filter(|e| {
-                            e.name.to_lowercase().contains(&query)
-                                || e.description
-                                    .as_ref()
-                                    .map(|d| d.to_lowercase().contains(&query))
-                                    .unwrap_or(false)
-                        })
-                        .count()
-                };
-                let max = filtered_count.saturating_sub(1);
-                if app.registry_scroll < max {
-                    app.registry_scroll += 1;
-                }
-                false
-            }
-            KeyCode::Enter => {
-                app.add_error(t!("notify.plugin_disabled").to_string());
                 false
             }
             KeyCode::Backspace => {

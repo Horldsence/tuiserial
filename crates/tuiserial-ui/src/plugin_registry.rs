@@ -1,11 +1,11 @@
 //! Plugin registry view — searchable list of available plugins from the remote registry.
 
 use ratatui::{
+    Frame,
     layout::{Alignment, Rect},
     style::{Color, Modifier, Style},
     text::{Line, Span},
     widgets::{Block, Borders, Paragraph, Row, Table, TableState},
-    Frame,
 };
 use rust_i18n::t;
 use tuiserial_core::AppState;
@@ -141,7 +141,9 @@ fn draw_registry_table(f: &mut Frame, app: &AppState, area: Rect) {
     let visible_rows = area.height.saturating_sub(header_height) as usize;
     let total = filtered.len();
 
-    let scroll = app.registry_scroll.min(total.saturating_sub(visible_rows.max(1)));
+    let scroll = app
+        .registry_scroll
+        .min(total.saturating_sub(visible_rows.max(1)));
 
     let mut table_state = TableState::default();
     if total > 0 {
@@ -202,10 +204,7 @@ fn registry_row<'a>(
     desc_w: usize,
     author_w: usize,
 ) -> Row<'a> {
-    let installed = app
-        .plugin_statuses
-        .iter()
-        .any(|s| s.name == entry.name);
+    let installed = app.plugin_statuses.iter().any(|s| s.name == entry.name);
 
     let name_display = if installed {
         format!("{} ✓", entry.name)
@@ -218,20 +217,14 @@ fn registry_row<'a>(
         Style::default().fg(Color::White)
     };
 
-    let desc = entry
-        .description
-        .as_deref()
-        .unwrap_or("—");
+    let desc = entry.description.as_deref().unwrap_or("—");
     let desc_display = if desc.len() > desc_w {
         format!("{}…", &desc[..desc_w.saturating_sub(1)])
     } else {
         desc.to_string()
     };
 
-    let author = entry
-        .author
-        .as_deref()
-        .unwrap_or("—");
+    let author = entry.author.as_deref().unwrap_or("—");
     let author_display = if author.len() > author_w {
         format!("{}…", &author[..author_w.saturating_sub(1)])
     } else {

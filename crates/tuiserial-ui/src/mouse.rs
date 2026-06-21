@@ -58,14 +58,14 @@ pub fn handle_mouse_click(
     if let MenuState::Dropdown(menu_idx, _) = app.menu_state
         && let Some(dropdown_area) = menu_dropdown_area
     {
-            if is_inside(dropdown_area, x, y) {
-                // Clicked inside dropdown - determine which item
-                let item_idx = calculate_dropdown_item(dropdown_area, y);
-                return MouseAction::SelectMenuItem(menu_idx, item_idx);
-            } else {
-                // Clicked outside dropdown - close it
-                return MouseAction::CloseMenu;
-            }
+        if is_inside(dropdown_area, x, y) {
+            // Clicked inside dropdown - determine which item
+            let item_idx = calculate_dropdown_item(dropdown_area, y);
+            return MouseAction::SelectMenuItem(menu_idx, item_idx);
+        } else {
+            // Clicked outside dropdown - close it
+            return MouseAction::CloseMenu;
+        }
     }
 
     // Check menu bar
@@ -153,11 +153,7 @@ fn calculate_dropdown_item(dropdown_area: Rect, y: u16) -> usize {
 }
 
 /// Get the area for a dropdown menu
-pub fn calculate_dropdown_area(
-    menu_bar_area: Rect,
-    menu_idx: usize,
-    item_count: usize,
-) -> Rect {
+pub fn calculate_dropdown_area(menu_bar_area: Rect, menu_idx: usize, item_count: usize) -> Rect {
     // Calculate x position based on menu index using centralized calculation
     let x_offset = tuiserial_core::menu_def::calculate_menu_x_offset(menu_idx);
 

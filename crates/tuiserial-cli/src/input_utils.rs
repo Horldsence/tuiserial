@@ -2,10 +2,8 @@
 
 use tuiserial_core::{AppState, FocusedField, TxMode};
 
-/// Calculate display width of a string (handles CJK characters).
-pub fn display_width(s: &str) -> usize {
-    s.chars().map(|c| if c.is_ascii() { 1 } else { 2 }).sum()
-}
+// Re-export display_width from core to avoid duplication
+pub use tuiserial_core::display_width;
 
 /// Rebuild hex-mode input with auto-spacing: extract hex digits, group in pairs with spaces.
 /// Preserves cursor position relative to hex content.

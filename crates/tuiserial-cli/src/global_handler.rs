@@ -56,18 +56,13 @@ pub fn handle_global_key(
                             #[cfg(feature = "plugin")]
                             plugin_manager.on_connect(&app.config);
                             app.add_success(
-                                t!("notify.connected_locked", port = &app.config.port)
-                                    .to_string(),
+                                t!("notify.connected_locked", port = &app.config.port).to_string(),
                             );
                         }
                         Err(e) => {
                             app.is_connected = false;
                             app.unlock_config();
-                            app.add_error(format!(
-                                "{}: {}",
-                                t!("notify.connection_failed"),
-                                e
-                            ));
+                            app.add_error(format!("{}: {}", t!("notify.connection_failed"), e));
                         }
                     }
                 }
@@ -127,11 +122,7 @@ pub fn handle_global_key(
             } else {
                 t!("notify.disabled")
             };
-            app.add_info(format!(
-                "{}: {}",
-                t!("notify.auto_scroll"),
-                status
-            ));
+            app.add_info(format!("{}: {}", t!("notify.auto_scroll"), status));
             false
         }
 
@@ -144,11 +135,7 @@ pub fn handle_global_key(
         KeyCode::Char('f') => {
             if app.toggle_flow_control() {
                 let flow_str = format!("{:?}", app.config.flow_control);
-                app.add_info(format!(
-                    "{}: {}",
-                    t!("notify.flow_control"),
-                    flow_str
-                ));
+                app.add_info(format!("{}: {}", t!("notify.flow_control"), flow_str));
             } else {
                 app.add_warning(t!("notify.config_locked_warning").to_string());
             }
@@ -283,11 +270,7 @@ fn handle_field_up(app: &mut AppState) {
                 DisplayMode::Hex => "HEX",
                 DisplayMode::Text => "TEXT",
             };
-            app.add_info(format!(
-                "{}: {}",
-                t!("notify.display_mode"),
-                mode_str
-            ));
+            app.add_info(format!("{}: {}", t!("notify.display_mode"), mode_str));
         }
         _ => {}
     }
@@ -376,11 +359,7 @@ fn handle_field_down(app: &mut AppState) {
                 DisplayMode::Hex => "HEX",
                 DisplayMode::Text => "TEXT",
             };
-            app.add_info(format!(
-                "{}: {}",
-                t!("notify.display_mode"),
-                mode_str
-            ));
+            app.add_info(format!("{}: {}", t!("notify.display_mode"), mode_str));
         }
         _ => {}
     }

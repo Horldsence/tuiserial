@@ -4,15 +4,15 @@
 //! port selection, baud rate, data bits, parity, stop bits, and flow control.
 
 use ratatui::{
+    Frame,
     layout::Rect,
     style::{Color, Modifier, Style},
     widgets::{Block, Borders, List, ListItem, Paragraph},
-    Frame,
 };
 use rust_i18n::t;
 use tuiserial_core::{AppState, FlowControl, FocusedField, Language, MenuState, Parity};
 
-use crate::areas::{update_area, UiAreaField};
+use crate::areas::{UiAreaField, update_area};
 
 /// Draw the serial port selection dropdown
 pub fn draw_port_dropdown(f: &mut Frame, app: &AppState, area: Rect) {
@@ -109,17 +109,9 @@ pub fn draw_baud_rate_dropdown(f: &mut Frame, app: &AppState, area: Rect) {
     let is_locked = app.config_locked;
 
     let title = if is_locked {
-        format!(
-            " {} [{}] ",
-            t!("label.baud_rate"),
-            t!("label.locked")
-        )
+        format!(" {} [{}] ", t!("label.baud_rate"), t!("label.locked"))
     } else if focused {
-        format!(
-            " {} [←→ {}] ",
-            t!("label.baud_rate"),
-            t!("hint.switch")
-        )
+        format!(" {} [←→ {}] ", t!("label.baud_rate"), t!("hint.switch"))
     } else {
         format!(" {} ", t!("label.baud_rate"))
     };
@@ -168,17 +160,9 @@ pub fn draw_data_bits_dropdown(f: &mut Frame, app: &AppState, area: Rect) {
     let is_locked = app.config_locked;
 
     let title = if is_locked {
-        format!(
-            " {} [{}] ",
-            t!("label.data_bits"),
-            t!("label.locked")
-        )
+        format!(" {} [{}] ", t!("label.data_bits"), t!("label.locked"))
     } else if focused {
-        format!(
-            " {} [↑↓ {}] ",
-            t!("label.data_bits"),
-            t!("hint.select")
-        )
+        format!(" {} [↑↓ {}] ", t!("label.data_bits"), t!("hint.select"))
     } else {
         format!(" {} ", t!("label.data_bits"))
     };
@@ -227,11 +211,7 @@ pub fn draw_parity_dropdown(f: &mut Frame, app: &AppState, area: Rect) {
     let is_locked = app.config_locked;
 
     let title = if is_locked {
-        format!(
-            " {} [{}] ",
-            t!("label.parity"),
-            t!("label.locked")
-        )
+        format!(" {} [{}] ", t!("label.parity"), t!("label.locked"))
     } else if focused {
         format!(
             " {} [↑↓ {} | p {}] ",
@@ -294,17 +274,9 @@ pub fn draw_stop_bits_dropdown(f: &mut Frame, app: &AppState, area: Rect) {
     let is_locked = app.config_locked;
 
     let title = if is_locked {
-        format!(
-            " {} [{}] ",
-            t!("label.stop_bits"),
-            t!("label.locked")
-        )
+        format!(" {} [{}] ", t!("label.stop_bits"), t!("label.locked"))
     } else if focused {
-        format!(
-            " {} [↑↓ {}] ",
-            t!("label.stop_bits"),
-            t!("hint.select")
-        )
+        format!(" {} [↑↓ {}] ", t!("label.stop_bits"), t!("hint.select"))
     } else {
         format!(" {} ", t!("label.stop_bits"))
     };
@@ -353,11 +325,7 @@ pub fn draw_flow_control_dropdown(f: &mut Frame, app: &AppState, area: Rect) {
     let is_locked = app.config_locked;
 
     let title = if is_locked {
-        format!(
-            " {} [{}] ",
-            t!("label.flow_control"),
-            t!("label.locked")
-        )
+        format!(" {} [{}] ", t!("label.flow_control"), t!("label.locked"))
     } else if focused {
         format!(
             " {} [↑↓ {} | f {}] ",

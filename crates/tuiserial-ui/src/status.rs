@@ -4,16 +4,16 @@
 //! and the control area showing statistics.
 
 use ratatui::{
+    Frame,
     layout::{Alignment, Rect},
     style::{Color, Modifier, Style},
     text::{Line, Span},
     widgets::{Block, Borders, Paragraph},
-    Frame,
 };
 use rust_i18n::t;
 use tuiserial_core::{AppState, Parity};
 
-use crate::areas::{update_area, UiAreaField};
+use crate::areas::{UiAreaField, update_area};
 
 /// Draw the connection status panel
 pub fn draw_status_panel(f: &mut Frame, app: &AppState, area: Rect) {
@@ -175,11 +175,7 @@ pub fn draw_control_area(f: &mut Frame, app: &AppState, area: Rect) {
         ),
         Span::raw("│ "),
         Span::styled(
-            format!(
-                "{} {}",
-                auto_scroll_icon,
-                t!("hint.auto_scroll")
-            ),
+            format!("{} {}", auto_scroll_icon, t!("hint.auto_scroll")),
             if app.auto_scroll {
                 Style::default().fg(Color::Green)
             } else {
@@ -210,9 +206,7 @@ pub fn draw_control_area(f: &mut Frame, app: &AppState, area: Rect) {
         final_stats.push(Span::raw(" "));
         final_stats.push(Span::styled(
             format!("✗{}", app.plugin_error_count),
-            Style::default()
-                .fg(Color::Red)
-                .add_modifier(Modifier::BOLD),
+            Style::default().fg(Color::Red).add_modifier(Modifier::BOLD),
         ));
     }
 

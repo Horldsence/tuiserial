@@ -31,7 +31,7 @@ pub use notification::{Notification, NotificationLevel};
 pub use state::{AppState, PluginLoadStatus, PluginMetadataSimple};
 pub use types::{
     AppendMode, DisplayMode, FlowControl, FocusedField, Language, MenuState, Parity,
-    PluginLoadState, PluginModalMode, RegistryEntry, TxMode,
+    PluginLoadState, PluginModalMode, RegistryEntry, TxMode, convert_tx_input,
 };
 
 // Utility functions

@@ -364,48 +364,11 @@ impl AppState {
 
     /// Toggle transmission mode, converting existing input when switching
     pub fn toggle_tx_mode(&mut self) {
-        match self.tx_mode {
-            TxMode::Hex => {
-                // HEX → ASCII: parse hex pairs into bytes, convert to string
-                if !self.tx_input.is_empty() {
-                    let cleaned: String = self
-                        .tx_input
-                        .chars()
-                        .filter(|c| !c.is_whitespace())
-                        .collect();
-                    if cleaned.len().is_multiple_of(2)
-                        && cleaned.chars().all(|c| c.is_ascii_hexdigit())
-                    {
-                        let bytes: Vec<u8> = cleaned
-                            .chars()
-                            .collect::<Vec<_>>()
-                            .chunks(2)
-                            .filter_map(|chunk| {
-                                u8::from_str_radix(&chunk.iter().collect::<String>(), 16).ok()
-                            })
-                            .collect();
-                        // Convert bytes to string, replacing invalid UTF-8 with replacement char
-                        self.tx_input = String::from_utf8_lossy(&bytes).to_string();
-                    } else {
-                        self.tx_input.clear();
-                    }
-                }
-                self.tx_mode = TxMode::Ascii;
-            }
-            TxMode::Ascii => {
-                // ASCII → HEX: encode each byte as %02X with space separators
-                if !self.tx_input.is_empty() {
-                    self.tx_input = self
-                        .tx_input
-                        .as_bytes()
-                        .iter()
-                        .map(|b| format!("{:02X}", b))
-                        .collect::<Vec<_>>()
-                        .join(" ");
-                }
-                self.tx_mode = TxMode::Hex;
-            }
-        }
+        self.tx_input = crate::types::convert_tx_input(&self.tx_input, self.tx_mode);
+        self.tx_mode = match self.tx_mode {
+            TxMode::Hex => TxMode::Ascii,
+            TxMode::Ascii => TxMode::Hex,
+        };
         self.tx_cursor = self.tx_input.chars().count();
     }
 

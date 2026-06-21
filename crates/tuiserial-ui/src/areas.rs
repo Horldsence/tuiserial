@@ -2,12 +2,13 @@
 //!
 //! This module manages UI area definitions and mouse click detection for interactive elements.
 
+use std::cell::RefCell;
+
 use ratatui::layout::Rect;
 use tuiserial_core::FocusedField;
 
 /// UI area rectangles for mouse interaction
-#[derive(Debug, Clone, Copy)]
-#[derive(Default)]
+#[derive(Debug, Clone, Copy, Default)]
 pub struct UiAreas {
     pub menu_bar: Rect,
     pub port: Rect,
@@ -30,138 +31,44 @@ pub struct UiAreas {
     pub show_cursor: bool,
 }
 
+// Thread-local storage for UI areas (single-threaded terminal application)
+thread_local! {
+    static UI_AREAS: RefCell<UiAreas> = RefCell::new(UiAreas::default());
+}
 
-// Global static for UI areas (thread-local would be better in production)
-static mut UI_AREAS: UiAreas = UiAreas {
-    menu_bar: Rect {
-        x: 0,
-        y: 0,
-        width: 0,
-        height: 0,
-    },
-    port: Rect {
-        x: 0,
-        y: 0,
-        width: 0,
-        height: 0,
-    },
-    baud_rate: Rect {
-        x: 0,
-        y: 0,
-        width: 0,
-        height: 0,
-    },
-    data_bits: Rect {
-        x: 0,
-        y: 0,
-        width: 0,
-        height: 0,
-    },
-    parity: Rect {
-        x: 0,
-        y: 0,
-        width: 0,
-        height: 0,
-    },
-    stop_bits: Rect {
-        x: 0,
-        y: 0,
-        width: 0,
-        height: 0,
-    },
-    flow_control: Rect {
-        x: 0,
-        y: 0,
-        width: 0,
-        height: 0,
-    },
-    status_panel: Rect {
-        x: 0,
-        y: 0,
-        width: 0,
-        height: 0,
-    },
-    log_area: Rect {
-        x: 0,
-        y: 0,
-        width: 0,
-        height: 0,
-    },
-    tx_area: Rect {
-        x: 0,
-        y: 0,
-        width: 0,
-        height: 0,
-    },
-    control_area: Rect {
-        x: 0,
-        y: 0,
-        width: 0,
-        height: 0,
-    },
-    notification_area: Rect {
-        x: 0,
-        y: 0,
-        width: 0,
-        height: 0,
-    },
-    shortcuts_hint: Rect {
-        x: 0,
-        y: 0,
-        width: 0,
-        height: 0,
-    },
-    tab_bar: Rect {
-        x: 0,
-        y: 0,
-        width: 0,
-        height: 0,
-    },
-    plugin_modal: Rect {
-        x: 0,
-        y: 0,
-        width: 0,
-        height: 0,
-    },
-    cursor_x: 0,
-    cursor_y: 0,
-    show_cursor: false,
-};
-
-/// Get the UI areas for mouse interaction
+/// Get a copy of the current UI areas
 pub fn get_ui_areas() -> UiAreas {
-    unsafe { UI_AREAS }
+    UI_AREAS.with(|a| *a.borrow())
 }
 
 /// Update UI areas (called during rendering)
 #[allow(dead_code)]
 pub fn update_ui_areas(areas: UiAreas) {
-    unsafe {
-        UI_AREAS = areas;
-    }
+    UI_AREAS.with(|a| *a.borrow_mut() = areas);
 }
 
-/// Update specific UI area fields
+/// Update specific UI area field
 pub fn update_area(field: UiAreaField, rect: Rect) {
-    unsafe {
+    UI_AREAS.with(|a| {
+        let mut areas = a.borrow_mut();
         match field {
-            UiAreaField::MenuBar => UI_AREAS.menu_bar = rect,
-            UiAreaField::Port => UI_AREAS.port = rect,
-            UiAreaField::BaudRate => UI_AREAS.baud_rate = rect,
-            UiAreaField::DataBits => UI_AREAS.data_bits = rect,
-            UiAreaField::Parity => UI_AREAS.parity = rect,
-            UiAreaField::StopBits => UI_AREAS.stop_bits = rect,
-            UiAreaField::FlowControl => UI_AREAS.flow_control = rect,
-            UiAreaField::StatusPanel => UI_AREAS.status_panel = rect,
-            UiAreaField::LogArea => UI_AREAS.log_area = rect,
-            UiAreaField::TxArea => UI_AREAS.tx_area = rect,
-            UiAreaField::ControlArea => UI_AREAS.control_area = rect,
-            UiAreaField::NotificationArea => UI_AREAS.notification_area = rect,
-            UiAreaField::ShortcutsHint => UI_AREAS.shortcuts_hint = rect,
-            UiAreaField::TabBar => UI_AREAS.tab_bar = rect,
-            UiAreaField::PluginModal => UI_AREAS.plugin_modal = rect,
+            UiAreaField::MenuBar => areas.menu_bar = rect,
+            UiAreaField::Port => areas.port = rect,
+            UiAreaField::BaudRate => areas.baud_rate = rect,
+            UiAreaField::DataBits => areas.data_bits = rect,
+            UiAreaField::Parity => areas.parity = rect,
+            UiAreaField::StopBits => areas.stop_bits = rect,
+            UiAreaField::FlowControl => areas.flow_control = rect,
+            UiAreaField::StatusPanel => areas.status_panel = rect,
+            UiAreaField::LogArea => areas.log_area = rect,
+            UiAreaField::TxArea => areas.tx_area = rect,
+            UiAreaField::ControlArea => areas.control_area = rect,
+            UiAreaField::NotificationArea => areas.notification_area = rect,
+            UiAreaField::ShortcutsHint => areas.shortcuts_hint = rect,
+            UiAreaField::TabBar => areas.tab_bar = rect,
+            UiAreaField::PluginModal => areas.plugin_modal = rect,
         }
-    }
+    });
 }
 
 /// UI area field identifiers
@@ -186,11 +93,12 @@ pub enum UiAreaField {
 
 /// Update terminal cursor position and visibility (called during rendering)
 pub fn update_cursor_state(x: u16, y: u16, show: bool) {
-    unsafe {
-        UI_AREAS.cursor_x = x;
-        UI_AREAS.cursor_y = y;
-        UI_AREAS.show_cursor = show;
-    }
+    UI_AREAS.with(|a| {
+        let mut areas = a.borrow_mut();
+        areas.cursor_x = x;
+        areas.cursor_y = y;
+        areas.show_cursor = show;
+    });
 }
 
 /// Check if a point is inside a rectangle
@@ -231,8 +139,6 @@ pub fn get_clicked_menu(x: u16, y: u16) -> Option<usize> {
         return None;
     }
 
-    // Menu positions (approximate, based on menu text width)
-    // File(0-6), Session(8-16), View(18-24), Settings(26-35), Help(37-42)
     let relative_x = x.saturating_sub(areas.menu_bar.x);
 
     if relative_x < 7 {

@@ -2,13 +2,8 @@
 //!
 //! This module provides helper functions used across the UI components.
 
-/// Calculate display width of a string (handles CJK characters)
-///
-/// CJK (Chinese, Japanese, Korean) characters take up 2 display columns,
-/// while ASCII characters take up 1 column.
-pub fn display_width(s: &str) -> usize {
-    s.chars().map(|c| if c.is_ascii() { 1 } else { 2 }).sum()
-}
+// Re-export display_width from core to avoid duplication
+pub use tuiserial_core::display_width;
 
 #[cfg(test)]
 mod tests {

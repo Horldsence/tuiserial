@@ -4,16 +4,16 @@
 //! showing temporary messages with different severity levels.
 
 use ratatui::{
+    Frame,
     layout::{Alignment, Rect},
     style::{Color, Modifier, Style},
     text::{Line, Span},
     widgets::{Block, Borders, Paragraph},
-    Frame,
 };
 use rust_i18n::t;
 use tuiserial_core::{AppState, NotificationLevel};
 
-use crate::areas::{update_area, UiAreaField};
+use crate::areas::{UiAreaField, update_area};
 
 /// Draw the notification bar at the bottom
 pub fn draw_notification_bar(f: &mut Frame, app: &AppState, area: Rect) {

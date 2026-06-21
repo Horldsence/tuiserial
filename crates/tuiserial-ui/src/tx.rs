@@ -4,16 +4,16 @@
 //! the input box for data entry and the append mode selector.
 
 use ratatui::{
+    Frame,
     layout::{Alignment, Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style},
     text::{Line, Span},
     widgets::{Block, Borders, List, ListItem, Paragraph, Wrap},
-    Frame,
 };
 use rust_i18n::t;
-use tuiserial_core::{display_width, AppState, FocusedField, TxMode};
+use tuiserial_core::{AppState, FocusedField, TxMode, display_width};
 
-use crate::areas::{update_area, update_cursor_state, UiAreaField};
+use crate::areas::{UiAreaField, update_area, update_cursor_state};
 
 /// Draw the transmit input area
 pub fn draw_tx_area(f: &mut Frame, app: &AppState, area: Rect) {
@@ -54,12 +54,7 @@ fn draw_tx_input(f: &mut Frame, app: &AppState, area: Rect) {
             t!("hint.clear")
         )
     } else {
-        format!(
-            " {} {} - {} ",
-            mode_icon,
-            t!("label.send"),
-            mode_str
-        )
+        format!(" {} {} - {} ", mode_icon, t!("label.send"), mode_str)
     };
 
     let style = if focused {

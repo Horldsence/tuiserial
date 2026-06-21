@@ -8,14 +8,6 @@
 
 use rust_i18n::t;
 
-/// Calculate display width of a string (handles CJK characters)
-///
-/// CJK (Chinese, Japanese, Korean) characters take up 2 display columns,
-/// while ASCII characters take up 1 column.
-fn display_width(s: &str) -> usize {
-    s.chars().map(|c| if c.is_ascii() { 1 } else { 2 }).sum()
-}
-
 /// Menu action that can be triggered
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum MenuAction {
@@ -232,7 +224,7 @@ pub fn calculate_menu_x_offset(menu_index: usize) -> u16 {
         if let Some(label_key) = MENU_BAR.get_menu_label_key(i) {
             let label = t!(label_key);
             // Each menu has format " Label " (label + 2 spaces for padding + 2 spaces between menus)
-            offset += display_width(&label) as u16 + 4;
+            offset += crate::display_width(&label) as u16 + 4;
         }
     }
     offset
@@ -247,7 +239,7 @@ pub fn find_clicked_menu(x: u16) -> Option<usize> {
         } else {
             continue;
         };
-        let menu_width = display_width(&label) as u16 + 4; // "  Label  " (2 spaces padding + 2 spaces between menus)
+        let menu_width = crate::display_width(&label) as u16 + 4; // "  Label  " (2 spaces padding + 2 spaces between menus)
 
         if x >= current_x && x < current_x + menu_width {
             return Some(i);
